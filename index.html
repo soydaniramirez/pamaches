@@ -856,6 +856,50 @@ body::before {
 .tl-note { font-family:'Caveat',cursive; font-size:0.95rem; color:var(--tinta-soft); margin-top:3px; }
 .tl-del { background:none; border:none; color:var(--tinta-soft); font-size:0.95rem; cursor:pointer; float:right; }
 
+/* meta de ahorro dentro del hito */
+.tl-meta {
+  margin-top:10px; padding-top:10px; border-top:1.5px dashed var(--tinta-soft);
+}
+.tl-meta-top {
+  display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px;
+}
+.tl-meta-monto { font-family:'Fraunces',serif; font-weight:600; font-size:1.05rem; color:var(--vino); }
+.tl-meta-objetivo { font-family:'Manrope',sans-serif; font-size:0.82rem; color:var(--tinta-soft); }
+.tl-meta-bar {
+  height:12px; background:rgba(42,24,32,0.1); border-radius:7px; overflow:hidden;
+  border:1.3px solid var(--tinta);
+}
+.tl-meta-bar-fill {
+  height:100%; background:linear-gradient(90deg, var(--coral), var(--rosa));
+  border-radius:5px; transition:width 0.6s ease;
+}
+.tl-meta-actions { display:flex; gap:7px; margin-top:8px; }
+.tl-meta-btn {
+  flex:1; padding:7px; border:1.5px solid var(--tinta); border-radius:11px;
+  font-family:'Caveat',cursive; font-size:0.95rem; cursor:pointer; background:var(--crema);
+  color:var(--vino);
+}
+.tl-meta-btn.primary { background:var(--vino); color:var(--crema); }
+.tl-meta-status {
+  font-family:'Caveat',cursive; font-size:0.92rem; color:var(--verde);
+  margin-top:5px; text-align:center;
+}
+.tl-meta-falta {
+  font-family:'Caveat',cursive; font-size:0.9rem; color:var(--tinta-soft);
+  margin-top:4px; text-align:center;
+}
+
+/* lista de abonos en modal */
+.abono-item {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:9px 0; border-bottom:1px dashed var(--tinta-soft);
+}
+.abono-item:last-child { border-bottom:none; }
+.abono-info { flex:1; min-width:0; }
+.abono-monto { font-family:'Fraunces',serif; font-weight:500; font-size:0.95rem; color:var(--vino); }
+.abono-meta { font-family:'Caveat',cursive; font-size:0.88rem; color:var(--tinta-soft); }
+.abono-del { background:none; border:none; color:var(--tinta-soft); font-size:0.9rem; cursor:pointer; }
+
 /* ============ NO NEGOCIABLES ============ */
 .nn-tabs {
   display:flex; gap:6px; margin-bottom:16px; padding:4px;
@@ -1895,7 +1939,7 @@ body::before {
   <!-- ============ MODAL FUTURO ============ -->
   <div class="modal-overlay" id="futuro-modal">
     <div class="modal">
-      <div class="modal-title">nuevo hito</div>
+      <div class="modal-title" id="futuro-modal-title">nuevo hito</div>
       <div class="modal-sub">algo que quieran lograr juntos</div>
       <div class="mfield">
         <div class="mfield-label">¿qué hito?</div>
@@ -1909,9 +1953,52 @@ body::before {
         <div class="mfield-label">nota (opcional)</div>
         <input type="text" id="futuro-nota" class="input" placeholder="algún detalle...">
       </div>
+      <div class="mfield">
+        <div class="mfield-label">¿lleva meta de ahorro?</div>
+        <div class="radio-row" id="futuro-meta-radio">
+          <button class="radio-opt selected" onclick="selFuturoMeta(false)">no, solo es un hito</button>
+          <button class="radio-opt" onclick="selFuturoMeta(true)">sí, vamos a ahorrar</button>
+        </div>
+      </div>
+      <div class="mfield" id="futuro-meta-field" style="display:none;">
+        <div class="mfield-label">¿cuánto quieren juntar?</div>
+        <input type="number" id="futuro-meta-monto" class="input" placeholder="ej. 30000" inputmode="decimal">
+      </div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModal('futuro-modal')">cancelar</button>
         <button class="btn" id="futuro-save-btn" onclick="saveFuturo()">guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL ABONO ============ -->
+  <div class="modal-overlay" id="abono-modal">
+    <div class="modal">
+      <div class="modal-title">abonar a la meta</div>
+      <div class="modal-sub" id="abono-sub">cuánto le metemos hoy</div>
+      <div class="mfield">
+        <div class="mfield-label">¿cuánto abonan?</div>
+        <input type="number" id="abono-monto" class="input" placeholder="0" inputmode="decimal">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">nota (opcional)</div>
+        <input type="text" id="abono-nota" class="input" placeholder="ej. de los ahorros del mes">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('abono-modal')">cancelar</button>
+        <button class="btn" id="abono-save-btn" onclick="saveAbono()">abonar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL HISTORIAL ABONOS ============ -->
+  <div class="modal-overlay" id="abonos-hist-modal">
+    <div class="modal">
+      <div class="modal-title">abonos de la meta</div>
+      <div class="modal-sub" id="abonos-hist-sub">todo lo que han juntado</div>
+      <div id="abonos-hist-list"><div class="center-msg">cargando...</div></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('abonos-hist-modal')">cerrar</button>
       </div>
     </div>
   </div>
@@ -4066,13 +4153,26 @@ function iniciarTimer() {
 // FUTURO NOSOTROS
 // ============================================
 let FUTURO = [];
+let ABONOS = [];           // todos los abonos a metas
+let futuroEditandoId = null;
+let futuroMetaForm = false;
+let abonoMetaId = null;    // hito al que se está abonando
 
 async function cargarFuturo() {
   const { data, error } = await sb.from('future')
     .select('*').order('orden',{ascending:true}).order('creado',{ascending:true});
   if (error) { console.error(error); return; }
   FUTURO = data || [];
+  // cargar abonos
+  const { data: ab } = await sb.from('meta_abonos').select('*').order('creado',{ascending:false});
+  ABONOS = ab || [];
   renderFuturo();
+}
+
+// suma de abonos de un hito
+function ahorradoDe(futureId) {
+  return ABONOS.filter(a => a.future_id === futureId)
+    .reduce((s,a) => s + parseFloat(a.monto), 0);
 }
 
 function renderFuturo() {
@@ -4081,16 +4181,45 @@ function renderFuturo() {
     cont.innerHTML = `<div class="mov-empty" style="padding-left:0;"><img src="pamache.png" alt="">aún no hay hitos.<br>toca el + para soñar el primero</div>`;
     return;
   }
-  cont.innerHTML = FUTURO.map(f => `
+  cont.innerHTML = FUTURO.map(f => {
+    let metaHtml = '';
+    if (f.tiene_meta && f.meta_monto) {
+      const meta = parseFloat(f.meta_monto);
+      const ahorrado = ahorradoDe(f.id);
+      const pct = meta > 0 ? Math.min(100, (ahorrado/meta)*100) : 0;
+      const completa = ahorrado >= meta;
+      let statusHtml;
+      if (completa) {
+        statusHtml = `<div class="tl-meta-status">¡meta completa! 🎉</div>`;
+      } else {
+        statusHtml = `<div class="tl-meta-falta">faltan ${fmtDinero(meta-ahorrado)}</div>`;
+      }
+      metaHtml = `
+        <div class="tl-meta">
+          <div class="tl-meta-top">
+            <span class="tl-meta-monto">${fmtDinero(ahorrado)}</span>
+            <span class="tl-meta-objetivo">de ${fmtDinero(meta)}</span>
+          </div>
+          <div class="tl-meta-bar"><div class="tl-meta-bar-fill" style="width:${pct}%"></div></div>
+          ${statusHtml}
+          <div class="tl-meta-actions">
+            <button class="tl-meta-btn" onclick="openAbonosHist('${f.id}')">ver abonos</button>
+            <button class="tl-meta-btn primary" onclick="openAbonoModal('${f.id}')">abonar</button>
+          </div>
+        </div>`;
+    }
+    return `
     <div class="tl-item">
       <button class="tl-dot ${f.logrado?'done':''}" onclick="toggleFuturo('${f.id}', ${f.logrado})"></button>
       <div class="tl-card">
         <button class="tl-del" onclick="borrarFuturo('${f.id}')">✕</button>
         ${f.cuando ? `<div class="tl-when">${escapeHtml(f.cuando)}</div>` : ''}
-        <div class="tl-what ${f.logrado?'done':''}">${escapeHtml(f.titulo)}</div>
+        <div class="tl-what ${f.logrado?'done':''}" onclick="openFuturoModal('${f.id}')" style="cursor:pointer;">${escapeHtml(f.titulo)}</div>
         ${f.nota ? `<div class="tl-note">${escapeHtml(f.nota)}</div>` : ''}
+        ${metaHtml}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function toggleFuturo(id, estaba) {
@@ -4101,19 +4230,33 @@ async function toggleFuturo(id, estaba) {
 }
 
 async function borrarFuturo(id) {
-  if (!confirm('¿borrar este hito?')) return;
+  if (!confirm('¿borrar este hito? si tiene meta, sus abonos también se borran')) return;
   const { error } = await sb.from('future').delete().eq('id', id);
   if (error) { toast('no se pudo borrar'); return; }
   toast('hito borrado');
   await cargarFuturo();
 }
 
-function openFuturoModal() {
-  $('futuro-titulo').value = '';
-  $('futuro-cuando').value = '';
-  $('futuro-nota').value = '';
+function openFuturoModal(id) {
+  futuroEditandoId = (typeof id === 'string') ? id : null;
+  const f = futuroEditandoId ? FUTURO.find(x => x.id === futuroEditandoId) : null;
+  $('futuro-modal-title').textContent = f ? 'editar hito' : 'nuevo hito';
+  $('futuro-titulo').value = f ? f.titulo : '';
+  $('futuro-cuando').value = f ? (f.cuando||'') : '';
+  $('futuro-nota').value = f ? (f.nota||'') : '';
+  futuroMetaForm = f ? !!f.tiene_meta : false;
+  selFuturoMeta(futuroMetaForm);
+  $('futuro-meta-monto').value = (f && f.meta_monto) ? f.meta_monto : '';
   $('futuro-modal').classList.add('active');
   setTimeout(() => $('futuro-titulo').focus(), 200);
+}
+
+function selFuturoMeta(tiene) {
+  futuroMetaForm = tiene;
+  document.querySelectorAll('#futuro-meta-radio .radio-opt').forEach((el, i) => {
+    el.classList.toggle('selected', (i===0 && !tiene) || (i===1 && tiene));
+  });
+  $('futuro-meta-field').style.display = tiene ? 'block' : 'none';
 }
 
 async function saveFuturo() {
@@ -4121,20 +4264,109 @@ async function saveFuturo() {
   if (!titulo) { toast('falta el nombre del hito'); return; }
   const cuando = $('futuro-cuando').value.trim() || null;
   const nota = $('futuro-nota').value.trim() || null;
+
+  let metaMonto = null;
+  if (futuroMetaForm) {
+    metaMonto = parseFloat($('futuro-meta-monto').value);
+    if (!metaMonto || metaMonto <= 0) { toast('pon el monto de la meta'); return; }
+  }
+
   const btn = $('futuro-save-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
-  const { error } = await sb.from('future').insert({
-    couple_id: ME.couple_id,
-    titulo, cuando, nota,
-    logrado: false,
-    orden: FUTURO.length + 1
-  });
+
+  let error;
+  if (futuroEditandoId) {
+    ({ error } = await sb.from('future').update({
+      titulo, cuando, nota,
+      tiene_meta: futuroMetaForm,
+      meta_monto: metaMonto
+    }).eq('id', futuroEditandoId));
+  } else {
+    ({ error } = await sb.from('future').insert({
+      couple_id: ME.couple_id,
+      titulo, cuando, nota,
+      logrado: false,
+      orden: FUTURO.length + 1,
+      tiene_meta: futuroMetaForm,
+      meta_monto: metaMonto
+    }));
+  }
   btn.disabled = false; btn.textContent = 'guardar';
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
   closeModal('futuro-modal');
-  toast('hito agregado');
+  toast(futuroEditandoId ? 'hito actualizado' : 'hito agregado');
   await cargarFuturo();
 }
+
+// ---- abonos a la meta ----
+function openAbonoModal(futureId) {
+  abonoMetaId = futureId;
+  const f = FUTURO.find(x => x.id === futureId);
+  $('abono-sub').textContent = f ? 'meta: ' + f.titulo : 'cuánto le metemos hoy';
+  $('abono-monto').value = '';
+  $('abono-nota').value = '';
+  $('abono-modal').classList.add('active');
+  setTimeout(() => $('abono-monto').focus(), 200);
+}
+
+async function saveAbono() {
+  const monto = parseFloat($('abono-monto').value);
+  if (!monto || monto <= 0) { toast('pon el monto'); return; }
+  const nota = $('abono-nota').value.trim() || null;
+  const btn = $('abono-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { error } = await sb.from('meta_abonos').insert({
+    couple_id: ME.couple_id,
+    future_id: abonoMetaId,
+    autor: ME.id,
+    monto, nota
+  });
+  btn.disabled = false; btn.textContent = 'abonar';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('abono-modal');
+  toast('abono registrado 🦝');
+  await cargarFuturo();
+  // ¿se completó la meta?
+  const f = FUTURO.find(x => x.id === abonoMetaId);
+  if (f && f.meta_monto && ahorradoDe(abonoMetaId) >= parseFloat(f.meta_monto)) {
+    setTimeout(() => toast('¡completaron la meta! 🎉'), 1200);
+  }
+}
+
+async function openAbonosHist(futureId) {
+  const f = FUTURO.find(x => x.id === futureId);
+  $('abonos-hist-sub').textContent = f ? 'meta: ' + f.titulo : 'todo lo que han juntado';
+  $('abonos-hist-modal').classList.add('active');
+  const lista = ABONOS.filter(a => a.future_id === futureId);
+  if (lista.length === 0) {
+    $('abonos-hist-list').innerHTML = '<div class="center-msg">aún no hay abonos</div>';
+    return;
+  }
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  $('abonos-hist-list').innerHTML = lista.map(a => {
+    const fecha = new Date(a.creado);
+    const f = fecha.getDate() + ' ' + meses[fecha.getMonth()] + ' ' + fecha.getFullYear();
+    const autor = PROFILES[a.autor];
+    const quien = autor ? autor.nombre : 'alguien';
+    return `<div class="abono-item">
+      <div class="abono-info">
+        <div class="abono-monto">${fmtDinero(a.monto)}</div>
+        <div class="abono-meta">${quien} · ${f}${a.nota ? ' · ' + escapeHtml(a.nota) : ''}</div>
+      </div>
+      <button class="abono-del" onclick="borrarAbono('${a.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+async function borrarAbono(id) {
+  if (!confirm('¿borrar este abono?')) return;
+  const { error } = await sb.from('meta_abonos').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  closeModal('abonos-hist-modal');
+  toast('abono borrado');
+  await cargarFuturo();
+}
+
 
 // ============================================
 // NO NEGOCIABLES
@@ -5016,6 +5248,9 @@ function suscribirRealtime() {
       if (currentScreen === 'raros') cargarRaros();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'future' }, () => {
+      if (currentScreen === 'futuro') cargarFuturo();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'meta_abonos' }, () => {
       if (currentScreen === 'futuro') cargarFuturo();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'nonnegotiables' }, () => {
