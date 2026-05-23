@@ -724,6 +724,11 @@ body::before {
         <div class="chips-row" id="gasto-categorias"></div>
       </div>
 
+      <div class="mfield" id="gasto-subcat-field" style="display:none;">
+        <div class="mfield-label">subcategoría</div>
+        <div class="chips-row" id="gasto-subcategorias"></div>
+      </div>
+
       <div class="mfield">
         <div class="mfield-label">¿quién pagó?</div>
         <div class="chips-row" id="gasto-pagador"></div>
@@ -849,6 +854,7 @@ let currentScreen = 'home';
 let mesActual = new Date();   // mes que se está viendo en gastos
 let gastosDelMes = [];
 let CATEGORIAS = [];          // se cargan de la base
+let SUBCATEGORIAS = [];       // todas las subcategorías {id, categoria_id, nombre}
 let PLANES = [];              // todos los planes
 let planTab = 'citas';        // 'citas' (por hacer) o 'hechas'
 let moodSeleccionado = null;
@@ -1057,6 +1063,22 @@ async function cargarCategorias() {
     // fallback si no hay ninguna
     CATEGORIAS = ['salidas','servicios','gasolina','limpieza','compras variadas','supermercado'].map(n => ({id:null, nombre:n}));
   }
+  // subcategorías
+  const { data: subs } = await sb.from('subcategorias').select('*').order('nombre',{ascending:true});
+  SUBCATEGORIAS = (subs || []).map(s => ({ id: s.id, categoria_id: s.categoria_id, nombre: s.nombre }));
+}
+
+function subsDeCategoria(catId) {
+  return SUBCATEGORIAS.filter(s => s.categoria_id === catId);
+}
+function subById(id) {
+  return SUBCATEGORIAS.find(s => s.id === id) || null;
+}
+function catById(id) {
+  return CATEGORIAS.find(c => c.id === id) || null;
+}
+function catByNombre(nombre) {
+  return CATEGORIAS.find(c => c.nombre === nombre) || null;
 }
 
 // ============================================
@@ -1324,7 +1346,7 @@ function renderMovItem(g) {
   return `<div class="mov-item">
     <div class="mov-left">
       <div class="mov-concepto">${escapeHtml(g.concepto)}</div>
-      <div class="mov-meta">${escapeHtml(g.categoria||'')} · ${metaText}</div>
+      <div class="mov-meta">${escapeHtml(catConSub(g))} · ${metaText}</div>
     </div>
     <div class="mov-right">
       <div class="mov-monto">${fmtDinero(monto)}</div>
@@ -1332,6 +1354,15 @@ function renderMovItem(g) {
     </div>
     <button class="mov-del" onclick="borrarGasto('${g.id}')">✕</button>
   </div>`;
+}
+
+function catConSub(g) {
+  let txt = g.categoria || '';
+  if (g.subcategoria_id) {
+    const sub = subById(g.subcategoria_id);
+    if (sub) txt += ' · ' + sub.nombre;
+  }
+  return txt;
 }
 
 async function borrarGasto(id) {
@@ -1346,16 +1377,16 @@ async function borrarGasto(id) {
 // GASTOS — modal registrar
 // ============================================
 function openGastoModal() {
-  gForm = { categoria:null, pagador:null, tipo:null, split:'50/50' };
+  gForm = { categoria_id:null, categoria_nombre:null, subcategoria_id:null, pagador:null, tipo:null, split:'50/50' };
   $('gasto-concepto').value = '';
   $('gasto-monto').value = '';
   const hoy = new Date();
   $('gasto-fecha').value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}-${String(hoy.getDate()).padStart(2,'0')}`;
 
-  // categorías
-  $('gasto-categorias').innerHTML = CATEGORIAS.map(c =>
-    `<button class="chip" onclick="selCat(this,'${escapeHtml(c.nombre).replace(/'/g,"&#39;")}')">${escapeHtml(c.nombre)}</button>`
-  ).join('');
+  renderGastoCategorias();
+
+  // subcategorías ocultas hasta elegir categoría
+  $('gasto-subcat-field').style.display = 'none';
 
   // pagador
   $('gasto-pagador').innerHTML = `
@@ -1374,11 +1405,77 @@ function openGastoModal() {
   setTimeout(() => $('gasto-concepto').focus(), 200);
 }
 
-function selCat(el, val) {
-  document.querySelectorAll('#gasto-categorias .chip').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-  gForm.categoria = val;
+function renderGastoCategorias() {
+  let html = CATEGORIAS.map(c => {
+    const cid = c.id || '';
+    const sel = gForm.categoria_id === c.id ? 'selected' : '';
+    return `<button class="chip ${sel}" onclick="selCat('${cid}')">${escapeHtml(c.nombre)}</button>`;
+  }).join('');
+  html += `<button class="chip" onclick="nuevaCategoriaInline()">+ nueva</button>`;
+  $('gasto-categorias').innerHTML = html;
 }
+
+function selCat(catId) {
+  const cat = catById(catId);
+  if (!cat) return;
+  gForm.categoria_id = cat.id;
+  gForm.categoria_nombre = cat.nombre;
+  gForm.subcategoria_id = null;
+  renderGastoCategorias();
+  renderGastoSubcategorias();
+}
+
+function renderGastoSubcategorias() {
+  const field = $('gasto-subcat-field');
+  if (!gForm.categoria_id) { field.style.display = 'none'; return; }
+  field.style.display = 'block';
+  const subs = subsDeCategoria(gForm.categoria_id);
+  let html = subs.map(s => {
+    const sel = gForm.subcategoria_id === s.id ? 'selected' : '';
+    return `<button class="chip ${sel}" onclick="selSubcat('${s.id}')">${escapeHtml(s.nombre)}</button>`;
+  }).join('');
+  html += `<button class="chip" onclick="nuevaSubcategoriaInline()">+ nueva</button>`;
+  $('gasto-subcategorias').innerHTML = html;
+}
+
+function selSubcat(subId) {
+  // permitir deseleccionar
+  gForm.subcategoria_id = (gForm.subcategoria_id === subId) ? null : subId;
+  renderGastoSubcategorias();
+}
+
+async function nuevaCategoriaInline() {
+  const nombre = (prompt('nombre de la nueva categoría:') || '').trim().toLowerCase();
+  if (!nombre) return;
+  if (CATEGORIAS.some(c => c.nombre.toLowerCase() === nombre)) { toast('esa categoría ya existe'); return; }
+  const { data, error } = await sb.from('categorias')
+    .insert({ couple_id: ME.couple_id, nombre, orden: CATEGORIAS.length + 1 })
+    .select().single();
+  if (error) { toast('no se pudo agregar'); return; }
+  await cargarCategorias();
+  // seleccionar la recién creada
+  if (data) selCat(data.id);
+  else renderGastoCategorias();
+  toast('categoría agregada');
+}
+
+async function nuevaSubcategoriaInline() {
+  if (!gForm.categoria_id) { toast('elige una categoría primero'); return; }
+  const nombre = (prompt('nombre de la nueva subcategoría:') || '').trim().toLowerCase();
+  if (!nombre) return;
+  if (subsDeCategoria(gForm.categoria_id).some(s => s.nombre.toLowerCase() === nombre)) {
+    toast('esa subcategoría ya existe'); return;
+  }
+  const { data, error } = await sb.from('subcategorias')
+    .insert({ couple_id: ME.couple_id, categoria_id: gForm.categoria_id, nombre })
+    .select().single();
+  if (error) { toast('no se pudo agregar'); return; }
+  await cargarCategorias();
+  if (data) gForm.subcategoria_id = data.id;
+  renderGastoSubcategorias();
+  toast('subcategoría agregada');
+}
+
 function selPagador(el, val) {
   document.querySelectorAll('#gasto-pagador .chip').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
@@ -1388,8 +1485,6 @@ function selTipo(el, val) {
   document.querySelectorAll('#gasto-tipo .chip').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   gForm.tipo = val;
-  // ajustar etiqueta de "quién pagó" según tipo
-  const lbl = document.querySelector('#gasto-modal .mfield:nth-child(5) .mfield-label');
 }
 
 async function saveGasto() {
@@ -1399,20 +1494,13 @@ async function saveGasto() {
 
   if (!concepto) { toast('falta el concepto'); return; }
   if (!monto || monto <= 0) { toast('falta el monto'); return; }
-  if (!gForm.categoria) { toast('elige una categoría'); return; }
+  if (!gForm.categoria_id && !gForm.categoria_nombre) { toast('elige una categoría'); return; }
   if (!gForm.pagador) { toast('elige quién pagó'); return; }
   if (!gForm.tipo) { toast('elige cómo cuenta'); return; }
 
-  // construir el campo split
-  // para compartido: 'pago-dani' / 'pago-alfredo'
-  // para invitacion / personal: 'pago-dani' / 'pago-alfredo' (quien pagó/invitó)
-  // para aporte: siempre lo paga alfredo, split = 'pago-alfredo'
   let split;
-  if (gForm.tipo === 'aporte') {
-    split = 'pago-alfredo';
-  } else {
-    split = 'pago-' + gForm.pagador;
-  }
+  if (gForm.tipo === 'aporte') split = 'pago-alfredo';
+  else split = 'pago-' + gForm.pagador;
 
   const btn = $('gasto-save-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
@@ -1421,7 +1509,8 @@ async function saveGasto() {
     couple_id: ME.couple_id,
     autor: ME.id,
     concepto, monto,
-    categoria: gForm.categoria,
+    categoria: gForm.categoria_nombre,
+    subcategoria_id: gForm.subcategoria_id,
     tipo: gForm.tipo,
     split,
     fecha
@@ -1432,7 +1521,6 @@ async function saveGasto() {
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
 
   closeModal('gasto-modal');
-  // easter egg pato pequinés
   if (concepto.toLowerCase().includes('pato') || concepto.toLowerCase().includes('pequin')) {
     toast('🦆 pato pequinés registrado');
   } else {
@@ -1744,18 +1832,31 @@ function filaFecha(label, iso) {
 
 function renderProfileCategorias() {
   const cont = $('profile-categorias');
-  cont.innerHTML = CATEGORIAS.map(c => `
-    <div class="edit-list-item">
-      <span class="edit-list-name">${escapeHtml(c.nombre)}</span>
-      ${c.id ? `<button class="edit-list-del" onclick="borrarCategoria('${c.id}')">✕</button>` : ''}
-    </div>`).join('');
+  cont.innerHTML = CATEGORIAS.map(c => {
+    const subs = c.id ? subsDeCategoria(c.id) : [];
+    const subsHtml = subs.map(s => `
+      <div class="edit-list-item" style="padding-left:16px;">
+        <span class="edit-list-name" style="font-size:0.82rem; color:var(--tinta-soft);">↳ ${escapeHtml(s.nombre)}</span>
+        <button class="edit-list-del" onclick="borrarSubcategoria('${s.id}')">✕</button>
+      </div>`).join('');
+    const addSubBtn = c.id ? `
+      <div style="padding-left:16px; padding-top:4px;">
+        <button class="edit-list-del" style="color:var(--tinta-soft); font-family:'Caveat',cursive; font-size:0.95rem;" onclick="addSubcategoriaPrompt('${c.id}')">+ subcategoría</button>
+      </div>` : '';
+    return `
+      <div class="edit-list-item">
+        <span class="edit-list-name" style="font-weight:600;">${escapeHtml(c.nombre)}</span>
+        ${c.id ? `<button class="edit-list-del" onclick="borrarCategoria('${c.id}')">✕</button>` : ''}
+      </div>
+      ${subsHtml}
+      ${addSubBtn}`;
+  }).join('');
 }
 
 async function addCategoria() {
   const input = $('nueva-categoria');
   const nombre = input.value.trim().toLowerCase();
   if (!nombre) return;
-  // evitar duplicados
   if (CATEGORIAS.some(c => c.nombre.toLowerCase() === nombre)) {
     toast('esa categoría ya existe');
     return;
@@ -1772,12 +1873,36 @@ async function addCategoria() {
 }
 
 async function borrarCategoria(id) {
-  if (!confirm('¿borrar esta categoría? los gastos ya registrados con ella no se borran')) return;
+  if (!confirm('¿borrar esta categoría? sus subcategorías también se borran. los gastos ya registrados no se borran')) return;
   const { error } = await sb.from('categorias').delete().eq('id', id);
   if (error) { toast('no se pudo borrar'); return; }
   await cargarCategorias();
   renderProfileCategorias();
   toast('categoría borrada');
+}
+
+async function addSubcategoriaPrompt(catId) {
+  const nombre = (prompt('nombre de la nueva subcategoría:') || '').trim().toLowerCase();
+  if (!nombre) return;
+  if (subsDeCategoria(catId).some(s => s.nombre.toLowerCase() === nombre)) {
+    toast('esa subcategoría ya existe'); return;
+  }
+  const { error } = await sb.from('subcategorias').insert({
+    couple_id: ME.couple_id, categoria_id: catId, nombre
+  });
+  if (error) { toast('no se pudo agregar'); return; }
+  await cargarCategorias();
+  renderProfileCategorias();
+  toast('subcategoría agregada');
+}
+
+async function borrarSubcategoria(id) {
+  if (!confirm('¿borrar esta subcategoría?')) return;
+  const { error } = await sb.from('subcategorias').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  await cargarCategorias();
+  renderProfileCategorias();
+  toast('subcategoría borrada');
 }
 
 
@@ -1801,6 +1926,10 @@ function suscribirRealtime() {
       if (currentScreen === 'planes') cargarPlanes();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'categorias' }, async () => {
+      await cargarCategorias();
+      if (currentScreen === 'perfil') renderProfileCategorias();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'subcategorias' }, async () => {
       await cargarCategorias();
       if (currentScreen === 'perfil') renderProfileCategorias();
     })
