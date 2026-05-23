@@ -861,6 +861,9 @@ body::before {
   cursor:pointer; color:var(--tinta-soft);
 }
 .sug-chip:active { background:var(--cielo-soft); }
+.sug-chip.selected {
+  background:var(--vino); color:var(--crema); border-color:var(--tinta);
+}
 
 /* badge recurrente en task-row */
 .task-badge {
@@ -1638,7 +1641,7 @@ body::before {
 
       <div class="mfield">
         <div class="mfield-label">la tarea</div>
-        <input type="text" id="tarea-titulo" class="input" placeholder="ej. sacar la basura">
+        <input type="text" id="tarea-titulo" class="input" placeholder="ej. sacar la basura" oninput="limpiarSugSeleccion()">
       </div>
 
       <div class="mfield">
@@ -3899,7 +3902,7 @@ function openTareaModal() {
   let sugHtml = '';
   Object.keys(SUGERENCIAS_TAREAS).forEach(grupo => {
     const chips = SUGERENCIAS_TAREAS[grupo].map(s =>
-      `<button class="sug-chip" onclick="usarSugerencia('${escapeHtml(s).replace(/'/g,'&#39;')}')">${escapeHtml(s)}</button>`
+      `<button class="sug-chip" onclick="usarSugerencia(this,'${escapeHtml(s).replace(/'/g,'&#39;')}')">${escapeHtml(s)}</button>`
     ).join('');
     sugHtml += `<div class="sug-grupo">
       <div class="sug-grupo-label">${grupo}</div>
@@ -3921,8 +3924,19 @@ function openTareaModal() {
   $('tarea-modal').classList.add('active');
 }
 
-function usarSugerencia(texto) {
+function usarSugerencia(el, texto) {
   $('tarea-titulo').value = texto;
+  // marcar visualmente la sugerencia elegida
+  document.querySelectorAll('#tarea-sugerencias .sug-chip').forEach(c => c.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+}
+
+function limpiarSugSeleccion() {
+  // si el texto del input ya no coincide con la sugerencia marcada, desmarcarla
+  const val = $('tarea-titulo').value.trim();
+  document.querySelectorAll('#tarea-sugerencias .sug-chip').forEach(c => {
+    if (c.textContent.trim() !== val) c.classList.remove('selected');
+  });
 }
 
 function selTareaAsignado(el, val) {
