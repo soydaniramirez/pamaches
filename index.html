@@ -88,6 +88,25 @@ body::before {
 .input:focus { outline:none; border-color:var(--vino); }
 .input::placeholder { color:#B9A5AA; }
 
+/* inputs de fecha — iOS les mete estilo propio que rompe la caja */
+input[type="date"].input {
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  min-height: 54px;
+  display: block;
+  text-align: left;
+  font-family: 'Manrope', sans-serif;
+}
+input[type="date"].input::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+}
+input[type="date"].input::-webkit-calendar-picker-indicator {
+  margin-left: auto;
+}
+
 .btn {
   width:100%; padding:16px; border:2px solid var(--tinta); border-radius:16px;
   background:var(--vino); color:var(--crema); font-family:'Fraunces',serif; font-style:italic;
