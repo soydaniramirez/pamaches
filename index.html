@@ -333,6 +333,51 @@ body::before {
 .mov-empty { text-align:center; font-family:'Caveat',cursive; font-size:1.1rem; color:var(--tinta-soft); padding:30px 20px; }
 .mov-empty img { width:90px; opacity:0.7; display:block; margin:0 auto 10px; }
 
+/* gastos personales por persona */
+.persona-bloque { margin-bottom:18px; }
+.persona-bloque-head { display:flex; align-items:center; gap:9px; margin-bottom:10px; }
+.persona-bloque-avatar {
+  width:32px; height:32px; border-radius:50%; border:1.8px solid var(--tinta);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Caveat',cursive; font-size:1rem; font-weight:600;
+}
+.persona-bloque-avatar.dani { background:var(--coral); color:var(--crema); }
+.persona-bloque-avatar.alfredo { background:var(--cielo); }
+.persona-bloque-nombre { font-family:'Fraunces',serif; font-style:italic; font-size:1.15rem; color:var(--vino); }
+.persona-bloque-total { margin-left:auto; font-family:'Manrope',sans-serif; font-size:0.9rem; font-weight:700; }
+
+/* resumen / tabla comparativa */
+.resumen-totales { display:flex; gap:10px; margin-bottom:16px; }
+.resumen-total-card {
+  flex:1; background:var(--crema); border:1.8px solid var(--tinta); border-radius:16px;
+  padding:13px; box-shadow:2px 3px 0 var(--tinta); text-align:center;
+}
+.resumen-total-card.comp { background:var(--cielo-soft); }
+.resumen-total-label { font-family:'Caveat',cursive; font-size:0.95rem; color:var(--tinta-soft); }
+.resumen-total-monto { font-family:'Fraunces',serif; font-weight:600; font-size:1.25rem; color:var(--vino); margin-top:2px; }
+.resumen-total-delta { font-family:'Caveat',cursive; font-size:0.85rem; margin-top:2px; }
+.delta-sube { color:var(--vino); }
+.delta-baja { color:var(--verde); }
+.delta-igual { color:var(--tinta-soft); }
+
+.resumen-section-title {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.1rem; color:var(--vino); margin:18px 0 10px;
+}
+.resumen-row { margin-bottom:11px; }
+.resumen-row-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px; }
+.resumen-row-cat { font-family:'Manrope',sans-serif; font-size:0.88rem; font-weight:600; }
+.resumen-row-monto { font-family:'Caveat',cursive; font-size:1.05rem; color:var(--vino); }
+.resumen-barra { height:10px; background:rgba(42,24,32,0.1); border-radius:6px; overflow:hidden; }
+.resumen-barra-fill { height:100%; border-radius:6px; transition:width 0.6s ease; }
+.resumen-barra-fill.comp { background:linear-gradient(90deg, var(--cielo), #8FB8D4); }
+.resumen-barra-fill.pers { background:linear-gradient(90deg, var(--coral), var(--rosa)); }
+.resumen-row-prev { font-family:'Caveat',cursive; font-size:0.82rem; color:var(--tinta-soft); margin-top:2px; }
+.resumen-empty { text-align:center; font-family:'Caveat',cursive; font-size:1.05rem; color:var(--tinta-soft); padding:20px; }
+.resumen-tip {
+  background:var(--rosa-soft); border-radius:14px; padding:13px 15px; margin-top:16px;
+  font-family:'Caveat',cursive; font-size:1.05rem; color:var(--tinta); line-height:1.35;
+}
+
 /* FAB */
 .fab {
   position:fixed; bottom:90px; right:max(16px, calc(50% - 240px + 16px));
@@ -1057,7 +1102,7 @@ body::before {
     <div class="app-content">
       <div class="section-header">
         <div class="section-title">cuentas claras</div>
-        <div class="section-sub">cosas de la casa</div>
+        <div class="section-sub">nuestras finanzas</div>
       </div>
 
       <!-- selector de mes -->
@@ -1067,33 +1112,50 @@ body::before {
         <button class="month-arrow" onclick="cambiarMes(1)">›</button>
       </div>
 
-      <!-- tablero aporte de alfredo -->
-      <div class="aporte-card">
-        <div class="aporte-top">
-          <div class="aporte-label">aporte de alfredo</div>
-          <button class="aporte-edit" onclick="openCupoModal()">editar cupo</button>
-        </div>
-        <div class="aporte-numbers">
-          <span class="aporte-done" id="aporte-done">$0</span>
-          <span class="aporte-total" id="aporte-total">de $15,000</span>
-        </div>
-        <div class="aporte-bar"><div class="aporte-bar-fill" id="aporte-bar" style="width:0%"></div></div>
-        <div class="aporte-status" id="aporte-status">cargando...</div>
+      <!-- pestañas -->
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="gtab-compartidas" onclick="switchGastoTab('compartidas')">compartidas</button>
+        <button class="sub-tab" id="gtab-personales" onclick="switchGastoTab('personales')">personales</button>
+        <button class="sub-tab" id="gtab-resumen" onclick="switchGastoTab('resumen')">resumen</button>
       </div>
 
-      <!-- balance compartido -->
-      <div class="balance-card">
-        <div class="balance-main" id="balance-main">cargando balance...</div>
-        <div class="balance-rubros" id="balance-rubros"></div>
-        <button class="balance-toggle" id="balance-toggle" onclick="toggleRubros()" style="display:none;">ver desglose por rubro ▾</button>
-        <div class="balance-actions">
-          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openHistorialModal()">historial</button>
-          <button class="btn btn-sm" style="flex:1;" id="saldar-btn" onclick="openSaldarModal()">ya quedamos a mano</button>
+      <!-- ===== pestaña COMPARTIDAS ===== -->
+      <div id="gasto-vista-compartidas">
+        <div class="aporte-card">
+          <div class="aporte-top">
+            <div class="aporte-label">aporte de alfredo</div>
+            <button class="aporte-edit" onclick="openCupoModal()">editar cupo</button>
+          </div>
+          <div class="aporte-numbers">
+            <span class="aporte-done" id="aporte-done">$0</span>
+            <span class="aporte-total" id="aporte-total">de $15,000</span>
+          </div>
+          <div class="aporte-bar"><div class="aporte-bar-fill" id="aporte-bar" style="width:0%"></div></div>
+          <div class="aporte-status" id="aporte-status">cargando...</div>
         </div>
+
+        <div class="balance-card">
+          <div class="balance-main" id="balance-main">cargando balance...</div>
+          <div class="balance-rubros" id="balance-rubros"></div>
+          <button class="balance-toggle" id="balance-toggle" onclick="toggleRubros()" style="display:none;">ver desglose por rubro ▾</button>
+          <div class="balance-actions">
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openHistorialModal()">historial</button>
+            <button class="btn btn-sm" style="flex:1;" id="saldar-btn" onclick="openSaldarModal()">ya quedamos a mano</button>
+          </div>
+        </div>
+
+        <div class="mov-list" id="mov-list"></div>
       </div>
 
-      <!-- lista de movimientos -->
-      <div class="mov-list" id="mov-list"></div>
+      <!-- ===== pestaña PERSONALES ===== -->
+      <div id="gasto-vista-personales" style="display:none;">
+        <div id="personales-zona"></div>
+      </div>
+
+      <!-- ===== pestaña RESUMEN ===== -->
+      <div id="gasto-vista-resumen" style="display:none;">
+        <div id="resumen-zona"></div>
+      </div>
     </div>
     <button class="fab" onclick="openGastoModal()">+</button>
   </div>
@@ -2535,6 +2597,186 @@ function calcularYrenderGastos() {
 
   // ---- 3. lista de movimientos ----
   renderMovimientos();
+  renderPersonales();
+  renderResumen();
+}
+
+// ============================================
+// GASTOS — pestañas
+// ============================================
+let gastoTab = 'compartidas';
+
+function switchGastoTab(tab) {
+  gastoTab = tab;
+  ['compartidas','personales','resumen'].forEach(t => {
+    $('gtab-'+t).classList.toggle('active', t===tab);
+    $('gasto-vista-'+t).style.display = (t===tab) ? 'block' : 'none';
+  });
+}
+
+// ============================================
+// GASTOS — personales por persona
+// ============================================
+function renderPersonales() {
+  const cont = $('personales-zona');
+  const personales = gastosDelMes.filter(g => g.tipo === 'personal');
+
+  const personas = [DANI, ALFREDO].filter(Boolean);
+  if (personas.length === 0) { cont.innerHTML = ''; return; }
+
+  let html = '';
+  personas.forEach(p => {
+    // los personales de esa persona: split = 'pago-dani' / 'pago-alfredo'
+    const suyos = personales.filter(g => g.split === 'pago-' + p.rol);
+    const total = suyos.reduce((s,g) => s + parseFloat(g.monto), 0);
+
+    html += `<div class="persona-bloque">
+      <div class="persona-bloque-head">
+        <div class="persona-bloque-avatar ${p.rol}">${p.nombre.charAt(0).toUpperCase()}</div>
+        <div class="persona-bloque-nombre">${escapeHtml(p.nombre)}</div>
+        <div class="persona-bloque-total">${fmtDinero(total)}</div>
+      </div>`;
+
+    if (suyos.length === 0) {
+      html += `<div class="resumen-empty">sin gastos personales este mes</div>`;
+    } else {
+      // agrupar por fecha
+      const grupos = {};
+      suyos.forEach(g => {
+        if (!grupos[g.fecha]) grupos[g.fecha] = [];
+        grupos[g.fecha].push(g);
+      });
+      Object.keys(grupos).sort().reverse().forEach(fecha => {
+        html += `<div class="mov-day-label">${fechaCorta(fecha)}</div>`;
+        grupos[fecha].forEach(g => {
+          html += renderMovItem(g);
+        });
+      });
+    }
+    html += `</div>`;
+  });
+
+  if (personales.length === 0) {
+    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">aún no hay gastos personales este mes.<br>regístralos con el + eligiendo "personal"</div>` + html;
+  } else {
+    cont.innerHTML = html;
+  }
+}
+
+// ============================================
+// GASTOS — resumen comparativo
+// ============================================
+async function renderResumen() {
+  const cont = $('resumen-zona');
+  // gastos del mes anterior para comparar
+  const mesPrev = new Date(mesActual.getFullYear(), mesActual.getMonth()-1, 1);
+  const yP = mesPrev.getFullYear(), mP = mesPrev.getMonth();
+  const desdeP = `${yP}-${String(mP+1).padStart(2,'0')}-01`;
+  const hastaDP = new Date(yP, mP+1, 0).getDate();
+  const hastaP = `${yP}-${String(mP+1).padStart(2,'0')}-${String(hastaDP).padStart(2,'0')}`;
+  const { data: prevData } = await sb.from('expenses')
+    .select('*').gte('fecha', desdeP).lte('fecha', hastaP);
+  const gastosPrev = prevData || [];
+
+  // sumar por categoria — separando compartido y personal
+  // (aporte e invitacion no cuentan como "gasto a analizar": aporte es renta, invitacion es regalo)
+  function sumaPorCat(lista, tipoFiltro) {
+    const r = {};
+    lista.forEach(g => {
+      if (tipoFiltro === 'compartido' && g.tipo !== 'compartido') return;
+      if (tipoFiltro === 'personal' && g.tipo !== 'personal') return;
+      const cat = g.categoria || 'otros';
+      r[cat] = (r[cat]||0) + parseFloat(g.monto);
+    });
+    return r;
+  }
+  function total(obj) { return Object.values(obj).reduce((s,v)=>s+v,0); }
+
+  const compMes = sumaPorCat(gastosDelMes, 'compartido');
+  const compPrev = sumaPorCat(gastosPrev, 'compartido');
+  const persMes = sumaPorCat(gastosDelMes, 'personal');
+  const persPrev = sumaPorCat(gastosPrev, 'personal');
+
+  const totalCompMes = total(compMes), totalCompPrev = total(compPrev);
+  const totalPersMes = total(persMes), totalPersPrev = total(persPrev);
+
+  // tarjetas de totales con delta
+  function deltaHtml(actual, prev) {
+    if (prev === 0) return '<div class="resumen-total-delta delta-igual">sin mes anterior</div>';
+    const diff = actual - prev;
+    const pct = Math.round(Math.abs(diff)/prev*100);
+    if (Math.abs(diff) < 1) return '<div class="resumen-total-delta delta-igual">igual que el mes pasado</div>';
+    if (diff > 0) return `<div class="resumen-total-delta delta-sube">▲ ${pct}% más que el mes pasado</div>`;
+    return `<div class="resumen-total-delta delta-baja">▼ ${pct}% menos que el mes pasado</div>`;
+  }
+
+  let html = `<div class="resumen-totales">
+    <div class="resumen-total-card comp">
+      <div class="resumen-total-label">compartido</div>
+      <div class="resumen-total-monto">${fmtDinero(totalCompMes)}</div>
+      ${deltaHtml(totalCompMes, totalCompPrev)}
+    </div>
+    <div class="resumen-total-card">
+      <div class="resumen-total-label">personal (los dos)</div>
+      <div class="resumen-total-monto">${fmtDinero(totalPersMes)}</div>
+      ${deltaHtml(totalPersMes, totalPersPrev)}
+    </div>
+  </div>`;
+
+  // tabla por categoría — compartido
+  html += `<div class="resumen-section-title">gasto compartido por rubro</div>`;
+  html += renderResumenTabla(compMes, compPrev, 'comp');
+
+  // tabla por categoría — personal
+  html += `<div class="resumen-section-title">gasto personal por rubro</div>`;
+  html += renderResumenTabla(persMes, persPrev, 'pers');
+
+  // tip de estrategia
+  const totalMes = totalCompMes + totalPersMes;
+  const totalPrev = totalCompPrev + totalPersPrev;
+  if (totalPrev > 0 && totalMes > totalPrev) {
+    html += `<div class="resumen-tip">este mes gastaron más que el anterior. miren juntos qué rubro creció y decidan dónde aflojar 🦝</div>`;
+  } else if (totalPrev > 0 && totalMes < totalPrev) {
+    html += `<div class="resumen-tip">¡bajaron el gasto este mes! buen trabajo de equipo 🦝💕</div>`;
+  } else if (totalMes > 0) {
+    html += `<div class="resumen-tip">aquí pueden ver mes con mes en qué se va el dinero y armar su estrategia juntos 🦝</div>`;
+  }
+
+  cont.innerHTML = html;
+}
+
+function renderResumenTabla(actual, prev, clase) {
+  const cats = Object.keys(actual).filter(c => actual[c] > 0);
+  if (cats.length === 0) {
+    return `<div class="resumen-empty">sin gastos en este rubro este mes</div>`;
+  }
+  // el máximo para escalar las barras
+  const maxVal = Math.max(...cats.map(c => actual[c]));
+  // ordenar de mayor a menor
+  cats.sort((a,b) => actual[b] - actual[a]);
+
+  return cats.map(cat => {
+    const val = actual[cat];
+    const pct = maxVal > 0 ? (val/maxVal)*100 : 0;
+    const valPrev = prev[cat] || 0;
+    let prevTxt = '';
+    if (valPrev > 0) {
+      const diff = val - valPrev;
+      if (Math.abs(diff) < 1) prevTxt = 'igual que el mes pasado';
+      else if (diff > 0) prevTxt = `${fmtDinero(diff)} más que el mes pasado`;
+      else prevTxt = `${fmtDinero(Math.abs(diff))} menos que el mes pasado`;
+    } else {
+      prevTxt = 'nuevo este mes';
+    }
+    return `<div class="resumen-row">
+      <div class="resumen-row-top">
+        <span class="resumen-row-cat">${escapeHtml(cat)}</span>
+        <span class="resumen-row-monto">${fmtDinero(val)}</span>
+      </div>
+      <div class="resumen-barra"><div class="resumen-barra-fill ${clase}" style="width:${pct}%"></div></div>
+      <div class="resumen-row-prev">${prevTxt}</div>
+    </div>`;
+  }).join('');
 }
 
 let SETTLEMENTS = [];
@@ -2608,13 +2850,15 @@ function toggleRubros() {
 
 function renderMovimientos() {
   const cont = $('mov-list');
-  if (gastosDelMes.length === 0) {
-    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">aún no hay movimientos este mes.<br>toca el + para registrar el primero</div>`;
+  // en la pestaña compartidas: todo MENOS los personales
+  const compartidos = gastosDelMes.filter(g => g.tipo !== 'personal');
+  if (compartidos.length === 0) {
+    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">aún no hay movimientos compartidos este mes.<br>toca el + para registrar el primero</div>`;
     return;
   }
   // agrupar por fecha
   const grupos = {};
-  gastosDelMes.forEach(g => {
+  compartidos.forEach(g => {
     if (!grupos[g.fecha]) grupos[g.fecha] = [];
     grupos[g.fecha].push(g);
   });
