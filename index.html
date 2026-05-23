@@ -328,6 +328,7 @@ body::before {
 .tag-compartido { background:var(--crema-deep); color:var(--tinta-soft); }
 .tag-invitacion { background:var(--rosa-soft); color:var(--vino); }
 .tag-personal { background:#E8E8E8; color:var(--tinta-soft); }
+.tag-ahorro { background:#C8E6C9; color:var(--verde); }
 .mov-del { background:none; border:none; color:var(--tinta-soft); font-size:1.1rem; cursor:pointer; padding:2px 4px; }
 
 .mov-empty { text-align:center; font-family:'Caveat',cursive; font-size:1.1rem; color:var(--tinta-soft); padding:30px 20px; }
@@ -377,6 +378,12 @@ body::before {
   background:var(--rosa-soft); border-radius:14px; padding:13px 15px; margin-top:16px;
   font-family:'Caveat',cursive; font-size:1.05rem; color:var(--tinta); line-height:1.35;
 }
+.resumen-ahorro-card {
+  background:#C8E6C9; border:1.8px solid var(--tinta); border-radius:16px;
+  padding:14px 16px; box-shadow:2px 3px 0 var(--tinta); text-align:center;
+}
+.resumen-ahorro-monto { font-family:'Fraunces',serif; font-weight:600; font-size:1.6rem; color:var(--verde); }
+.resumen-ahorro-delta { font-family:'Caveat',cursive; font-size:1rem; color:var(--tinta-soft); margin-top:2px; }
 
 /* FAB */
 .fab {
@@ -1737,6 +1744,11 @@ body::before {
         <div class="chips-row" id="gasto-split"></div>
       </div>
 
+      <div class="mfield" id="gasto-meta-field" style="display:none;">
+        <div class="mfield-label">¿a cuál meta va?</div>
+        <div class="chips-row" id="gasto-meta-chips"></div>
+      </div>
+
       <div class="mfield">
         <div class="mfield-label">fecha</div>
         <input type="date" id="gasto-fecha" class="input">
@@ -2608,6 +2620,11 @@ async function cargarGastos() {
 
   if (error) { console.error(error); $('mov-list').innerHTML = '<div class="mov-empty">no se pudieron cargar los gastos</div>'; return; }
   gastosDelMes = data || [];
+  // cargar metas de futuro (para poder ligar ahorros a metas)
+  if (FUTURO.length === 0) {
+    const { data: fut } = await sb.from('future').select('*').order('orden',{ascending:true});
+    FUTURO = fut || [];
+  }
   calcularYrenderGastos();
 }
 
@@ -2787,6 +2804,12 @@ async function renderResumen() {
   const totalCompMes = total(compMes), totalCompPrev = total(compPrev);
   const totalPersMes = total(persMes), totalPersPrev = total(persPrev);
 
+  // ahorro del mes (tipo 'ahorro') — NO cuenta como gasto
+  const ahorroMes = gastosDelMes.filter(g => g.tipo === 'ahorro')
+    .reduce((s,g) => s + parseFloat(g.monto), 0);
+  const ahorroPrev = gastosPrev.filter(g => g.tipo === 'ahorro')
+    .reduce((s,g) => s + parseFloat(g.monto), 0);
+
   // tarjetas de totales con delta
   function deltaHtml(actual, prev) {
     if (prev === 0) return '<div class="resumen-total-delta delta-igual">sin mes anterior</div>';
@@ -2817,6 +2840,26 @@ async function renderResumen() {
   // tabla por categoría — personal
   html += `<div class="resumen-section-title">gasto personal por rubro</div>`;
   html += renderResumenTabla(persMes, persPrev, 'pers');
+
+  // bloque de ahorro del mes
+  html += `<div class="resumen-section-title">lo que ahorraron este mes 🐷</div>`;
+  if (ahorroMes > 0) {
+    let ahorroDelta = '';
+    if (ahorroPrev > 0) {
+      const diff = ahorroMes - ahorroPrev;
+      if (Math.abs(diff) < 1) ahorroDelta = 'igual que el mes pasado';
+      else if (diff > 0) ahorroDelta = `${fmtDinero(diff)} más que el mes pasado 💪`;
+      else ahorroDelta = `${fmtDinero(Math.abs(diff))} menos que el mes pasado`;
+    } else {
+      ahorroDelta = 'primer mes ahorrando juntos';
+    }
+    html += `<div class="resumen-ahorro-card">
+      <div class="resumen-ahorro-monto">${fmtDinero(ahorroMes)}</div>
+      <div class="resumen-ahorro-delta">${ahorroDelta}</div>
+    </div>`;
+  } else {
+    html += `<div class="resumen-empty">aún no han registrado ahorros este mes · regístralos con el + eligiendo "ahorro"</div>`;
+  }
 
   // tip de estrategia
   const totalMes = totalCompMes + totalPersMes;
@@ -2977,6 +3020,16 @@ function renderMovItem(g) {
     tagText = 'personal';
     const quien = g.split === 'pago-dani' ? 'dani' : 'alfredo';
     metaText = 'cosa de ' + quien;
+  } else if (g.tipo === 'ahorro') {
+    tagClass = 'tag-ahorro';
+    tagText = 'ahorro 🐷';
+    const quien = g.split === 'pago-dani' ? 'dani' : 'alfredo';
+    let metaNombre = '';
+    if (g.meta_id) {
+      const m = (FUTURO||[]).find(f => f.id === g.meta_id);
+      if (m) metaNombre = ' → ' + m.titulo;
+    }
+    metaText = 'ahorró ' + quien + (metaNombre || ' · sin meta');
   } else {
     tagClass = 'tag-compartido';
     tagText = 'compartido';
@@ -3018,7 +3071,7 @@ async function borrarGasto(id) {
 // GASTOS — modal registrar
 // ============================================
 function openGastoModal() {
-  gForm = { categoria_id:null, categoria_nombre:null, subcategoria_id:null, pagador:null, tipo:null, split:'50/50' };
+  gForm = { categoria_id:null, categoria_nombre:null, subcategoria_id:null, pagador:null, tipo:null, split:'50/50', meta_id:null };
   $('gasto-concepto').value = '';
   $('gasto-monto').value = '';
   const hoy = new Date();
@@ -3039,9 +3092,11 @@ function openGastoModal() {
     <button class="chip" onclick="selTipo(this,'compartido')">compartido 50/50</button>
     <button class="chip" onclick="selTipo(this,'aporte')">cuenta al aporte</button>
     <button class="chip" onclick="selTipo(this,'invitacion')">yo invito 💝</button>
-    <button class="chip" onclick="selTipo(this,'personal')">personal</button>`;
+    <button class="chip" onclick="selTipo(this,'personal')">personal</button>
+    <button class="chip" onclick="selTipo(this,'ahorro')">ahorro 🐷</button>`;
 
   $('gasto-split-field').style.display = 'none';
+  $('gasto-meta-field').style.display = 'none';
   $('gasto-modal').classList.add('active');
   setTimeout(() => $('gasto-concepto').focus(), 200);
 }
@@ -3126,6 +3181,30 @@ function selTipo(el, val) {
   document.querySelectorAll('#gasto-tipo .chip').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   gForm.tipo = val;
+  // si es ahorro, mostrar selector de meta
+  const metaField = $('gasto-meta-field');
+  if (val === 'ahorro') {
+    renderGastoMetaChips();
+    metaField.style.display = 'block';
+  } else {
+    metaField.style.display = 'none';
+    gForm.meta_id = null;
+  }
+}
+
+function renderGastoMetaChips() {
+  // metas disponibles = hitos de futuro con tiene_meta
+  const metas = (FUTURO || []).filter(f => f.tiene_meta && f.meta_monto);
+  let html = `<button class="chip ${gForm.meta_id===null?'selected':''}" onclick="selGastoMeta(null)">sin meta</button>`;
+  html += metas.map(m =>
+    `<button class="chip ${gForm.meta_id===m.id?'selected':''}" onclick="selGastoMeta('${m.id}')">${escapeHtml(m.titulo)}</button>`
+  ).join('');
+  $('gasto-meta-chips').innerHTML = html;
+}
+
+function selGastoMeta(metaId) {
+  gForm.meta_id = metaId;
+  renderGastoMetaChips();
 }
 
 async function saveGasto() {
@@ -3154,7 +3233,8 @@ async function saveGasto() {
     subcategoria_id: gForm.subcategoria_id,
     tipo: gForm.tipo,
     split,
-    fecha
+    fecha,
+    meta_id: (gForm.tipo === 'ahorro') ? gForm.meta_id : null
   });
 
   btn.disabled = false; btn.textContent = 'guardar';
@@ -3164,6 +3244,8 @@ async function saveGasto() {
   closeModal('gasto-modal');
   if (concepto.toLowerCase().includes('pato') || concepto.toLowerCase().includes('pequin')) {
     toast('🦆 pato pequinés registrado');
+  } else if (gForm.tipo === 'ahorro') {
+    toast('ahorro registrado 🐷');
   } else {
     toast('movimiento guardado');
   }
@@ -4153,7 +4235,8 @@ function iniciarTimer() {
 // FUTURO NOSOTROS
 // ============================================
 let FUTURO = [];
-let ABONOS = [];           // todos los abonos a metas
+let ABONOS = [];           // abonos directos a metas
+let AHORROS_GASTOS = [];   // expenses tipo ahorro ligados a metas
 let futuroEditandoId = null;
 let futuroMetaForm = false;
 let abonoMetaId = null;    // hito al que se está abonando
@@ -4163,16 +4246,24 @@ async function cargarFuturo() {
     .select('*').order('orden',{ascending:true}).order('creado',{ascending:true});
   if (error) { console.error(error); return; }
   FUTURO = data || [];
-  // cargar abonos
+  // abonos directos
   const { data: ab } = await sb.from('meta_abonos').select('*').order('creado',{ascending:false});
   ABONOS = ab || [];
+  // ahorros registrados en gastos y ligados a una meta
+  const { data: ahG } = await sb.from('expenses')
+    .select('id, monto, meta_id, concepto, fecha, autor, creado')
+    .eq('tipo', 'ahorro').not('meta_id', 'is', null);
+  AHORROS_GASTOS = ahG || [];
   renderFuturo();
 }
 
-// suma de abonos de un hito
+// suma de lo ahorrado para un hito = abonos directos + ahorros ligados desde gastos
 function ahorradoDe(futureId) {
-  return ABONOS.filter(a => a.future_id === futureId)
+  const deAbonos = ABONOS.filter(a => a.future_id === futureId)
     .reduce((s,a) => s + parseFloat(a.monto), 0);
+  const deGastos = AHORROS_GASTOS.filter(g => g.meta_id === futureId)
+    .reduce((s,g) => s + parseFloat(g.monto), 0);
+  return deAbonos + deGastos;
 }
 
 function renderFuturo() {
@@ -4337,7 +4428,13 @@ async function openAbonosHist(futureId) {
   const f = FUTURO.find(x => x.id === futureId);
   $('abonos-hist-sub').textContent = f ? 'meta: ' + f.titulo : 'todo lo que han juntado';
   $('abonos-hist-modal').classList.add('active');
-  const lista = ABONOS.filter(a => a.future_id === futureId);
+  // juntar abonos directos + ahorros ligados desde gastos
+  const directos = ABONOS.filter(a => a.future_id === futureId)
+    .map(a => ({ ...a, _origen:'abono' }));
+  const deGastos = AHORROS_GASTOS.filter(g => g.meta_id === futureId)
+    .map(g => ({ ...g, nota: g.concepto, _origen:'gasto' }));
+  const lista = [...directos, ...deGastos]
+    .sort((a,b) => new Date(b.creado) - new Date(a.creado));
   if (lista.length === 0) {
     $('abonos-hist-list').innerHTML = '<div class="center-msg">aún no hay abonos</div>';
     return;
@@ -4348,12 +4445,13 @@ async function openAbonosHist(futureId) {
     const f = fecha.getDate() + ' ' + meses[fecha.getMonth()] + ' ' + fecha.getFullYear();
     const autor = PROFILES[a.autor];
     const quien = autor ? autor.nombre : 'alguien';
+    const origenTxt = a._origen === 'gasto' ? ' · desde gastos 🐷' : '';
     return `<div class="abono-item">
       <div class="abono-info">
         <div class="abono-monto">${fmtDinero(a.monto)}</div>
-        <div class="abono-meta">${quien} · ${f}${a.nota ? ' · ' + escapeHtml(a.nota) : ''}</div>
+        <div class="abono-meta">${quien} · ${f}${a.nota ? ' · ' + escapeHtml(a.nota) : ''}${origenTxt}</div>
       </div>
-      <button class="abono-del" onclick="borrarAbono('${a.id}')">✕</button>
+      ${a._origen === 'abono' ? `<button class="abono-del" onclick="borrarAbono('${a.id}')">✕</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -5215,6 +5313,7 @@ function suscribirRealtime() {
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'expenses' }, () => {
       if (currentScreen === 'gastos') cargarGastos();
+      if (currentScreen === 'futuro') cargarFuturo();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'settlements' }, async () => {
       await cargarSettlements();
