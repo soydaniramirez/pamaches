@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#FFF1F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>pamaches</title>
+<link rel="icon" href="pamache.png">
+<link rel="apple-touch-icon" href="pamache.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Caveat:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --crema: #FFF1F1;
+  --crema-deep: #F5E6E6;
+  --vino: #BB1F31;
+  --vino-deep: #8B1726;
+  --coral: #F35666;
+  --rosa: #FFA3E8;
+  --rosa-soft: #FFD9E8;
+  --cielo: #B7D6ED;
+  --cielo-soft: #D9E9F2;
+  --tinta: #2A1820;
+  --tinta-soft: #5A4048;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--crema);
+  font-family: 'Manrope', sans-serif;
+  color: var(--tinta);
+  position: relative;
+}
+
+/* textura de papel */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.1 0 0 0 0 0.15 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: multiply;
+}
+
+#app { position: relative; z-index: 2; min-height: 100%; }
+
+/* ============ SCREENS ============ */
+.screen { display: none; min-height: 100vh; min-height: 100dvh; }
+.screen.active { display: block; }
+
+/* ============ LOADER ============ */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: var(--crema);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+#loader img {
+  width: 120px;
+  animation: breathe 2s ease-in-out infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+#loader .loader-text {
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  color: var(--vino);
+}
+
+/* ============ LOGIN ============ */
+#screen-login {
+  display: none;
+  min-height: 100vh;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 28px;
+  text-align: center;
+}
+#screen-login.active { display: flex; }
+
+.login-pamache {
+  width: 200px;
+  max-width: 60vw;
+  filter: drop-shadow(2px 5px 4px rgba(42,24,32,0.15));
+  margin-bottom: 8px;
+}
+
+.login-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 3rem;
+  color: var(--vino);
+  line-height: 1;
+}
+
+.login-sub {
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  color: var(--tinta-soft);
+  margin-top: 6px;
+  margin-bottom: 32px;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field-label {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--vino);
+  text-align: left;
+  margin-bottom: -8px;
+  margin-left: 6px;
+}
+
+.input {
+  width: 100%;
+  padding: 15px 18px;
+  border: 2px solid var(--tinta);
+  border-radius: 16px;
+  background: var(--crema);
+  font-family: 'Manrope', sans-serif;
+  font-size: 1rem;
+  color: var(--tinta);
+  box-shadow: 2px 3px 0 var(--tinta);
+  transition: transform 0.1s;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--vino);
+}
+.input::placeholder { color: #B9A5AA; }
+
+.btn {
+  width: 100%;
+  padding: 16px;
+  border: 2px solid var(--tinta);
+  border-radius: 16px;
+  background: var(--vino);
+  color: var(--crema);
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 1.15rem;
+  box-shadow: 3px 4px 0 var(--tinta);
+  cursor: pointer;
+  transition: transform 0.08s, box-shadow 0.08s;
+  margin-top: 4px;
+}
+.btn:active {
+  transform: translate(3px, 4px);
+  box-shadow: 0 0 0 var(--tinta);
+}
+.btn:disabled { opacity: 0.6; }
+
+.btn-ghost {
+  background: var(--crema);
+  color: var(--vino);
+}
+
+.login-msg {
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  min-height: 24px;
+  margin-top: 6px;
+}
+.login-msg.error { color: var(--vino); }
+.login-msg.ok { color: #2E7D32; }
+
+/* ============ APP SHELL ============ */
+.app-content {
+  padding: 24px 20px 110px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* ============ HOME ============ */
+.home-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.home-hello {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 2rem;
+  color: var(--vino);
+  line-height: 1;
+}
+.home-date {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--tinta-soft);
+  margin-top: 4px;
+}
+.logout-btn {
+  background: none;
+  border: 1.5px solid var(--tinta-soft);
+  border-radius: 12px;
+  padding: 6px 10px;
+  font-family: 'Caveat', cursive;
+  font-size: 0.95rem;
+  color: var(--tinta-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* hero pamache */
+.hero-pamache {
+  margin: 8px 0 18px;
+  background: linear-gradient(160deg, var(--cielo-soft) 0%, var(--rosa-soft) 100%);
+  border-radius: 24px;
+  border: 2px solid var(--tinta);
+  box-shadow: 3px 4px 0 var(--tinta);
+  padding: 20px 16px 14px;
+  text-align: center;
+}
+.hero-pamache img {
+  width: 70%;
+  max-width: 230px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(2px 4px 3px rgba(42,24,32,0.12));
+}
+.hero-caption {
+  font-family: 'Caveat', cursive;
+  font-size: 1.15rem;
+  color: var(--vino);
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+/* notitas */
+.notitas-section {
+  background: linear-gradient(135deg, #FFD9F2 0%, #FFA3E8 100%);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 18px;
+  border: 1.8px solid var(--tinta);
+  box-shadow: 3px 3px 0 var(--tinta);
+  transform: rotate(-0.4deg);
+}
+.notitas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.notitas-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--tinta);
+}
+.notitas-add {
+  width: 32px;
+  height: 32px;
+  background: var(--tinta);
+  color: var(--rosa);
+  border: none;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.notita {
+  background: var(--crema);
+  border: 1.5px solid var(--tinta);
+  border-radius: 12px;
+  padding: 11px 13px;
+  margin-bottom: 8px;
+  font-family: 'Caveat', cursive;
+}
+.notita:last-child { margin-bottom: 0; }
+.notita:nth-child(odd) { transform: rotate(-0.7deg); }
+.notita:nth-child(even) { transform: rotate(0.6deg); }
+.notita-from {
+  font-size: 0.9rem;
+  color: var(--vino);
+  font-weight: 600;
+}
+.notita-text {
+  font-size: 1.1rem;
+  line-height: 1.25;
+  color: var(--tinta);
+}
+.notita-when {
+  font-size: 0.72rem;
+  color: var(--tinta-soft);
+  font-family: 'Manrope', sans-serif;
+  font-style: italic;
+  margin-top: 4px;
+}
+.notitas-empty {
+  font-family: 'Caveat', cursive;
+  font-size: 1.05rem;
+  color: var(--tinta-soft);
+  text-align: center;
+  padding: 10px;
+}
+
+/* cards grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+  margin-bottom: 18px;
+}
+.mini-card {
+  background: var(--crema);
+  border: 1.8px solid var(--tinta);
+  border-radius: 18px;
+  padding: 14px 12px;
+  box-shadow: 2px 3px 0 var(--tinta);
+  cursor: pointer;
+  text-align: left;
+}
+.mini-card:nth-child(1) { transform: rotate(-0.7deg); }
+.mini-card:nth-child(2) { transform: rotate(0.6deg); background: var(--cielo-soft); }
+.mini-card:nth-child(3) { transform: rotate(0.4deg); background: var(--cielo-soft); }
+.mini-card:nth-child(4) { transform: rotate(-0.5deg); }
+.mini-card-icon { height: 40px; display: flex; align-items: center; margin-bottom: 4px; }
+.mini-card-title {
+  font-family: 'Fraunces', serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--vino);
+  line-height: 1.1;
+}
+.mini-card-meta {
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  color: var(--tinta-soft);
+  margin-top: 2px;
+}
+
+/* pregunta semana */
+.weekly-question {
+  background: var(--vino);
+  color: var(--crema);
+  border-radius: 18px;
+  padding: 16px 18px;
+  transform: rotate(-0.4deg);
+  box-shadow: 3px 3px 0 var(--tinta);
+}
+.weekly-question-label {
+  font-family: 'Caveat', cursive;
+  font-size: 1rem;
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+.weekly-question-text {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+/* ============ BOTTOM NAV ============ */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--crema);
+  border-top: 1.5px solid var(--tinta);
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-between;
+  max-width: 480px;
+  margin: 0 auto;
+  z-index: 10;
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: var(--tinta-soft);
+  font-size: 0.64rem;
+  font-family: 'Manrope', sans-serif;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.nav-item.active { color: var(--vino); }
+.nav-item.active .nav-icon-wrap {
+  background: var(--vino);
+  border-radius: 50%;
+}
+.nav-item.active .nav-icon-wrap svg { stroke: var(--crema); }
+.nav-icon-wrap {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+}
+
+/* ============ COMING SOON (placeholder) ============ */
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 30px;
+  min-height: 60vh;
+}
+.coming-soon img {
+  width: 130px;
+  opacity: 0.85;
+  margin-bottom: 16px;
+}
+.coming-soon h2 {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 1.6rem;
+  color: var(--vino);
+}
+.coming-soon p {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--tinta-soft);
+  margin-top: 6px;
+}
+
+/* ============ MODAL ============ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(42, 24, 32, 0.45);
+  z-index: 50;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--crema);
+  border-top-left-radius: 28px;
+  border-top-right-radius: 28px;
+  border: 2px solid var(--tinta);
+  border-bottom: none;
+  padding: 24px 22px calc(28px + env(safe-area-inset-bottom));
+  width: 100%;
+  max-width: 480px;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+.modal-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 1.5rem;
+  color: var(--vino);
+  margin-bottom: 4px;
+}
+.modal-sub {
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--tinta-soft);
+  margin-bottom: 16px;
+}
+.modal textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 14px 16px;
+  border: 2px solid var(--tinta);
+  border-radius: 16px;
+  background: var(--crema);
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--tinta);
+  resize: none;
+  box-shadow: 2px 3px 0 var(--tinta);
+}
+.modal textarea:focus { outline: none; border-color: var(--vino); }
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+.modal-actions .btn { margin-top: 0; }
+
+/* spinner */
+.spinner {
+  width: 18px; height: 18px;
+  border: 2.5px solid rgba(255,241,241,0.4);
+  border-top-color: var(--crema);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.center-msg {
+  text-align: center;
+  font-family: 'Caveat', cursive;
+  font-size: 1.1rem;
+  color: var(--tinta-soft);
+  padding: 20px;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ LOADER ============ -->
+  <div id="loader">
+    <img src="pamache.png" alt="pamaches">
+    <div class="loader-text">cargando...</div>
+  </div>
+
+  <!-- ============ LOGIN ============ -->
+  <div id="screen-login" class="screen">
+    <img src="pamache.png" alt="pamaches" class="login-pamache">
+    <div class="login-title">pamaches</div>
+    <div class="login-sub">nuestro espacio</div>
+
+    <div class="login-form">
+      <div class="field-label">correo</div>
+      <input type="email" id="login-email" class="input" placeholder="tu correo" autocomplete="email">
+      <div class="field-label">contraseña</div>
+      <input type="password" id="login-password" class="input" placeholder="tu contraseña" autocomplete="current-password">
+      <button class="btn" id="login-btn" onclick="doLogin()">entrar</button>
+      <div class="login-msg" id="login-msg"></div>
+    </div>
+  </div>
+
+  <!-- ============ HOME ============ -->
+  <div id="screen-home" class="screen">
+    <div class="app-content">
+      <div class="home-header">
+        <div>
+          <div class="home-hello" id="home-hello">hola pamaches</div>
+          <div class="home-date" id="home-date"></div>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">salir</button>
+      </div>
+
+      <div class="hero-pamache">
+        <img src="pamache.png" alt="pamaches">
+        <div class="hero-caption" id="hero-caption">juntos</div>
+      </div>
+
+      <div class="notitas-section">
+        <div class="notitas-header">
+          <div class="notitas-title">notitas</div>
+          <button class="notitas-add" onclick="openNotitaModal()">+</button>
+        </div>
+        <div id="notitas-list">
+          <div class="notitas-empty">cargando notitas...</div>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <button class="mini-card" onclick="goTo('gastos')">
+          <div class="mini-card-icon">
+            <svg width="36" height="36" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2" stroke-linecap="round"><ellipse cx="20" cy="28" rx="12" ry="4"/><ellipse cx="20" cy="25" rx="12" ry="4"/><ellipse cx="30" cy="20" rx="10" ry="3.5"/><ellipse cx="30" cy="17" rx="10" ry="3.5"/></g></svg>
+          </div>
+          <div class="mini-card-title">cuentas claras</div>
+          <div class="mini-card-meta">cosas de la casa</div>
+        </button>
+        <button class="mini-card" onclick="goTo('planes')">
+          <div class="mini-card-icon">
+            <svg width="36" height="36" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 8 18 L 30 14 L 33 30 L 11 34 Z"/><path d="M 14 22 L 26 19"/><circle cx="18" cy="14" r="1.5" fill="#BB1F31"/></g></svg>
+          </div>
+          <div class="mini-card-title">planes pamaches</div>
+          <div class="mini-card-meta">nuestros momentos</div>
+        </button>
+        <button class="mini-card" onclick="goTo('nosotros')">
+          <div class="mini-card-icon">
+            <svg width="36" height="36" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 8 14 Q 18 12 25 16 Q 32 12 42 14 L 42 36 Q 32 34 25 38 Q 18 34 8 36 Z"/><path d="M 25 16 L 25 38"/></g></svg>
+          </div>
+          <div class="mini-card-title">cápsula</div>
+          <div class="mini-card-meta">lo que importa</div>
+        </button>
+        <button class="mini-card" onclick="goTo('tareas')">
+          <div class="mini-card-icon">
+            <svg width="36" height="36" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 38 L 12 22 Q 12 18 16 18 L 34 18 Q 38 18 38 22 L 38 38"/><path d="M 8 38 L 42 38"/><circle cx="25" cy="10" r="2.5"/><path d="M 25 12 L 25 18"/></g></svg>
+          </div>
+          <div class="mini-card-title">tareas de la casa</div>
+          <div class="mini-card-meta">quién hace qué</div>
+        </button>
+      </div>
+
+      <div class="weekly-question">
+        <div class="weekly-question-label">pregunta de la semana</div>
+        <div class="weekly-question-text">¿qué te hizo sentir más amado/a esta semana?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PLACEHOLDERS (próximas fases) ============ -->
+  <div id="screen-gastos" class="screen">
+    <div class="app-content">
+      <div class="coming-soon">
+        <img src="pamache.png" alt="">
+        <h2>cuentas claras</h2>
+        <p>esta sección llega en la siguiente fase</p>
+      </div>
+    </div>
+  </div>
+  <div id="screen-planes" class="screen">
+    <div class="app-content">
+      <div class="coming-soon">
+        <img src="pamache.png" alt="">
+        <h2>planes pamaches</h2>
+        <p>esta sección llega pronto</p>
+      </div>
+    </div>
+  </div>
+  <div id="screen-nosotros" class="screen">
+    <div class="app-content">
+      <div class="coming-soon">
+        <img src="pamache.png" alt="">
+        <h2>nosotros</h2>
+        <p>cápsula, futuro y más, muy pronto</p>
+      </div>
+    </div>
+  </div>
+  <div id="screen-tareas" class="screen">
+    <div class="app-content">
+      <div class="coming-soon">
+        <img src="pamache.png" alt="">
+        <h2>tareas de la casa</h2>
+        <p>esta sección llega pronto</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="bottom-nav" id="bottom-nav" style="display:none;">
+    <button class="nav-item active" data-screen="home" onclick="goTo('home')">
+      <div class="nav-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5A4048" stroke-width="2" stroke-linecap="round"><path d="M 3 12 L 12 3 L 21 12 M 5 10 L 5 21 L 19 21 L 19 10"/></svg></div>
+      <span>casa</span>
+    </button>
+    <button class="nav-item" data-screen="gastos" onclick="goTo('gastos')">
+      <div class="nav-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5A4048" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M 12 7 L 12 17 M 9 10 L 15 10 M 9 14 L 15 14"/></svg></div>
+      <span>gastos</span>
+    </button>
+    <button class="nav-item" data-screen="planes" onclick="goTo('planes')">
+      <div class="nav-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5A4048" stroke-width="2" stroke-linecap="round"><path d="M 5 8 L 19 8 L 19 20 L 5 20 Z M 8 8 L 8 4 M 16 8 L 16 4 M 5 12 L 19 12"/></svg></div>
+      <span>planes</span>
+    </button>
+    <button class="nav-item" data-screen="nosotros" onclick="goTo('nosotros')">
+      <div class="nav-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5A4048" stroke-width="2" stroke-linecap="round"><path d="M 12 21 C 12 21 4 14 4 9 C 4 6 6 4 9 4 C 10.5 4 12 5 12 7 C 12 5 13.5 4 15 4 C 18 4 20 6 20 9 C 20 14 12 21 12 21 Z"/></svg></div>
+      <span>nosotros</span>
+    </button>
+    <button class="nav-item" data-screen="tareas" onclick="goTo('tareas')">
+      <div class="nav-icon-wrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5A4048" stroke-width="2" stroke-linecap="round"><path d="M 12 38 L 12 22 Q 12 18 16 18" transform="scale(0.6) translate(8,3)"/><circle cx="5" cy="12" r="1.5" fill="#5A4048"/><circle cx="12" cy="12" r="1.5" fill="#5A4048"/><circle cx="19" cy="12" r="1.5" fill="#5A4048"/></svg></div>
+      <span>más</span>
+    </button>
+  </nav>
+
+  <!-- ============ MODAL NOTITA ============ -->
+  <div class="modal-overlay" id="notita-modal">
+    <div class="modal">
+      <div class="modal-title">dejar una notita</div>
+      <div class="modal-sub">algo bonito para encontrar después</div>
+      <textarea id="notita-text" placeholder="escribe aquí, pamache..."></textarea>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeNotitaModal()">cancelar</button>
+        <button class="btn" id="notita-save-btn" onclick="saveNotita()">dejarla</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============ SUPABASE ============ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ============================================
+// CONFIG
+// ============================================
+const SUPABASE_URL = 'https://aucsrppzwniltecwatuu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1Y3NycHB6d25pbHRlY3dhdHV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0OTM4NzksImV4cCI6MjA5NTA2OTg3OX0.iLx3YQQw8aY2pktNc61fq1kSyN6PXx_IEV98AG8DUbU';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================
+// ESTADO
+// ============================================
+let ME = null;          // mi perfil
+let COUPLE = null;       // la pareja
+let PROFILES = {};       // { uid: perfil }
+let currentScreen = 'home';
+
+// ============================================
+// HELPERS
+// ============================================
+function $(id) { return document.getElementById(id); }
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('screen-' + name).classList.add('active');
+  currentScreen = name;
+  // nav
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.classList.toggle('active', n.dataset.screen === name);
+  });
+  window.scrollTo(0, 0);
+}
+
+function goTo(name) {
+  showScreen(name);
+}
+
+function fmtFecha(d) {
+  const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return dias[d.getDay()] + ', ' + d.getDate() + ' de ' + meses[d.getMonth()];
+}
+
+function tiempoRelativo(iso) {
+  const ahora = new Date();
+  const fecha = new Date(iso);
+  const diffMs = ahora - fecha;
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffH = Math.floor(diffMin / 60);
+  const diffD = Math.floor(diffH / 24);
+  if (diffMin < 1) return 'justo ahora';
+  if (diffMin < 60) return 'hace ' + diffMin + ' min';
+  if (diffH < 24) return 'hace ' + diffH + 'h';
+  if (diffD === 1) return 'ayer';
+  if (diffD < 7) return 'hace ' + diffD + ' días';
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return fecha.getDate() + ' ' + meses[fecha.getMonth()];
+}
+
+function tiempoJuntos(aniversario) {
+  if (!aniversario) return 'juntos';
+  const ini = new Date(aniversario + 'T00:00:00');
+  const hoy = new Date();
+  let meses = (hoy.getFullYear() - ini.getFullYear()) * 12 + (hoy.getMonth() - ini.getMonth());
+  if (hoy.getDate() < ini.getDate()) meses--;
+  const anios = Math.floor(meses / 12);
+  const m = meses % 12;
+  let txt = '';
+  if (anios > 0) txt += anios + (anios === 1 ? ' año' : ' años');
+  if (anios > 0 && m > 0) txt += ', ';
+  if (m > 0) txt += m + (m === 1 ? ' mes' : ' meses');
+  if (!txt) txt = 'recién empezando';
+  return txt + ' juntos';
+}
+
+// ============================================
+// AUTH
+// ============================================
+async function doLogin() {
+  const email = $('login-email').value.trim();
+  const password = $('login-password').value;
+  const msg = $('login-msg');
+  const btn = $('login-btn');
+
+  if (!email || !password) {
+    msg.className = 'login-msg error';
+    msg.textContent = 'falta tu correo o contraseña';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  msg.textContent = '';
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    msg.className = 'login-msg error';
+    msg.textContent = 'correo o contraseña incorrectos';
+    btn.disabled = false;
+    btn.textContent = 'entrar';
+    return;
+  }
+
+  // login ok -> cargar la app
+  await iniciarApp();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+// ============================================
+// CARGAR DATOS
+// ============================================
+async function cargarPerfil() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return false;
+
+  // mi perfil
+  const { data: perfil, error } = await sb
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  if (error || !perfil) {
+    console.error('error cargando perfil', error);
+    return false;
+  }
+  ME = perfil;
+
+  // la pareja
+  const { data: couple } = await sb
+    .from('couples')
+    .select('*')
+    .eq('id', perfil.couple_id)
+    .single();
+  COUPLE = couple;
+
+  // todos los perfiles de la pareja
+  const { data: perfiles } = await sb
+    .from('profiles')
+    .select('*')
+    .eq('couple_id', perfil.couple_id);
+  PROFILES = {};
+  (perfiles || []).forEach(p => { PROFILES[p.id] = p; });
+
+  return true;
+}
+
+async function cargarNotitas() {
+  const { data, error } = await sb
+    .from('notitas')
+    .select('*')
+    .order('creado', { ascending: false })
+    .limit(6);
+
+  const list = $('notitas-list');
+  if (error) {
+    list.innerHTML = '<div class="notitas-empty">no se pudieron cargar</div>';
+    return;
+  }
+  if (!data || data.length === 0) {
+    list.innerHTML = '<div class="notitas-empty">aún no hay notitas. deja la primera con el +</div>';
+    return;
+  }
+
+  list.innerHTML = data.map(n => {
+    const autor = PROFILES[n.autor];
+    const nombre = autor ? autor.nombre : 'alguien';
+    return `
+      <div class="notita">
+        <div class="notita-from">${nombre} &rarr;</div>
+        <div class="notita-text">${escapeHtml(n.texto)}</div>
+        <div class="notita-when">${tiempoRelativo(n.creado)}</div>
+      </div>`;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ============================================
+// NOTITAS — modal
+// ============================================
+function openNotitaModal() {
+  $('notita-text').value = '';
+  $('notita-modal').classList.add('active');
+  setTimeout(() => $('notita-text').focus(), 200);
+}
+function closeNotitaModal() {
+  $('notita-modal').classList.remove('active');
+}
+async function saveNotita() {
+  const texto = $('notita-text').value.trim();
+  if (!texto) { closeNotitaModal(); return; }
+
+  const btn = $('notita-save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+
+  const { error } = await sb.from('notitas').insert({
+    couple_id: ME.couple_id,
+    autor: ME.id,
+    texto: texto
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'dejarla';
+
+  if (error) {
+    alert('no se pudo guardar la notita');
+    console.error(error);
+    return;
+  }
+
+  closeNotitaModal();
+  await cargarNotitas();
+}
+
+// ============================================
+// REALTIME
+// ============================================
+function suscribirRealtime() {
+  sb.channel('notitas-cambios')
+    .on('postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'notitas' },
+      () => { cargarNotitas(); }
+    )
+    .subscribe();
+}
+
+// cerrar modal al tocar fuera
+$('notita-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'notita-modal') closeNotitaModal();
+});
+
+// ============================================
+// INICIAR APP
+// ============================================
+async function iniciarApp() {
+  const ok = await cargarPerfil();
+  if (!ok) {
+    // sin perfil -> mostrar login
+    $('loader').style.display = 'none';
+    showScreen('login');
+    return;
+  }
+
+  // poblar home
+  $('home-hello').textContent = 'hola ' + ME.nombre;
+  $('home-date').textContent = fmtFecha(new Date());
+  $('hero-caption').textContent = tiempoJuntos(COUPLE ? COUPLE.aniversario : null);
+
+  await cargarNotitas();
+  suscribirRealtime();
+
+  // mostrar app
+  $('loader').style.display = 'none';
+  $('bottom-nav').style.display = 'flex';
+  showScreen('home');
+}
+
+// ============================================
+// ARRANQUE
+// ============================================
+async function arranque() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await iniciarApp();
+  } else {
+    $('loader').style.display = 'none';
+    showScreen('login');
+  }
+}
+
+// enter en login
+$('login-password').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') doLogin();
+});
+$('login-email').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') $('login-password').focus();
+});
+
+arranque();
+</script>
+
+</body>
+</html>
