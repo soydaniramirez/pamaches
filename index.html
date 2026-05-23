@@ -582,6 +582,99 @@ body::before {
   font-family:'Fraunces',serif; font-size:2.5rem; color:var(--vino); text-align:center; margin:10px 0;
 }
 
+/* ============ FUTURO NOSOTROS ============ */
+.timeline { position:relative; padding-left:30px; margin-top:8px; }
+.timeline::before {
+  content:''; position:absolute; left:9px; top:8px; bottom:8px; width:2.5px;
+  background-image:linear-gradient(var(--tinta) 60%, transparent 0%);
+  background-size:2.5px 7px; background-repeat:repeat-y;
+}
+.tl-item { position:relative; padding-bottom:20px; }
+.tl-item:last-child { padding-bottom:0; }
+.tl-dot {
+  position:absolute; left:-30px; top:2px; width:20px; height:20px; border-radius:50%;
+  background:var(--crema); border:2.5px solid var(--vino); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.tl-dot.done { background:var(--vino); }
+.tl-dot.done::after { content:'✓'; color:var(--crema); font-size:0.7rem; }
+.tl-card {
+  background:var(--crema); border:1.8px solid var(--tinta); border-radius:16px;
+  padding:12px 14px; box-shadow:2px 3px 0 var(--tinta);
+}
+.tl-when { font-family:'Caveat',cursive; font-size:1rem; color:var(--vino); font-weight:600; }
+.tl-what { font-family:'Fraunces',serif; font-size:1.05rem; margin-top:2px; }
+.tl-what.done { text-decoration:line-through; color:var(--tinta-soft); }
+.tl-note { font-family:'Caveat',cursive; font-size:0.95rem; color:var(--tinta-soft); margin-top:3px; }
+.tl-del { background:none; border:none; color:var(--tinta-soft); font-size:0.95rem; cursor:pointer; float:right; }
+
+/* ============ NO NEGOCIABLES ============ */
+.nn-tabs {
+  display:flex; gap:6px; margin-bottom:16px; padding:4px;
+  background:var(--crema); border-radius:14px; border:1.5px solid var(--tinta);
+}
+.nn-tab {
+  flex:1; padding:9px 6px; text-align:center; border-radius:10px;
+  font-family:'Caveat',cursive; font-size:1.05rem; color:var(--tinta-soft);
+  cursor:pointer; border:none; background:none;
+}
+.nn-tab.active { background:var(--tinta); color:var(--crema); }
+.nn-intro {
+  font-family:'Caveat',cursive; font-size:1.1rem; color:var(--tinta-soft);
+  text-align:center; margin-bottom:14px;
+}
+.nn-card {
+  border:1.8px solid var(--tinta); border-radius:14px; padding:13px 15px;
+  margin-bottom:9px; box-shadow:2px 3px 0 var(--tinta); background:var(--crema);
+  position:relative;
+}
+.nn-card.los_dos { background:var(--cielo-soft); }
+.nn-card.dani { border-left:5px solid var(--coral); }
+.nn-card.alfredo { border-left:5px solid var(--cielo); }
+.nn-card-author { font-family:'Caveat',cursive; font-size:0.95rem; color:var(--vino); margin-bottom:3px; }
+.nn-card-text { font-family:'Fraunces',serif; font-size:0.98rem; line-height:1.35; }
+.nn-card-del { background:none; border:none; color:var(--tinta-soft); font-size:0.95rem; cursor:pointer; position:absolute; top:10px; right:10px; }
+
+/* ============ CÁPSULA DEL TIEMPO ============ */
+.ct-intro {
+  font-family:'Caveat',cursive; font-size:1.1rem; color:var(--tinta-soft);
+  text-align:center; margin-bottom:16px;
+}
+.ct-card {
+  border:1.8px solid var(--tinta); border-radius:18px; padding:16px;
+  margin-bottom:11px; box-shadow:2px 3px 0 var(--tinta); position:relative;
+}
+.ct-card.sellada { background:var(--crema-deep); }
+.ct-card.abierta { background:var(--crema); }
+.ct-card.lista { background:linear-gradient(135deg, #FFD9F2 0%, var(--rosa-soft) 100%); }
+.ct-icon-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.ct-cuando { font-family:'Caveat',cursive; font-size:1rem; color:var(--vino); font-weight:600; }
+.ct-titulo { font-family:'Fraunces',serif; font-style:italic; font-size:1.1rem; }
+.ct-meta { font-family:'Caveat',cursive; font-size:0.92rem; color:var(--tinta-soft); margin-top:3px; }
+.ct-contenido {
+  margin-top:10px; padding-top:10px; border-top:1.5px dashed var(--tinta-soft);
+  font-family:'Manrope',sans-serif; font-size:0.9rem; line-height:1.5; font-style:italic;
+}
+.ct-locked {
+  margin-top:8px; font-family:'Caveat',cursive; font-size:1rem; color:var(--tinta-soft);
+  text-align:center; padding:8px; background:rgba(42,24,32,0.05); border-radius:10px;
+}
+.ct-abrir-btn {
+  width:100%; margin-top:10px; padding:10px; border:1.8px solid var(--tinta);
+  border-radius:12px; background:var(--vino); color:var(--crema);
+  font-family:'Fraunces',serif; font-style:italic; font-size:1rem; cursor:pointer;
+}
+.ct-del { background:none; border:none; color:var(--tinta-soft); font-size:0.95rem; cursor:pointer; position:absolute; top:12px; right:12px; }
+
+/* radio tipo apertura */
+.radio-row { display:flex; gap:8px; }
+.radio-opt {
+  flex:1; padding:10px; text-align:center; border:1.5px solid var(--tinta);
+  border-radius:12px; font-family:'Caveat',cursive; font-size:1rem; cursor:pointer; background:var(--crema);
+}
+.radio-opt.selected { background:var(--vino); color:var(--crema); }
+
+
 </style>
 </head>
 <body>
@@ -990,24 +1083,50 @@ body::before {
     </div>
   </div>
 
-  <!-- ============ PLACEHOLDERS RESTANTES ============ -->
+  <!-- ============ FUTURO NOSOTROS ============ -->
   <div id="screen-futuro" class="screen">
     <div class="app-content">
       <button class="back-btn" onclick="goTo('nosotros')">‹ nosotros</button>
-      <div class="coming-soon"><img src="pamache.png" alt=""><h2>futuro nosotros</h2><p>llega en la siguiente entrega</p></div>
+      <div class="section-header">
+        <div class="section-title">futuro nosotros</div>
+        <div class="section-sub">a dónde queremos llegar</div>
+      </div>
+      <div class="timeline" id="futuro-timeline"></div>
     </div>
+    <button class="fab" onclick="openFuturoModal()">+</button>
   </div>
+
+  <!-- ============ NO NEGOCIABLES ============ -->
   <div id="screen-nonego" class="screen">
     <div class="app-content">
       <button class="back-btn" onclick="goTo('nosotros')">‹ nosotros</button>
-      <div class="coming-soon"><img src="pamache.png" alt=""><h2>no negociables</h2><p>llega en la siguiente entrega</p></div>
+      <div class="section-header">
+        <div class="section-title">no negociables</div>
+        <div class="section-sub">lo que sí y lo que no</div>
+      </div>
+      <div class="nn-intro">lo que cada quien necesita para estar bien</div>
+      <div class="nn-tabs">
+        <button class="nn-tab active" id="nn-tab-los_dos" onclick="switchNnTab('los_dos')">los dos</button>
+        <button class="nn-tab" id="nn-tab-dani" onclick="switchNnTab('dani')">dani</button>
+        <button class="nn-tab" id="nn-tab-alfredo" onclick="switchNnTab('alfredo')">alfredo</button>
+      </div>
+      <div id="nn-list"></div>
     </div>
+    <button class="fab" onclick="openNnModal()">+</button>
   </div>
+
+  <!-- ============ CÁPSULA DEL TIEMPO ============ -->
   <div id="screen-capsulatiempo" class="screen">
     <div class="app-content">
       <button class="back-btn" onclick="goTo('nosotros')">‹ nosotros</button>
-      <div class="coming-soon"><img src="pamache.png" alt=""><h2>cápsula del tiempo</h2><p>llega en la siguiente entrega</p></div>
+      <div class="section-header">
+        <div class="section-title">cápsula del tiempo</div>
+        <div class="section-sub">cartas para abrirnos después</div>
+      </div>
+      <div class="ct-intro">cartas, recuerdos y mensajes que se abren en su momento</div>
+      <div id="ct-list"></div>
     </div>
+    <button class="fab" onclick="openCtModal()">+</button>
   </div>
   <div id="screen-tareas" class="screen">
     <div class="app-content"><div class="coming-soon"><img src="pamache.png" alt=""><h2>tareas de la casa</h2><p>esta sección llega pronto</p></div></div>
@@ -1143,6 +1262,85 @@ body::before {
       <div id="historial-list"><div class="center-msg">cargando...</div></div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModal('historial-modal')">cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL FUTURO ============ -->
+  <div class="modal-overlay" id="futuro-modal">
+    <div class="modal">
+      <div class="modal-title">nuevo hito</div>
+      <div class="modal-sub">algo que quieran lograr juntos</div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué hito?</div>
+        <input type="text" id="futuro-titulo" class="input" placeholder="ej. viaje a europa">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿cuándo? (texto libre)</div>
+        <input type="text" id="futuro-cuando" class="input" placeholder="ej. verano 2026, algún día...">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">nota (opcional)</div>
+        <input type="text" id="futuro-nota" class="input" placeholder="algún detalle...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('futuro-modal')">cancelar</button>
+        <button class="btn" id="futuro-save-btn" onclick="saveFuturo()">guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL NO NEGOCIABLE ============ -->
+  <div class="modal-overlay" id="nn-modal">
+    <div class="modal">
+      <div class="modal-title">nuevo no negociable</div>
+      <div class="modal-sub">algo importante para la relación</div>
+      <div class="mfield">
+        <div class="mfield-label">¿de quién es?</div>
+        <div class="chips-row" id="nn-autor-chips"></div>
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">escríbelo</div>
+        <textarea id="nn-texto" placeholder="ej. honestidad antes que comodidad..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('nn-modal')">cancelar</button>
+        <button class="btn" id="nn-save-btn" onclick="saveNn()">guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL CÁPSULA DEL TIEMPO ============ -->
+  <div class="modal-overlay" id="ct-modal">
+    <div class="modal">
+      <div class="modal-title">nueva cápsula</div>
+      <div class="modal-sub">un mensaje para abrir después</div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué es?</div>
+        <input type="text" id="ct-titulo" class="input" placeholder="ej. carta para nuestro aniversario">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">el mensaje</div>
+        <textarea id="ct-contenido" placeholder="escribe aquí lo que quieres guardar..."></textarea>
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿cuándo se abre?</div>
+        <div class="radio-row" id="ct-tipo-radio">
+          <button class="radio-opt selected" onclick="selCtTipo('fecha')">en una fecha</button>
+          <button class="radio-opt" onclick="selCtTipo('evento')">en un momento</button>
+        </div>
+      </div>
+      <div class="mfield" id="ct-fecha-field">
+        <div class="mfield-label">fecha de apertura</div>
+        <input type="date" id="ct-fecha" class="input">
+      </div>
+      <div class="mfield" id="ct-evento-field" style="display:none;">
+        <div class="mfield-label">¿en qué momento?</div>
+        <input type="text" id="ct-evento" class="input" placeholder="ej. cuando peleemos feo">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('ct-modal')">cancelar</button>
+        <button class="btn" id="ct-save-btn" onclick="saveCt()">sellar cápsula</button>
       </div>
     </div>
   </div>
@@ -1312,6 +1510,9 @@ function goTo(name) {
   if (name === 'perfil') renderPerfil();
   if (name === 'capsula') cargarCapsula();
   if (name === 'raros') cargarRaros();
+  if (name === 'futuro') cargarFuturo();
+  if (name === 'nonego') cargarNonego();
+  if (name === 'capsulatiempo') cargarCapsulaTiempo();
 }
 
 function toast(msg) {
@@ -2534,6 +2735,300 @@ function iniciarTimer() {
   toast('timer iniciado · respiren');
 }
 
+// ============================================
+// FUTURO NOSOTROS
+// ============================================
+let FUTURO = [];
+
+async function cargarFuturo() {
+  const { data, error } = await sb.from('future')
+    .select('*').order('orden',{ascending:true}).order('creado',{ascending:true});
+  if (error) { console.error(error); return; }
+  FUTURO = data || [];
+  renderFuturo();
+}
+
+function renderFuturo() {
+  const cont = $('futuro-timeline');
+  if (FUTURO.length === 0) {
+    cont.innerHTML = `<div class="mov-empty" style="padding-left:0;"><img src="pamache.png" alt="">aún no hay hitos.<br>toca el + para soñar el primero</div>`;
+    return;
+  }
+  cont.innerHTML = FUTURO.map(f => `
+    <div class="tl-item">
+      <button class="tl-dot ${f.logrado?'done':''}" onclick="toggleFuturo('${f.id}', ${f.logrado})"></button>
+      <div class="tl-card">
+        <button class="tl-del" onclick="borrarFuturo('${f.id}')">✕</button>
+        ${f.cuando ? `<div class="tl-when">${escapeHtml(f.cuando)}</div>` : ''}
+        <div class="tl-what ${f.logrado?'done':''}">${escapeHtml(f.titulo)}</div>
+        ${f.nota ? `<div class="tl-note">${escapeHtml(f.nota)}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+async function toggleFuturo(id, estaba) {
+  const { error } = await sb.from('future').update({ logrado: !estaba }).eq('id', id);
+  if (error) { toast('no se pudo actualizar'); return; }
+  if (!estaba) toast('¡hito logrado! 🦝');
+  await cargarFuturo();
+}
+
+async function borrarFuturo(id) {
+  if (!confirm('¿borrar este hito?')) return;
+  const { error } = await sb.from('future').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  toast('hito borrado');
+  await cargarFuturo();
+}
+
+function openFuturoModal() {
+  $('futuro-titulo').value = '';
+  $('futuro-cuando').value = '';
+  $('futuro-nota').value = '';
+  $('futuro-modal').classList.add('active');
+  setTimeout(() => $('futuro-titulo').focus(), 200);
+}
+
+async function saveFuturo() {
+  const titulo = $('futuro-titulo').value.trim();
+  if (!titulo) { toast('falta el nombre del hito'); return; }
+  const cuando = $('futuro-cuando').value.trim() || null;
+  const nota = $('futuro-nota').value.trim() || null;
+  const btn = $('futuro-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { error } = await sb.from('future').insert({
+    couple_id: ME.couple_id,
+    titulo, cuando, nota,
+    logrado: false,
+    orden: FUTURO.length + 1
+  });
+  btn.disabled = false; btn.textContent = 'guardar';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('futuro-modal');
+  toast('hito agregado');
+  await cargarFuturo();
+}
+
+// ============================================
+// NO NEGOCIABLES
+// ============================================
+let NONEGO = [];
+let nnTab = 'los_dos';
+let nnAutorForm = null;
+
+async function cargarNonego() {
+  const { data, error } = await sb.from('nonnegotiables')
+    .select('*').order('creado',{ascending:false});
+  if (error) { console.error(error); return; }
+  NONEGO = data || [];
+  renderNonego();
+}
+
+function switchNnTab(tab) {
+  nnTab = tab;
+  ['los_dos','dani','alfredo'].forEach(t => {
+    $('nn-tab-'+t).classList.toggle('active', t===tab);
+  });
+  renderNonego();
+}
+
+function renderNonego() {
+  const cont = $('nn-list');
+  const lista = NONEGO.filter(n => n.autor === nnTab);
+  if (lista.length === 0) {
+    const txt = nnTab === 'los_dos'
+      ? 'aún no hay acuerdos de los dos'
+      : 'aún no hay no negociables aquí';
+    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">${txt}<br>toca el + para agregar</div>`;
+    return;
+  }
+  cont.innerHTML = lista.map(n => {
+    const autorTxt = n.autor === 'los_dos' ? 'los dos · acordado'
+      : (n.autor === 'dani' ? 'dani escribió' : 'alfredo escribió');
+    return `<div class="nn-card ${n.autor}">
+      <button class="nn-card-del" onclick="borrarNn('${n.id}')">✕</button>
+      <div class="nn-card-author">${autorTxt}</div>
+      <div class="nn-card-text">${escapeHtml(n.texto)}</div>
+    </div>`;
+  }).join('');
+}
+
+function openNnModal() {
+  $('nn-texto').value = '';
+  // por defecto, el autor es el tab actual
+  nnAutorForm = nnTab;
+  $('nn-autor-chips').innerHTML = `
+    <button class="chip ${nnTab==='los_dos'?'selected':''}" onclick="selNnAutor(this,'los_dos')">los dos</button>
+    <button class="chip ${nnTab==='dani'?'selected':''}" onclick="selNnAutor(this,'dani')">dani</button>
+    <button class="chip ${nnTab==='alfredo'?'selected':''}" onclick="selNnAutor(this,'alfredo')">alfredo</button>`;
+  $('nn-modal').classList.add('active');
+  setTimeout(() => $('nn-texto').focus(), 200);
+}
+function selNnAutor(el, val) {
+  document.querySelectorAll('#nn-autor-chips .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  nnAutorForm = val;
+}
+async function saveNn() {
+  const texto = $('nn-texto').value.trim();
+  if (!texto) { toast('escribe el no negociable'); return; }
+  if (!nnAutorForm) { toast('elige de quién es'); return; }
+  const btn = $('nn-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { error } = await sb.from('nonnegotiables').insert({
+    couple_id: ME.couple_id,
+    autor: nnAutorForm,
+    texto
+  });
+  btn.disabled = false; btn.textContent = 'guardar';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('nn-modal');
+  // saltar al tab del autor
+  switchNnTab(nnAutorForm);
+  toast('guardado');
+  await cargarNonego();
+}
+
+async function borrarNn(id) {
+  if (!confirm('¿borrar este no negociable?')) return;
+  const { error } = await sb.from('nonnegotiables').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  toast('borrado');
+  await cargarNonego();
+}
+
+// ============================================
+// CÁPSULA DEL TIEMPO
+// ============================================
+let CAPSULAS = [];
+let ctTipoForm = 'fecha';
+
+async function cargarCapsulaTiempo() {
+  const { data, error } = await sb.from('timecapsule')
+    .select('*').order('creado',{ascending:false});
+  if (error) { console.error(error); return; }
+  CAPSULAS = data || [];
+  renderCapsulaTiempo();
+}
+
+function capsulaSePuedeAbrir(c) {
+  // las de evento: siempre se pueden abrir manualmente
+  if (c.tipo_apertura === 'evento') return true;
+  // las de fecha: solo si ya llegó la fecha
+  if (!c.abre_en) return true;
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const fecha = new Date(c.abre_en + 'T00:00:00');
+  return fecha <= hoy;
+}
+
+function renderCapsulaTiempo() {
+  const cont = $('ct-list');
+  if (CAPSULAS.length === 0) {
+    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">aún no hay cápsulas.<br>toca el + para sellar la primera</div>`;
+    return;
+  }
+  cont.innerHTML = CAPSULAS.map(c => {
+    const puedeAbrir = capsulaSePuedeAbrir(c);
+    const abierta = !c.sellada;
+
+    let claseCard = abierta ? 'abierta' : (puedeAbrir ? 'lista' : 'sellada');
+    let cuandoTxt;
+    if (c.tipo_apertura === 'evento') {
+      cuandoTxt = 'se abre: ' + escapeHtml(c.evento || 'en su momento');
+    } else {
+      cuandoTxt = 'se abre el ' + (c.abre_en ? fechaCorta(c.abre_en) : 'algún día');
+    }
+
+    const autor = PROFILES[c.autor];
+    const autorNombre = autor ? autor.nombre : 'alguien';
+
+    let cuerpo = '';
+    if (abierta) {
+      cuerpo = `<div class="ct-contenido">${escapeHtml(c.contenido||'')}</div>`;
+    } else if (puedeAbrir) {
+      cuerpo = `<button class="ct-abrir-btn" onclick="abrirCapsula('${c.id}')">abrir cápsula</button>`;
+    } else {
+      cuerpo = `<div class="ct-locked">sellada · todavía no es momento</div>`;
+    }
+
+    return `<div class="ct-card ${claseCard}">
+      <button class="ct-del" onclick="borrarCapsula('${c.id}')">✕</button>
+      <div class="ct-icon-row">
+        <svg width="20" height="20" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 24 Q 12 10 25 10 Q 38 10 38 24"/><ellipse cx="25" cy="30" rx="17" ry="4"/><ellipse cx="25" cy="26" rx="17" ry="4"/></g></svg>
+        <span class="ct-cuando">${cuandoTxt}</span>
+      </div>
+      <div class="ct-titulo">${escapeHtml(c.titulo)}</div>
+      <div class="ct-meta">escrita por ${autorNombre}${abierta?' · abierta':' · sellada'}</div>
+      ${cuerpo}
+    </div>`;
+  }).join('');
+}
+
+async function abrirCapsula(id) {
+  if (!confirm('¿abrir esta cápsula? una vez abierta, se queda abierta')) return;
+  const { error } = await sb.from('timecapsule').update({ sellada: false }).eq('id', id);
+  if (error) { toast('no se pudo abrir'); return; }
+  toast('cápsula abierta 💌');
+  await cargarCapsulaTiempo();
+}
+
+async function borrarCapsula(id) {
+  if (!confirm('¿borrar esta cápsula?')) return;
+  const { error } = await sb.from('timecapsule').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  toast('cápsula borrada');
+  await cargarCapsulaTiempo();
+}
+
+function openCtModal() {
+  $('ct-titulo').value = '';
+  $('ct-contenido').value = '';
+  $('ct-fecha').value = '';
+  $('ct-evento').value = '';
+  selCtTipo('fecha');
+  $('ct-modal').classList.add('active');
+  setTimeout(() => $('ct-titulo').focus(), 200);
+}
+function selCtTipo(tipo) {
+  ctTipoForm = tipo;
+  document.querySelectorAll('#ct-tipo-radio .radio-opt').forEach((el, i) => {
+    el.classList.toggle('selected', (i===0 && tipo==='fecha') || (i===1 && tipo==='evento'));
+  });
+  $('ct-fecha-field').style.display = tipo==='fecha' ? 'block' : 'none';
+  $('ct-evento-field').style.display = tipo==='evento' ? 'block' : 'none';
+}
+async function saveCt() {
+  const titulo = $('ct-titulo').value.trim();
+  const contenido = $('ct-contenido').value.trim();
+  if (!titulo) { toast('falta el título'); return; }
+  if (!contenido) { toast('escribe el mensaje'); return; }
+
+  let abre_en = null, evento = null;
+  if (ctTipoForm === 'fecha') {
+    abre_en = $('ct-fecha').value || null;
+    if (!abre_en) { toast('elige una fecha'); return; }
+  } else {
+    evento = $('ct-evento').value.trim();
+    if (!evento) { toast('escribe el momento'); return; }
+  }
+
+  const btn = $('ct-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { error } = await sb.from('timecapsule').insert({
+    couple_id: ME.couple_id,
+    autor: ME.id,
+    titulo, contenido,
+    tipo_apertura: ctTipoForm,
+    abre_en, evento,
+    sellada: true
+  });
+  btn.disabled = false; btn.textContent = 'sellar cápsula';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('ct-modal');
+  toast('cápsula sellada 💌');
+  await cargarCapsulaTiempo();
+}
+
 
 function suscribirRealtime() {
   sb.channel('cambios-pamaches')
@@ -2577,6 +3072,15 @@ function suscribirRealtime() {
         if (e === 'rojo') toast('🔴 ' + nombre + ' no está bien · pásate a verlo');
       }
       if (currentScreen === 'raros') cargarRaros();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'future' }, () => {
+      if (currentScreen === 'futuro') cargarFuturo();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'nonnegotiables' }, () => {
+      if (currentScreen === 'nonego') cargarNonego();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'timecapsule' }, () => {
+      if (currentScreen === 'capsulatiempo') cargarCapsulaTiempo();
     })
     .subscribe();
 }
