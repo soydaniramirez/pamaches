@@ -429,6 +429,30 @@ body::before {
 }
 .home-actions { display:flex; gap:8px; }
 
+/* campanita de novedades */
+.campana-btn { position:relative; }
+.campana-dot {
+  position:absolute; top:3px; right:3px; width:10px; height:10px;
+  background:var(--vino); border:1.5px solid var(--crema); border-radius:50%;
+}
+
+/* lista de novedades */
+.novedad-item {
+  display:flex; align-items:flex-start; gap:11px;
+  background:var(--crema); border:1.5px solid var(--tinta); border-radius:14px;
+  padding:11px 13px; margin-bottom:8px; box-shadow:1.5px 2px 0 var(--tinta);
+  cursor:pointer; text-align:left; width:100%;
+}
+.novedad-item.no-vista { background:#FFF6FB; }
+.novedad-emoji { font-size:1.3rem; flex-shrink:0; line-height:1.2; }
+.novedad-info { flex:1; min-width:0; }
+.novedad-texto { font-family:'Manrope',sans-serif; font-size:0.88rem; line-height:1.35; }
+.novedad-when { font-family:'Caveat',cursive; font-size:0.9rem; color:var(--tinta-soft); margin-top:2px; }
+.novedad-punto {
+  width:8px; height:8px; background:var(--vino); border-radius:50%; flex-shrink:0; margin-top:5px;
+}
+
+
 .profile-hero {
   text-align:center; margin-bottom:18px;
 }
@@ -968,6 +992,10 @@ body::before {
           <div class="home-date" id="home-date"></div>
         </div>
         <div class="home-actions">
+          <button class="profile-btn campana-btn" onclick="openNovedades()" title="novedades">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A4048" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M 6 16 L 6 11 C 6 7 8 5 12 5 C 16 5 18 7 18 11 L 18 16 L 20 18 L 4 18 Z"/><path d="M 10 18 Q 12 21 14 18"/></svg>
+            <span class="campana-dot" id="campana-dot" style="display:none;"></span>
+          </button>
           <button class="profile-btn" onclick="goTo('perfil')" title="perfil">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A4048" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M 4 21 C 4 16 8 14 12 14 C 16 14 20 16 20 21"/></svg>
           </button>
@@ -1546,6 +1574,18 @@ body::before {
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModal('notita-modal')">cancelar</button>
         <button class="btn" id="notita-save-btn" onclick="saveNotita()">dejarla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL NOVEDADES ============ -->
+  <div class="modal-overlay" id="novedades-modal">
+    <div class="modal">
+      <div class="modal-title">novedades</div>
+      <div class="modal-sub">lo que pasó mientras no estabas</div>
+      <div id="novedades-list"><div class="center-msg">cargando...</div></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('novedades-modal')">cerrar</button>
       </div>
     </div>
   </div>
@@ -2315,9 +2355,76 @@ async function saveNotita() {
   btn.disabled = false; btn.textContent = 'dejarla';
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
   closeModal('notita-modal');
+  await crearNovedad('notita', ME.nombre + ' te dejó una notita', 'notitas');
   await cargarNotitas();
   if (currentScreen === 'notitas') await cargarTodasNotitas();
   toast('notita dejada');
+}
+
+// ============================================
+// CENTRO DE NOVEDADES (campanita)
+// ============================================
+function otroId() {
+  return (DANI && DANI.id === ME.id) ? (ALFREDO && ALFREDO.id) : (DANI && DANI.id);
+}
+
+// crea una novedad dirigida al otro (cuando yo hago algo importante)
+async function crearNovedad(tipo, texto, destino) {
+  const para = otroId();
+  if (!para) return;
+  await sb.from('novedades').insert({
+    couple_id: ME.couple_id,
+    autor: ME.id,
+    para: para,
+    tipo, texto, destino
+  });
+}
+
+const NOVEDAD_EMOJI = {
+  notita:'💌', respuesta:'📖', plan:'🦝', semaforo:'🟡',
+  ganas:'🌶️', carta:'😏', fecha:'💕', deseo:'👀', tarea:'🧹'
+};
+
+// revisar si hay novedades sin ver para mostrar el puntito
+async function revisarNovedades() {
+  const dot = $('campana-dot');
+  if (!dot || !ME) return;
+  const { data } = await sb.from('novedades')
+    .select('id').eq('para', ME.id).eq('vista', false).limit(1);
+  dot.style.display = (data && data.length > 0) ? 'block' : 'none';
+}
+
+async function openNovedades() {
+  $('novedades-modal').classList.add('active');
+  $('novedades-list').innerHTML = '<div class="center-msg">cargando...</div>';
+  // traer novedades dirigidas a mí, recientes
+  const { data } = await sb.from('novedades')
+    .select('*').eq('para', ME.id)
+    .order('creado',{ascending:false}).limit(40);
+  const novs = data || [];
+  if (novs.length === 0) {
+    $('novedades-list').innerHTML = '<div class="center-msg">no hay novedades por ahora 🦝</div>';
+  } else {
+    $('novedades-list').innerHTML = novs.map(n => {
+      const emoji = NOVEDAD_EMOJI[n.tipo] || '🔔';
+      return `<button class="novedad-item ${n.vista?'':'no-vista'}" onclick="irANovedad('${n.destino||''}')">
+        <div class="novedad-emoji">${emoji}</div>
+        <div class="novedad-info">
+          <div class="novedad-texto">${escapeHtml(n.texto)}</div>
+          <div class="novedad-when">${tiempoRelativo(n.creado)}</div>
+        </div>
+        ${n.vista ? '' : '<div class="novedad-punto"></div>'}
+      </button>`;
+    }).join('');
+  }
+  // marcar todas como vistas
+  await sb.from('novedades').update({ vista: true }).eq('para', ME.id).eq('vista', false);
+  $('campana-dot').style.display = 'none';
+}
+
+function irANovedad(destino) {
+  closeModal('novedades-modal');
+  if (destino) goTo(destino);
 }
 
 // ============================================
@@ -2987,6 +3094,7 @@ async function savePlan() {
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
   closeModal('plan-modal');
   toast('plan agregado');
+  await crearNovedad('plan', ME.nombre + ' agregó un plan: ' + titulo, 'planes');
   await cargarPlanes();
 }
 
@@ -3092,11 +3200,15 @@ async function saveFecha() {
   }
   btn.disabled = false; btn.textContent = 'guardar';
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  const eraNueva = !fechaEditandoId;
   closeModal('fecha-modal');
   await cargarFechas();
   renderFechasPerfil();
   renderAvisoFecha();
   toast(fechaEditandoId ? 'fecha actualizada' : 'fecha agregada');
+  if (eraNueva) {
+    await crearNovedad('fecha', ME.nombre + ' agregó una fecha: ' + titulo, 'perfil');
+  }
 }
 async function borrarFecha(id) {
   if (!confirm('¿borrar esta fecha?')) return;
@@ -3362,6 +3474,7 @@ async function guardarRespuesta() {
   btn.disabled = false; btn.textContent = 'responder';
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
   toast('respuesta guardada 💕');
+  await crearNovedad('respuesta', ME.nombre + ' respondió la pregunta de la semana', 'capsula');
   await renderPreguntaActual();
   await renderArchivo();
   await renderNivelConexion();
@@ -3501,6 +3614,11 @@ async function ponerSemaforo(estado) {
   if (error) { toast('no se pudo guardar'); return; }
   const msg = { verde:'me alegra que estés bien', amarillo:'gracias por avisar', rojo:'aquí estamos para ti' };
   toast(msg[estado]);
+  if (estado === 'amarillo') {
+    await crearNovedad('semaforo', ME.nombre + ' está medio raro · pásate a verlo', 'raros');
+  } else if (estado === 'rojo') {
+    await crearNovedad('semaforo', ME.nombre + ' no está bien · pásate a verlo', 'raros');
+  }
 }
 
 // ---- ejercicios "cuando lo necesiten" ----
@@ -4555,6 +4673,7 @@ async function marcarGanas() {
   });
   if (error) { toast('no se pudo'); return; }
   toast('aviso enviado 😏');
+  await crearNovedad('ganas', ME.nombre + ' anda con ganas 👀', 'spicy-termometro');
   await cargarTermometro();
 }
 
@@ -4596,6 +4715,7 @@ async function saveCartaSpicy() {
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
   closeModal('carta-spicy-modal');
   toast('carta spicy dejada 😏');
+  await crearNovedad('carta', ME.nombre + ' te dejó una carta spicy 😏', 'spicy-cartas');
   await cargarCartasSpicy();
 }
 async function borrarCartaSpicy(id) {
@@ -4684,6 +4804,11 @@ function suscribirRealtime() {
       renderAvisoFecha();
       if (currentScreen === 'perfil') renderFechasPerfil();
     })
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'novedades' }, (payload) => {
+      if (payload.new && payload.new.para === ME.id) {
+        $('campana-dot').style.display = 'block';
+      }
+    })
     .subscribe();
 }
 
@@ -4704,6 +4829,7 @@ async function iniciarApp() {
   await cargarNotitas();
   await cargarSettlements();
   renderAvisoFecha();
+  await revisarNovedades();
   suscribirRealtime();
 
   $('loader').style.display = 'none';
