@@ -140,6 +140,30 @@ body::before {
 .notita-text { font-size:1.1rem; line-height:1.25; color:var(--tinta); }
 .notita-when { font-size:0.72rem; color:var(--tinta-soft); font-family:'Manrope',sans-serif; font-style:italic; margin-top:4px; }
 .notitas-empty { font-family:'Caveat',cursive; font-size:1.05rem; color:var(--tinta-soft); text-align:center; padding:10px; }
+.notitas-vertodas {
+  width:100%; margin-top:8px; background:rgba(42,24,32,0.08); border:none;
+  border-radius:12px; padding:8px; font-family:'Caveat',cursive; font-size:1.05rem;
+  color:var(--tinta); cursor:pointer;
+}
+.notita-actions {
+  display:flex; gap:6px; margin-top:6px; padding-top:6px;
+  border-top:1px dashed var(--tinta-soft);
+}
+.notita-action-btn {
+  background:none; border:none; font-family:'Caveat',cursive; font-size:0.9rem;
+  color:var(--tinta-soft); cursor:pointer; padding:2px 6px;
+}
+.notita-action-btn.borrar { color:var(--vino); margin-left:auto; }
+.notitas-grupo-label {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.15rem;
+  color:var(--vino); margin:18px 0 10px;
+}
+.notita-archivo {
+  background:var(--crema); border:1.5px solid var(--tinta); border-radius:12px;
+  padding:11px 13px; margin-bottom:8px; font-family:'Caveat',cursive;
+}
+.notita-archivo.archivada { background:var(--crema-deep); opacity:0.85; }
+
 
 /* CARDS GRID */
 .cards-grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:18px; }
@@ -802,6 +826,7 @@ body::before {
           <button class="notitas-add" onclick="openNotitaModal()">+</button>
         </div>
         <div id="notitas-list"><div class="notitas-empty">cargando notitas...</div></div>
+        <button class="notitas-vertodas" id="notitas-vertodas" onclick="goTo('notitas')" style="display:none;">ver todas las notitas</button>
       </div>
       <div class="cards-grid">
         <button class="mini-card" onclick="goTo('gastos')">
@@ -964,6 +989,20 @@ body::before {
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- ============ TODAS LAS NOTITAS ============ -->
+  <div id="screen-notitas" class="screen">
+    <div class="app-content">
+      <button class="back-btn" onclick="goTo('home')">‹ inicio</button>
+      <div class="section-header">
+        <div class="section-title">todas las notitas</div>
+        <div class="section-sub">nuestro buzón completo</div>
+      </div>
+      <div id="todas-notitas-activas"></div>
+      <div id="todas-notitas-archivadas"></div>
+    </div>
+    <button class="fab" onclick="openNotitaModal()">+</button>
   </div>
 
   <!-- ============ NOSOTROS — HUB ============ -->
@@ -1656,6 +1695,7 @@ function showScreen(name) {
   let navTarget = name;
   if (subNosotros.includes(name)) navTarget = 'nosotros';
   if (name === 'perfil') navTarget = '';
+  if (name === 'notitas') navTarget = 'home';
   document.querySelectorAll('.nav-item').forEach(n => {
     n.classList.toggle('active', n.dataset.screen === navTarget);
   });
@@ -1672,6 +1712,7 @@ function goTo(name) {
   if (name === 'nonego') cargarNonego();
   if (name === 'capsulatiempo') cargarCapsulaTiempo();
   if (name === 'tareas') cargarTareas();
+  if (name === 'notitas') cargarTodasNotitas();
 }
 
 function toast(msg) {
@@ -1819,10 +1860,18 @@ function catByNombre(nombre) {
 // NOTITAS
 // ============================================
 async function cargarNotitas() {
-  const { data, error } = await sb.from('notitas').select('*').order('creado',{ascending:false}).limit(6);
+  // home: solo las 4 más recientes NO archivadas
+  const { data, error } = await sb.from('notitas')
+    .select('*').eq('archivada', false)
+    .order('creado',{ascending:false}).limit(4);
   const list = $('notitas-list');
+  const verTodas = $('notitas-vertodas');
   if (error) { list.innerHTML = '<div class="notitas-empty">no se pudieron cargar</div>'; return; }
-  if (!data || data.length===0) { list.innerHTML = '<div class="notitas-empty">aún no hay notitas. deja la primera con el +</div>'; return; }
+  if (!data || data.length===0) {
+    list.innerHTML = '<div class="notitas-empty">aún no hay notitas. deja la primera con el +</div>';
+    verTodas.style.display = 'none';
+    return;
+  }
   list.innerHTML = data.map(n => {
     const autor = PROFILES[n.autor];
     const nombre = autor ? autor.nombre : 'alguien';
@@ -1832,7 +1881,71 @@ async function cargarNotitas() {
       <div class="notita-when">${tiempoRelativo(n.creado)}</div>
     </div>`;
   }).join('');
+  // mostrar "ver todas" siempre que haya al menos una notita
+  verTodas.style.display = 'block';
 }
+
+async function cargarTodasNotitas() {
+  const { data, error } = await sb.from('notitas')
+    .select('*').order('creado',{ascending:false});
+  const activasCont = $('todas-notitas-activas');
+  const archivCont = $('todas-notitas-archivadas');
+  if (error || !data) {
+    activasCont.innerHTML = '<div class="center-msg">no se pudieron cargar</div>';
+    archivCont.innerHTML = '';
+    return;
+  }
+  const activas = data.filter(n => !n.archivada);
+  const archivadas = data.filter(n => n.archivada);
+
+  activasCont.innerHTML = '<div class="notitas-grupo-label">en el buzón</div>' +
+    (activas.length ? activas.map(n => renderNotitaArchivo(n, false)).join('')
+                    : '<div class="center-msg">no hay notitas en el buzón</div>');
+
+  if (archivadas.length) {
+    archivCont.innerHTML = '<div class="notitas-grupo-label">archivadas</div>' +
+      archivadas.map(n => renderNotitaArchivo(n, true)).join('');
+  } else {
+    archivCont.innerHTML = '';
+  }
+}
+
+function renderNotitaArchivo(n, archivada) {
+  const autor = PROFILES[n.autor];
+  const nombre = autor ? autor.nombre : 'alguien';
+  const fecha = new Date(n.creado);
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const fechaTxt = fecha.getDate() + ' ' + meses[fecha.getMonth()] + ' ' + fecha.getFullYear();
+  return `<div class="notita-archivo ${archivada?'archivada':''}">
+    <div class="notita-from">${nombre} &rarr;</div>
+    <div class="notita-text">${escapeHtml(n.texto)}</div>
+    <div class="notita-when">${fechaTxt}</div>
+    <div class="notita-actions">
+      ${archivada
+        ? `<button class="notita-action-btn" onclick="archivarNotita('${n.id}', false)">regresar al buzón</button>`
+        : `<button class="notita-action-btn" onclick="archivarNotita('${n.id}', true)">archivar</button>`}
+      <button class="notita-action-btn borrar" onclick="borrarNotita('${n.id}')">borrar</button>
+    </div>
+  </div>`;
+}
+
+async function archivarNotita(id, archivar) {
+  const { error } = await sb.from('notitas').update({ archivada: archivar }).eq('id', id);
+  if (error) { toast('no se pudo'); return; }
+  toast(archivar ? 'notita archivada' : 'notita de vuelta en el buzón');
+  await cargarTodasNotitas();
+  await cargarNotitas();
+}
+
+async function borrarNotita(id) {
+  if (!confirm('¿borrar esta notita? esto sí la elimina para siempre')) return;
+  const { error } = await sb.from('notitas').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  toast('notita borrada');
+  await cargarTodasNotitas();
+  await cargarNotitas();
+}
+
 function openNotitaModal() {
   $('notita-text').value = '';
   $('notita-modal').classList.add('active');
@@ -1848,6 +1961,7 @@ async function saveNotita() {
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
   closeModal('notita-modal');
   await cargarNotitas();
+  if (currentScreen === 'notitas') await cargarTodasNotitas();
   toast('notita dejada');
 }
 
@@ -3564,9 +3678,10 @@ async function borrarComida(id) {
 
 function suscribirRealtime() {
   sb.channel('cambios-pamaches')
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'notitas' }, (payload) => {
+    .on('postgres_changes', { event:'*', schema:'public', table:'notitas' }, (payload) => {
       cargarNotitas();
-      if (payload.new && payload.new.autor !== ME.id) {
+      if (currentScreen === 'notitas') cargarTodasNotitas();
+      if (payload.eventType === 'INSERT' && payload.new && payload.new.autor !== ME.id) {
         const autor = PROFILES[payload.new.autor];
         toast('💌 ' + (autor?autor.nombre:'alguien') + ' te dejó una notita');
       }
