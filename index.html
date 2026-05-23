@@ -730,6 +730,26 @@ body::before {
   padding:8px 13px; border:1.5px dashed var(--tinta-soft); border-radius:12px;
 }
 
+/* sugerencias de tareas */
+.sug-grupo { margin-bottom:8px; }
+.sug-grupo-label {
+  font-family:'Caveat',cursive; font-size:0.9rem; color:var(--tinta-soft); margin-bottom:3px;
+}
+.sug-chips { display:flex; flex-wrap:wrap; gap:5px; }
+.sug-chip {
+  padding:5px 11px; border:1.3px solid var(--tinta-soft); border-radius:13px;
+  background:var(--crema); font-family:'Manrope',sans-serif; font-size:0.78rem;
+  cursor:pointer; color:var(--tinta-soft);
+}
+.sug-chip:active { background:var(--cielo-soft); }
+
+/* badge recurrente en task-row */
+.task-badge {
+  display:inline-block; font-family:'Caveat',cursive; font-size:0.8rem;
+  padding:0 7px; border-radius:9px; background:var(--cielo-soft); color:var(--vino);
+  margin-left:6px;
+}
+
 
 
 </style>
@@ -1340,15 +1360,39 @@ body::before {
   <div class="modal-overlay" id="tarea-modal">
     <div class="modal">
       <div class="modal-title">nueva tarea</div>
-      <div class="modal-sub">algo de la casa por hacer</div>
+      <div class="modal-sub">elige una sugerencia o escribe la tuya</div>
+
       <div class="mfield">
-        <div class="mfield-label">¿qué hay que hacer?</div>
+        <div class="mfield-label">sugerencias</div>
+        <div id="tarea-sugerencias"></div>
+      </div>
+
+      <div class="mfield">
+        <div class="mfield-label">la tarea</div>
         <input type="text" id="tarea-titulo" class="input" placeholder="ej. sacar la basura">
       </div>
+
       <div class="mfield">
         <div class="mfield-label">¿a quién le toca?</div>
         <div class="chips-row" id="tarea-asignado-chips"></div>
       </div>
+
+      <div class="mfield">
+        <div class="mfield-label">¿cada cuándo?</div>
+        <div class="radio-row" id="tarea-tipo-radio">
+          <button class="radio-opt selected" onclick="selTareaTipo('variable')">una sola vez</button>
+          <button class="radio-opt" onclick="selTareaTipo('fija')">se repite cada semana</button>
+        </div>
+      </div>
+
+      <div class="mfield" id="tarea-rota-field" style="display:none;">
+        <div class="mfield-label">¿quieres que rote?</div>
+        <div class="radio-row" id="tarea-rota-radio">
+          <button class="radio-opt selected" onclick="selTareaRota(false)">siempre la misma persona</button>
+          <button class="radio-opt" onclick="selTareaRota(true)">que rote entre los dos</button>
+        </div>
+      </div>
+
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModal('tarea-modal')">cancelar</button>
         <button class="btn" id="tarea-save-btn" onclick="saveTarea()">guardar</button>
@@ -3152,12 +3196,24 @@ let MEALS = [];
 let tareaTab = 'tareas';
 let tareaAsignadoForm = null;
 let comidaTipoForm = null;
+let tareaTipoForm = 'variable';
+let tareaRotaForm = false;
+
+// sugerencias de tareas comunes de casa
+const SUGERENCIAS_TAREAS = {
+  'cocina': ['lavar los trastes','sacar la basura','limpiar la estufa','ordenar la alacena','sacar el reciclaje'],
+  'limpieza': ['trapear','barrer','sacudir','limpiar el baño','cambiar las sábanas','aspirar'],
+  'ropa': ['lavar ropa','doblar ropa','tender la cama','llevar a la tintorería','recoger de la tintorería'],
+  'compras': ['hacer súper','comprar despensa','comprar cosas del baño','pagar servicios','recoger paquetes'],
+  'mascotas y plantas': ['regar las plantas','dar de comer a la mascota','pasear a la mascota','limpiar el arenero'],
+  'casa': ['sacar dinero del cajero','llevar el coche a lavar','cargar gasolina','revisar pendientes del depa']
+};
 
 // lunes de la semana actual
 function inicioSemana() {
   const hoy = new Date();
-  const dia = hoy.getDay(); // 0 dom .. 6 sab
-  const diff = (dia === 0 ? -6 : 1 - dia); // mover a lunes
+  const dia = hoy.getDay();
+  const diff = (dia === 0 ? -6 : 1 - dia);
   const lunes = new Date(hoy);
   lunes.setDate(hoy.getDate() + diff);
   lunes.setHours(0,0,0,0);
@@ -3165,14 +3221,22 @@ function inicioSemana() {
 }
 
 async function cargarTareas() {
-  // tareas de esta semana (o sin semana asignada)
   const lunes = inicioSemana();
   const lunesStr = lunes.toISOString().slice(0,10);
+
   const { data: tareas } = await sb.from('tasks')
     .select('*').order('creado',{ascending:true});
   TAREAS = tareas || [];
 
-  // menú: comidas de los próximos 7 días desde el lunes
+  // regenerar tareas recurrentes para esta semana si hace falta
+  await regenerarRecurrentes(lunesStr);
+
+  // recargar después de regenerar
+  const { data: tareas2 } = await sb.from('tasks')
+    .select('*').order('creado',{ascending:true});
+  TAREAS = tareas2 || [];
+
+  // menú
   const domingo = new Date(lunes);
   domingo.setDate(lunes.getDate() + 6);
   const domStr = domingo.toISOString().slice(0,10);
@@ -3181,6 +3245,46 @@ async function cargarTareas() {
   MEALS = meals || [];
 
   renderTareaVista();
+}
+
+// regenera las tareas recurrentes: si hay una recurrente cuya semana
+// es anterior a la actual, crea una copia fresca para esta semana
+async function regenerarRecurrentes(lunesStr) {
+  const recurrentes = TAREAS.filter(t => t.recurrente);
+  // agrupar por titulo (la "plantilla" recurrente)
+  const porTitulo = {};
+  recurrentes.forEach(t => {
+    if (!porTitulo[t.titulo]) porTitulo[t.titulo] = [];
+    porTitulo[t.titulo].push(t);
+  });
+
+  for (const titulo of Object.keys(porTitulo)) {
+    const versiones = porTitulo[titulo].sort((a,b) => (b.semana||'').localeCompare(a.semana||''));
+    const masReciente = versiones[0];
+    // ¿ya hay una para esta semana?
+    const haySemanaActual = versiones.some(v => v.semana === lunesStr);
+    if (haySemanaActual) continue;
+
+    // crear una nueva para esta semana
+    let nuevoAsignado = masReciente.asignado;
+    if (masReciente.rota) {
+      // rotar: si el último turno fue de dani, ahora alfredo, y viceversa
+      const ultimo = masReciente.ultimo_turno || masReciente.asignado;
+      if (DANI && ALFREDO) {
+        nuevoAsignado = (ultimo === DANI.id) ? ALFREDO.id : DANI.id;
+      }
+    }
+    await sb.from('tasks').insert({
+      couple_id: ME.couple_id,
+      titulo: masReciente.titulo,
+      asignado: nuevoAsignado,
+      hecha: false,
+      semana: lunesStr,
+      recurrente: true,
+      rota: masReciente.rota,
+      ultimo_turno: nuevoAsignado
+    });
+  }
 }
 
 function switchTareaTab(tab) {
@@ -3197,18 +3301,15 @@ function fabTareas() {
 
 function renderTareaVista() {
   const cont = $('tareas-vista');
-  if (tareaTab === 'tareas') {
-    renderTareasList(cont);
-  } else {
-    renderMenu(cont);
-  }
+  if (tareaTab === 'tareas') renderTareasList(cont);
+  else renderMenu(cont);
 }
 
 function avatarClase(asignadoId) {
   if (!asignadoId) return 'nadie';
   const p = PROFILES[asignadoId];
   if (!p) return 'nadie';
-  return p.rol; // 'dani' o 'alfredo'
+  return p.rol;
 }
 function avatarLetra(asignadoId) {
   if (!asignadoId) return '?';
@@ -3222,21 +3323,24 @@ function nombreDe(id) {
 }
 
 function renderTareasList(cont) {
-  if (TAREAS.length === 0) {
-    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">aún no hay tareas.<br>toca el + para agregar la primera</div>`;
+  // solo mostrar las de la semana actual (o sin semana = sueltas viejas)
+  const lunesStr = inicioSemana().toISOString().slice(0,10);
+  const visibles = TAREAS.filter(t => !t.semana || t.semana === lunesStr);
+
+  if (visibles.length === 0) {
+    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">aún no hay tareas esta semana.<br>toca el + para agregar la primera</div>`;
     return;
   }
-  // pendientes primero, luego hechas
-  const pendientes = TAREAS.filter(t => !t.hecha);
-  const hechas = TAREAS.filter(t => t.hecha);
+  const pendientes = visibles.filter(t => !t.hecha);
+  const hechas = visibles.filter(t => t.hecha);
   const ordenadas = [...pendientes, ...hechas];
 
   cont.innerHTML = ordenadas.map(t => `
     <div class="task-row">
       <div class="task-avatar ${avatarClase(t.asignado)}">${avatarLetra(t.asignado)}</div>
       <div class="task-info">
-        <div class="task-title ${t.hecha?'done':''}">${escapeHtml(t.titulo)}</div>
-        <div class="task-who">${t.asignado ? 'le toca a ' + nombreDe(t.asignado) : 'sin asignar'}</div>
+        <div class="task-title ${t.hecha?'done':''}">${escapeHtml(t.titulo)}${t.recurrente ? '<span class="task-badge">'+(t.rota?'rota':'fija')+'</span>' : ''}</div>
+        <div class="task-who">${t.asignado ? 'le toca a ' + nombreDe(t.asignado) : 'los dos'}</div>
       </div>
       <button class="task-check ${t.hecha?'done':''}" onclick="toggleTarea('${t.id}', ${t.hecha})"></button>
       <button class="task-del" onclick="borrarTarea('${t.id}')">✕</button>
@@ -3251,8 +3355,19 @@ async function toggleTarea(id, estaba) {
 }
 
 async function borrarTarea(id) {
-  if (!confirm('¿borrar esta tarea?')) return;
-  const { error } = await sb.from('tasks').delete().eq('id', id);
+  const tarea = TAREAS.find(t => t.id === id);
+  let msg = '¿borrar esta tarea?';
+  if (tarea && tarea.recurrente) {
+    msg = '¿borrar esta tarea recurrente? dejará de repetirse cada semana';
+  }
+  if (!confirm(msg)) return;
+  let error;
+  if (tarea && tarea.recurrente) {
+    // borrar todas las versiones de esa tarea recurrente
+    ({ error } = await sb.from('tasks').delete().eq('couple_id', ME.couple_id).eq('titulo', tarea.titulo).eq('recurrente', true));
+  } else {
+    ({ error } = await sb.from('tasks').delete().eq('id', id));
+  }
   if (error) { toast('no se pudo borrar'); return; }
   toast('tarea borrada');
   await cargarTareas();
@@ -3261,36 +3376,94 @@ async function borrarTarea(id) {
 function openTareaModal() {
   $('tarea-titulo').value = '';
   tareaAsignadoForm = null;
+  tareaTipoForm = 'variable';
+  tareaRotaForm = false;
+
+  // sugerencias por grupo
+  let sugHtml = '';
+  Object.keys(SUGERENCIAS_TAREAS).forEach(grupo => {
+    const chips = SUGERENCIAS_TAREAS[grupo].map(s =>
+      `<button class="sug-chip" onclick="usarSugerencia('${escapeHtml(s).replace(/'/g,'&#39;')}')">${escapeHtml(s)}</button>`
+    ).join('');
+    sugHtml += `<div class="sug-grupo">
+      <div class="sug-grupo-label">${grupo}</div>
+      <div class="sug-chips">${chips}</div>
+    </div>`;
+  });
+  $('tarea-sugerencias').innerHTML = sugHtml;
+
+  // asignado
   let chips = '';
   if (DANI) chips += `<button class="chip" onclick="selTareaAsignado(this,'${DANI.id}')">dani</button>`;
   if (ALFREDO) chips += `<button class="chip" onclick="selTareaAsignado(this,'${ALFREDO.id}')">alfredo</button>`;
   chips += `<button class="chip" onclick="selTareaAsignado(this,'')">los dos</button>`;
   $('tarea-asignado-chips').innerHTML = chips;
+
+  // reset radios
+  selTareaTipo('variable');
+
   $('tarea-modal').classList.add('active');
-  setTimeout(() => $('tarea-titulo').focus(), 200);
 }
+
+function usarSugerencia(texto) {
+  $('tarea-titulo').value = texto;
+}
+
 function selTareaAsignado(el, val) {
   document.querySelectorAll('#tarea-asignado-chips .chip').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   tareaAsignadoForm = val || null;
 }
+
+function selTareaTipo(tipo) {
+  tareaTipoForm = tipo;
+  document.querySelectorAll('#tarea-tipo-radio .radio-opt').forEach((el, i) => {
+    el.classList.toggle('selected', (i===0 && tipo==='variable') || (i===1 && tipo==='fija'));
+  });
+  // mostrar opción de rotar solo si es fija
+  $('tarea-rota-field').style.display = tipo==='fija' ? 'block' : 'none';
+  if (tipo === 'variable') { tareaRotaForm = false; }
+}
+
+function selTareaRota(rota) {
+  tareaRotaForm = rota;
+  document.querySelectorAll('#tarea-rota-radio .radio-opt').forEach((el, i) => {
+    el.classList.toggle('selected', (i===0 && !rota) || (i===1 && rota));
+  });
+}
+
 async function saveTarea() {
   const titulo = $('tarea-titulo').value.trim();
   if (!titulo) { toast('falta la tarea'); return; }
+
+  // si rota, debe poder rotar entre dos personas
+  if (tareaTipoForm === 'fija' && tareaRotaForm && !(DANI && ALFREDO)) {
+    toast('para rotar se necesitan los dos perfiles'); return;
+  }
+
   const btn = $('tarea-save-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
   const lunes = inicioSemana().toISOString().slice(0,10);
+
+  const esRecurrente = tareaTipoForm === 'fija';
+  // si rota y no se eligió a nadie, empezar por dani
+  let asignado = tareaAsignadoForm;
+  if (esRecurrente && tareaRotaForm && !asignado && DANI) asignado = DANI.id;
+
   const { error } = await sb.from('tasks').insert({
     couple_id: ME.couple_id,
     titulo,
-    asignado: tareaAsignadoForm,
+    asignado,
     hecha: false,
-    semana: lunes
+    semana: lunes,
+    recurrente: esRecurrente,
+    rota: tareaRotaForm,
+    ultimo_turno: asignado
   });
   btn.disabled = false; btn.textContent = 'guardar';
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
   closeModal('tarea-modal');
-  toast('tarea agregada');
+  toast(esRecurrente ? 'tarea fija agregada' : 'tarea agregada');
   await cargarTareas();
 }
 
