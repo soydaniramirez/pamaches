@@ -327,6 +327,123 @@ body::before {
   transition:opacity 0.3s, transform 0.3s; pointer-events:none; white-space:nowrap;
 }
 #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ============ PERFIL ============ */
+.profile-btn {
+  background:none; border:1.5px solid var(--tinta-soft); border-radius:12px;
+  width:34px; height:34px; cursor:pointer; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; padding:0;
+}
+.home-actions { display:flex; gap:8px; }
+
+.profile-hero {
+  text-align:center; margin-bottom:18px;
+}
+.profile-hero img { width:150px; filter:drop-shadow(2px 4px 3px rgba(42,24,32,0.12)); }
+.profile-couple-name {
+  font-family:'Fraunces',serif; font-style:italic; font-size:2rem; color:var(--vino); margin-top:4px;
+}
+.profile-tiempo { font-family:'Caveat',cursive; font-size:1.3rem; color:var(--tinta-soft); }
+
+.profile-card {
+  background:var(--crema); border:2px solid var(--tinta); border-radius:20px;
+  padding:16px 18px; margin-bottom:12px; box-shadow:3px 3px 0 var(--tinta);
+}
+.profile-card-title {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.15rem; color:var(--vino); margin-bottom:10px;
+}
+.profile-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 0; border-bottom:1px dashed var(--tinta-soft);
+}
+.profile-row:last-child { border-bottom:none; }
+.profile-row-label { font-family:'Caveat',cursive; font-size:1.05rem; color:var(--tinta-soft); }
+.profile-row-value { font-family:'Manrope',sans-serif; font-size:0.9rem; font-weight:600; }
+.profile-pamache-tag {
+  display:inline-block; width:14px; height:14px; border-radius:50%; margin-right:6px;
+  vertical-align:middle; border:1.5px solid var(--tinta);
+}
+
+/* lista editable (categorías) */
+.edit-list-item {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:9px 0; border-bottom:1px dashed var(--tinta-soft);
+}
+.edit-list-item:last-child { border-bottom:none; }
+.edit-list-name { font-family:'Manrope',sans-serif; font-size:0.9rem; }
+.edit-list-del {
+  background:none; border:none; color:var(--vino); font-size:1rem; cursor:pointer; padding:2px 6px;
+}
+.add-inline {
+  display:flex; gap:8px; margin-top:10px;
+}
+.add-inline input {
+  flex:1; padding:10px 12px; border:1.5px solid var(--tinta); border-radius:12px;
+  background:var(--crema); font-family:'Manrope',sans-serif; font-size:0.9rem;
+}
+.add-inline input:focus { outline:none; border-color:var(--vino); }
+.add-inline button {
+  background:var(--vino); color:var(--crema); border:1.5px solid var(--tinta); border-radius:12px;
+  padding:0 16px; font-family:'Caveat',cursive; font-size:1.05rem; cursor:pointer;
+}
+
+/* ============ PLANES ============ */
+.next-plan {
+  background:var(--vino); color:var(--crema); border-radius:22px; padding:18px;
+  margin-bottom:16px; position:relative; overflow:hidden; box-shadow:3px 3px 0 var(--tinta);
+}
+.next-plan-label { font-family:'Caveat',cursive; font-size:1.05rem; opacity:0.85; }
+.next-plan-title { font-family:'Fraunces',serif; font-style:italic; font-size:1.5rem; margin:4px 0 6px; }
+.next-plan-when { font-family:'Manrope',sans-serif; font-size:0.88rem; opacity:0.85; }
+.next-plan-empty { font-family:'Caveat',cursive; font-size:1.15rem; }
+
+.idea-box {
+  background:var(--cielo-soft); border:1.8px dashed var(--tinta); border-radius:18px;
+  padding:16px; margin-bottom:16px;
+}
+.idea-box-title { font-family:'Fraunces',serif; font-style:italic; font-size:1.15rem; color:var(--vino); }
+.idea-box-sub { font-family:'Caveat',cursive; font-size:1rem; color:var(--tinta-soft); margin-bottom:10px; }
+.idea-result {
+  background:var(--crema); border:1.5px solid var(--tinta); border-radius:14px;
+  padding:14px; margin-top:12px; text-align:center;
+}
+.idea-result-text { font-family:'Fraunces',serif; font-style:italic; font-size:1.1rem; color:var(--tinta); }
+.idea-result-actions { display:flex; gap:8px; margin-top:12px; }
+.idea-result-actions .btn { margin-top:0; }
+
+.sub-tabs {
+  display:flex; gap:6px; margin-bottom:16px; padding:4px;
+  background:var(--crema); border-radius:14px; border:1.5px solid var(--tinta);
+}
+.sub-tab {
+  flex:1; padding:9px 8px; text-align:center; border-radius:10px;
+  font-family:'Caveat',cursive; font-size:1.05rem; color:var(--tinta-soft);
+  cursor:pointer; border:none; background:none;
+}
+.sub-tab.active { background:var(--vino); color:var(--crema); }
+
+.plan-item {
+  display:flex; align-items:center; gap:11px;
+  background:var(--crema); border:1.5px solid var(--tinta); border-radius:14px;
+  padding:12px 13px; margin-bottom:8px; box-shadow:1.5px 2px 0 var(--tinta);
+}
+.plan-check {
+  width:22px; height:22px; border:1.8px solid var(--tinta); border-radius:7px;
+  flex-shrink:0; cursor:pointer; background:var(--crema);
+  display:flex; align-items:center; justify-content:center;
+}
+.plan-check.done { background:var(--vino); }
+.plan-check.done::after { content:'✓'; color:var(--crema); font-size:0.85rem; }
+.plan-info { flex:1; min-width:0; }
+.plan-title-txt { font-family:'Manrope',sans-serif; font-size:0.92rem; font-weight:600; }
+.plan-title-txt.done { text-decoration:line-through; color:var(--tinta-soft); }
+.plan-meta { font-family:'Caveat',cursive; font-size:0.92rem; color:var(--tinta-soft); }
+.plan-del { background:none; border:none; color:var(--tinta-soft); font-size:1rem; cursor:pointer; padding:2px 5px; }
+
+.plan-mood-pill {
+  display:inline-block; font-family:'Caveat',cursive; font-size:0.85rem;
+  padding:1px 9px; border-radius:10px; background:var(--cielo-soft); color:var(--vino);
+}
 </style>
 </head>
 <body>
@@ -360,7 +477,12 @@ body::before {
           <div class="home-hello" id="home-hello">hola pamaches</div>
           <div class="home-date" id="home-date"></div>
         </div>
-        <button class="logout-btn" onclick="doLogout()">salir</button>
+        <div class="home-actions">
+          <button class="profile-btn" onclick="goTo('perfil')" title="perfil">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A4048" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M 4 21 C 4 16 8 14 12 14 C 16 14 20 16 20 21"/></svg>
+          </button>
+          <button class="logout-btn" onclick="doLogout()">salir</button>
+        </div>
       </div>
       <div class="hero-pamache">
         <img src="pamache.png" alt="pamaches">
@@ -456,10 +578,87 @@ body::before {
     <button class="fab" onclick="openGastoModal()">+</button>
   </div>
 
-  <!-- ============ PLACEHOLDERS ============ -->
+  <!-- ============ PLANES ============ -->
   <div id="screen-planes" class="screen">
-    <div class="app-content"><div class="coming-soon"><img src="pamache.png" alt=""><h2>planes pamaches</h2><p>esta sección llega pronto</p></div></div>
+    <div class="app-content">
+      <div class="section-header">
+        <div class="section-title">planes pamaches</div>
+        <div class="section-sub">nuestros momentos</div>
+      </div>
+
+      <!-- próximo plan -->
+      <div class="next-plan" id="next-plan">
+        <div class="next-plan-label">siguiente plan</div>
+        <div class="next-plan-title next-plan-empty">aún no hay nada agendado</div>
+        <div class="next-plan-when">agrega un plan con fecha abajo</div>
+      </div>
+
+      <!-- generador de ideas -->
+      <div class="idea-box">
+        <div class="idea-box-title">sorpréndenos con una idea</div>
+        <div class="idea-box-sub">elige un mood y les damos una idea</div>
+        <div class="chips-row" id="mood-chips"></div>
+        <div id="idea-result"></div>
+      </div>
+
+      <!-- sub-tabs -->
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="tab-citas" onclick="switchPlanTab('citas')">por hacer</button>
+        <button class="sub-tab" id="tab-hechas" onclick="switchPlanTab('hechas')">ya hechos</button>
+      </div>
+
+      <div id="planes-list"></div>
+    </div>
+    <button class="fab" onclick="openPlanModal()">+</button>
   </div>
+
+  <!-- ============ PERFIL ============ -->
+  <div id="screen-perfil" class="screen">
+    <div class="app-content">
+      <div class="section-header">
+        <div class="section-title">nuestro perfil</div>
+        <div class="section-sub">los datos de los pamaches</div>
+      </div>
+
+      <div class="profile-hero">
+        <img src="pamache.png" alt="pamaches">
+        <div class="profile-couple-name" id="profile-couple-name">pamaches</div>
+        <div class="profile-tiempo" id="profile-tiempo">juntos</div>
+      </div>
+
+      <div class="profile-card">
+        <div class="profile-card-title">los dos</div>
+        <div id="profile-personas"></div>
+      </div>
+
+      <div class="profile-card">
+        <div class="profile-card-title">fechas importantes</div>
+        <div id="profile-fechas"></div>
+      </div>
+
+      <div class="profile-card">
+        <div class="profile-card-title">categorías de gastos</div>
+        <div id="profile-categorias"></div>
+        <div class="add-inline">
+          <input type="text" id="nueva-categoria" placeholder="nueva categoría...">
+          <button onclick="addCategoria()">agregar</button>
+        </div>
+      </div>
+
+      <div class="profile-card">
+        <div class="profile-card-title">cupo de aporte</div>
+        <div class="profile-row">
+          <span class="profile-row-label">aporte mensual de alfredo</span>
+          <span class="profile-row-value" id="profile-cupo">$15,000</span>
+        </div>
+        <div class="add-inline" style="margin-top:12px;">
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openCupoModal()">cambiar cupo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PLACEHOLDERS ============ -->
   <div id="screen-nosotros" class="screen">
     <div class="app-content"><div class="coming-soon"><img src="pamache.png" alt=""><h2>nosotros</h2><p>cápsula, futuro y más, muy pronto</p></div></div>
   </div>
@@ -596,6 +795,34 @@ body::before {
     </div>
   </div>
 
+  <!-- ============ MODAL PLAN ============ -->
+  <div class="modal-overlay" id="plan-modal">
+    <div class="modal">
+      <div class="modal-title">nuevo plan pamache</div>
+      <div class="modal-sub">algo que quieran hacer juntos</div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué plan?</div>
+        <input type="text" id="plan-titulo" class="input" placeholder="ej. picnic en chapultepec">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">mood</div>
+        <div class="chips-row" id="plan-mood-chips"></div>
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">fecha (opcional)</div>
+        <input type="date" id="plan-fecha" class="input">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">nota (opcional)</div>
+        <input type="text" id="plan-nota" class="input" placeholder="algo más...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('plan-modal')">cancelar</button>
+        <button class="btn" id="plan-save-btn" onclick="savePlan()">guardar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- toast -->
   <div id="toast"></div>
 
@@ -621,11 +848,70 @@ let CUPO = 15000;
 let currentScreen = 'home';
 let mesActual = new Date();   // mes que se está viendo en gastos
 let gastosDelMes = [];
+let CATEGORIAS = [];          // se cargan de la base
+let PLANES = [];              // todos los planes
+let planTab = 'citas';        // 'citas' (por hacer) o 'hechas'
+let moodSeleccionado = null;
 
-const CATEGORIAS = ['salidas','servicios','gasolina','limpieza','compras variadas','supermercado'];
+// moods para citas
+const MOODS = ['acurrucados','aventura','romance','low budget','a estrenar','en casa','al aire libre'];
+
+// base de ideas de citas por mood (opción C: base + las suyas)
+const IDEAS_BASE = {
+  'acurrucados': [
+    'maratón de una serie con cobijas y palomitas',
+    'tarde de películas con el proyector y café',
+    'leer juntos en la cama un domingo lento',
+    'noche de mantita, vino y playlist suave',
+    'desayuno en la cama sin prisa'
+  ],
+  'aventura': [
+    'ir a una zona nueva de la ciudad a explorar sin plan',
+    'subir a un mirador a ver el atardecer',
+    'rentar bicis y recorrer un parque grande',
+    'road trip de un día a un pueblo cercano',
+    'probar un deporte nuevo juntos'
+  ],
+  'romance': [
+    'cena con velas cocinando los dos',
+    'picnic con vino y quesos al atardecer',
+    'escribirse cartas y leerlas en voz alta',
+    'cena en ese restaurante que querían probar',
+    'baile lento en la sala con su canción'
+  ],
+  'low budget': [
+    'picnic en el parque con lo que haya en casa',
+    'caminar por una colonia bonita y ver aparadores',
+    'tarde de juegos de mesa y botana',
+    'cocinar algo nuevo con lo que tengan en la alacena',
+    'ver el atardecer desde algún punto alto, gratis'
+  ],
+  'a estrenar': [
+    'ir al cine a ver el estreno de la semana',
+    'probar ese café o restaurante nuevo del barrio',
+    'visitar una expo o museo que no conozcan',
+    'descubrir un mercado o tianguis nuevo',
+    'tomar una clase juntos por primera vez'
+  ],
+  'en casa': [
+    'noche de cocina: cada quien hace un platillo',
+    'spa casero con mascarillas y música',
+    'torneo de videojuegos o juegos de mesa',
+    'armar un rompecabezas grande juntos',
+    'cata casera de vinos o quesos'
+  ],
+  'al aire libre': [
+    'caminata matutina y desayuno afuera',
+    'picnic en un parque nuevo',
+    'andar en bici por la ciudad temprano',
+    'ir a un jardín botánico o vivero',
+    'ver las estrellas desde algún lugar oscuro'
+  ]
+};
 
 // estado del modal de gasto
 let gForm = { categoria:null, pagador:null, tipo:null, split:null };
+let planMoodForm = null;
 
 // ============================================
 // HELPERS
@@ -644,6 +930,8 @@ function showScreen(name) {
 function goTo(name) {
   showScreen(name);
   if (name === 'gastos') cargarGastos();
+  if (name === 'planes') cargarPlanes();
+  if (name === 'perfil') renderPerfil();
 }
 
 function toast(msg) {
@@ -757,7 +1045,18 @@ async function cargarPerfil() {
   // cupo
   const { data: cfg } = await sb.from('aporte_config').select('*').eq('couple_id', perfil.couple_id).limit(1).single();
   if (cfg) CUPO = parseFloat(cfg.cupo);
+  // categorías
+  await cargarCategorias();
   return true;
+}
+
+async function cargarCategorias() {
+  const { data } = await sb.from('categorias').select('*').order('orden',{ascending:true});
+  CATEGORIAS = (data || []).map(c => ({ id: c.id, nombre: c.nombre }));
+  if (CATEGORIAS.length === 0) {
+    // fallback si no hay ninguna
+    CATEGORIAS = ['salidas','servicios','gasolina','limpieza','compras variadas','supermercado'].map(n => ({id:null, nombre:n}));
+  }
 }
 
 // ============================================
@@ -1055,7 +1354,7 @@ function openGastoModal() {
 
   // categorías
   $('gasto-categorias').innerHTML = CATEGORIAS.map(c =>
-    `<button class="chip" onclick="selCat(this,'${c}')">${c}</button>`
+    `<button class="chip" onclick="selCat(this,'${escapeHtml(c.nombre).replace(/'/g,"&#39;")}')">${escapeHtml(c.nombre)}</button>`
   ).join('');
 
   // pagador
@@ -1168,6 +1467,7 @@ async function saveCupo() {
   CUPO = monto;
   closeModal('cupo-modal');
   calcularYrenderGastos();
+  if (currentScreen === 'perfil') $('profile-cupo').textContent = fmtDinero(CUPO);
   toast('cupo actualizado');
 }
 
@@ -1235,8 +1535,252 @@ async function openHistorialModal() {
 }
 
 // ============================================
-// REALTIME
+// PLANES
 // ============================================
+async function cargarPlanes() {
+  const { data, error } = await sb.from('plans').select('*').order('creado',{ascending:false});
+  if (error) { console.error(error); return; }
+  PLANES = data || [];
+  renderProximoPlan();
+  renderMoodChips();
+  renderPlanesList();
+}
+
+function renderProximoPlan() {
+  const box = $('next-plan');
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  // planes con fecha futura, no hechos, ordenados por fecha
+  const conFecha = PLANES
+    .filter(p => p.fecha && !p.hecho)
+    .map(p => ({...p, _f: new Date(p.fecha + 'T00:00:00')}))
+    .filter(p => p._f >= hoy)
+    .sort((a,b) => a._f - b._f);
+
+  if (conFecha.length === 0) {
+    box.innerHTML = `
+      <div class="next-plan-label">siguiente plan</div>
+      <div class="next-plan-title next-plan-empty">aún no hay nada agendado</div>
+      <div class="next-plan-when">agrega un plan con fecha abajo</div>`;
+    return;
+  }
+  const p = conFecha[0];
+  box.innerHTML = `
+    <div class="next-plan-label">siguiente plan</div>
+    <div class="next-plan-title">${escapeHtml(p.titulo)}</div>
+    <div class="next-plan-when">${fmtFechaLarga(p._f)}${p.mood ? ' · ' + escapeHtml(p.mood) : ''}</div>`;
+}
+
+function fmtFechaLarga(d) {
+  const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return dias[d.getDay()] + ' ' + d.getDate() + ' de ' + meses[d.getMonth()];
+}
+
+function renderMoodChips() {
+  $('mood-chips').innerHTML = MOODS.map(m =>
+    `<button class="chip ${moodSeleccionado===m?'selected':''}" onclick="generarIdea('${m}')">${m}</button>`
+  ).join('');
+}
+
+function generarIdea(mood) {
+  moodSeleccionado = mood;
+  renderMoodChips();
+  // juntar ideas base + las que la pareja haya guardado como ideas (tipo wishlist con ese mood)
+  let pool = (IDEAS_BASE[mood] || []).slice();
+  // ideas custom: planes tipo 'idea' con ese mood
+  PLANES.filter(p => p.tipo === 'idea' && p.mood === mood).forEach(p => pool.push(p.titulo));
+  if (pool.length === 0) pool = ['inventen algo juntos para este mood'];
+  const idea = pool[Math.floor(Math.random() * pool.length)];
+  $('idea-result').innerHTML = `
+    <div class="idea-result">
+      <div class="idea-result-text">"${escapeHtml(idea)}"</div>
+      <div class="idea-result-actions">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="generarIdea('${mood}')">otra idea</button>
+        <button class="btn btn-sm" style="flex:1;" onclick="guardarIdeaComoPlan('${escapeHtml(idea).replace(/'/g,'&#39;')}','${mood}')">¡me late!</button>
+      </div>
+    </div>`;
+}
+
+async function guardarIdeaComoPlan(titulo, mood) {
+  const { error } = await sb.from('plans').insert({
+    couple_id: ME.couple_id,
+    titulo: titulo,
+    tipo: 'cita',
+    mood: mood,
+    hecho: false
+  });
+  if (error) { toast('no se pudo guardar'); return; }
+  toast('plan agregado a por hacer');
+  await cargarPlanes();
+}
+
+function switchPlanTab(tab) {
+  planTab = tab;
+  $('tab-citas').classList.toggle('active', tab==='citas');
+  $('tab-hechas').classList.toggle('active', tab==='hechas');
+  renderPlanesList();
+}
+
+function renderPlanesList() {
+  const cont = $('planes-list');
+  // mostrar planes tipo cita/wishlist (no las "idea" sueltas)
+  let lista = PLANES.filter(p => p.tipo !== 'idea');
+  if (planTab === 'citas') lista = lista.filter(p => !p.hecho);
+  else lista = lista.filter(p => p.hecho);
+
+  if (lista.length === 0) {
+    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">${
+      planTab==='citas' ? 'aún no hay planes por hacer.<br>genera una idea o toca el +' : 'todavía no han marcado ningún plan como hecho'
+    }</div>`;
+    return;
+  }
+  cont.innerHTML = lista.map(p => `
+    <div class="plan-item">
+      <button class="plan-check ${p.hecho?'done':''}" onclick="togglePlan('${p.id}', ${p.hecho})"></button>
+      <div class="plan-info">
+        <div class="plan-title-txt ${p.hecho?'done':''}">${escapeHtml(p.titulo)}</div>
+        <div class="plan-meta">
+          ${p.mood ? `<span class="plan-mood-pill">${escapeHtml(p.mood)}</span> ` : ''}
+          ${p.fecha ? fechaCorta(p.fecha) : ''}
+          ${p.nota ? ' · ' + escapeHtml(p.nota) : ''}
+        </div>
+      </div>
+      <button class="plan-del" onclick="borrarPlan('${p.id}')">✕</button>
+    </div>`).join('');
+}
+
+async function togglePlan(id, estabaHecho) {
+  const { error } = await sb.from('plans').update({ hecho: !estabaHecho }).eq('id', id);
+  if (error) { toast('no se pudo actualizar'); return; }
+  if (!estabaHecho) toast('¡plan cumplido! 🦝');
+  await cargarPlanes();
+}
+
+async function borrarPlan(id) {
+  if (!confirm('¿borrar este plan?')) return;
+  const { error } = await sb.from('plans').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  toast('plan borrado');
+  await cargarPlanes();
+}
+
+function openPlanModal() {
+  $('plan-titulo').value = '';
+  $('plan-fecha').value = '';
+  $('plan-nota').value = '';
+  planMoodForm = null;
+  $('plan-mood-chips').innerHTML = MOODS.map(m =>
+    `<button class="chip" onclick="selPlanMood(this,'${m}')">${m}</button>`
+  ).join('');
+  $('plan-modal').classList.add('active');
+  setTimeout(() => $('plan-titulo').focus(), 200);
+}
+function selPlanMood(el, val) {
+  document.querySelectorAll('#plan-mood-chips .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  planMoodForm = val;
+}
+async function savePlan() {
+  const titulo = $('plan-titulo').value.trim();
+  if (!titulo) { toast('falta el nombre del plan'); return; }
+  const fecha = $('plan-fecha').value || null;
+  const nota = $('plan-nota').value.trim() || null;
+
+  const btn = $('plan-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { error } = await sb.from('plans').insert({
+    couple_id: ME.couple_id,
+    titulo, tipo: 'cita', mood: planMoodForm, fecha, nota, hecho: false
+  });
+  btn.disabled = false; btn.textContent = 'guardar';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('plan-modal');
+  toast('plan agregado');
+  await cargarPlanes();
+}
+
+// ============================================
+// PERFIL
+// ============================================
+function renderPerfil() {
+  $('profile-couple-name').textContent = COUPLE ? COUPLE.nombre : 'pamaches';
+  $('profile-tiempo').textContent = tiempoJuntos(COUPLE ? COUPLE.aniversario : null);
+
+  // personas
+  const personas = [DANI, ALFREDO].filter(Boolean);
+  $('profile-personas').innerHTML = personas.map(p => `
+    <div class="profile-row">
+      <span class="profile-row-label">
+        <span class="profile-pamache-tag" style="background:${p.color||'#ccc'}"></span>${p.nombre}
+      </span>
+      <span class="profile-row-value">${p.rol}</span>
+    </div>`).join('');
+
+  // fechas
+  let fechasHtml = '';
+  if (COUPLE && COUPLE.aniversario) {
+    fechasHtml += filaFecha('aniversario', COUPLE.aniversario);
+  }
+  [DANI, ALFREDO].filter(Boolean).forEach(p => {
+    if (p.cumple) fechasHtml += filaFecha('cumple de ' + p.nombre, p.cumple);
+  });
+  $('profile-fechas').innerHTML = fechasHtml || '<div class="center-msg">sin fechas</div>';
+
+  // categorías
+  renderProfileCategorias();
+
+  // cupo
+  $('profile-cupo').textContent = fmtDinero(CUPO);
+}
+
+function filaFecha(label, iso) {
+  const d = new Date(iso + 'T00:00:00');
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `<div class="profile-row">
+    <span class="profile-row-label">${label}</span>
+    <span class="profile-row-value">${d.getDate()} de ${meses[d.getMonth()]}</span>
+  </div>`;
+}
+
+function renderProfileCategorias() {
+  const cont = $('profile-categorias');
+  cont.innerHTML = CATEGORIAS.map(c => `
+    <div class="edit-list-item">
+      <span class="edit-list-name">${escapeHtml(c.nombre)}</span>
+      ${c.id ? `<button class="edit-list-del" onclick="borrarCategoria('${c.id}')">✕</button>` : ''}
+    </div>`).join('');
+}
+
+async function addCategoria() {
+  const input = $('nueva-categoria');
+  const nombre = input.value.trim().toLowerCase();
+  if (!nombre) return;
+  // evitar duplicados
+  if (CATEGORIAS.some(c => c.nombre.toLowerCase() === nombre)) {
+    toast('esa categoría ya existe');
+    return;
+  }
+  const orden = CATEGORIAS.length + 1;
+  const { error } = await sb.from('categorias').insert({
+    couple_id: ME.couple_id, nombre, orden
+  });
+  if (error) { toast('no se pudo agregar'); console.error(error); return; }
+  input.value = '';
+  await cargarCategorias();
+  renderProfileCategorias();
+  toast('categoría agregada');
+}
+
+async function borrarCategoria(id) {
+  if (!confirm('¿borrar esta categoría? los gastos ya registrados con ella no se borran')) return;
+  const { error } = await sb.from('categorias').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  await cargarCategorias();
+  renderProfileCategorias();
+  toast('categoría borrada');
+}
+
+
 function suscribirRealtime() {
   sb.channel('cambios-pamaches')
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'notitas' }, (payload) => {
@@ -1252,6 +1796,13 @@ function suscribirRealtime() {
     .on('postgres_changes', { event:'*', schema:'public', table:'settlements' }, async () => {
       await cargarSettlements();
       if (currentScreen === 'gastos') calcularYrenderGastos();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'plans' }, () => {
+      if (currentScreen === 'planes') cargarPlanes();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'categorias' }, async () => {
+      await cargarCategorias();
+      if (currentScreen === 'perfil') renderProfileCategorias();
     })
     .subscribe();
 }
