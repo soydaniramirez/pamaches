@@ -674,6 +674,63 @@ body::before {
 }
 .radio-opt.selected { background:var(--vino); color:var(--crema); }
 
+/* ============ TAREAS DE LA CASA ============ */
+.task-row {
+  display:flex; align-items:center; gap:11px;
+  background:var(--crema); border:1.5px solid var(--tinta); border-radius:14px;
+  padding:11px 13px; margin-bottom:8px; box-shadow:1.5px 2px 0 var(--tinta);
+}
+.task-avatar {
+  width:34px; height:34px; border-radius:50%; border:1.8px solid var(--tinta);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  font-family:'Caveat',cursive; font-size:1.05rem; font-weight:600; color:var(--tinta);
+}
+.task-avatar.dani { background:var(--coral); color:var(--crema); }
+.task-avatar.alfredo { background:var(--cielo); }
+.task-avatar.nadie { background:var(--crema-deep); color:var(--tinta-soft); }
+.task-info { flex:1; min-width:0; }
+.task-title { font-family:'Manrope',sans-serif; font-size:0.92rem; font-weight:600; }
+.task-title.done { text-decoration:line-through; color:var(--tinta-soft); }
+.task-who { font-family:'Caveat',cursive; font-size:0.92rem; color:var(--tinta-soft); }
+.task-check {
+  width:24px; height:24px; border:1.8px solid var(--tinta); border-radius:7px;
+  flex-shrink:0; cursor:pointer; background:var(--crema);
+  display:flex; align-items:center; justify-content:center;
+}
+.task-check.done { background:var(--vino); }
+.task-check.done::after { content:'✓'; color:var(--crema); font-size:0.9rem; }
+.task-del { background:none; border:none; color:var(--tinta-soft); font-size:1rem; cursor:pointer; padding:2px 4px; }
+
+/* menú semanal */
+.menu-day {
+  margin-bottom:14px;
+}
+.menu-day-label {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.1rem; color:var(--vino);
+  margin-bottom:6px;
+}
+.menu-day-label.hoy::after {
+  content:' · hoy'; font-family:'Caveat',cursive; font-size:0.95rem; color:var(--coral);
+}
+.meal-card {
+  display:flex; align-items:center; gap:10px;
+  background:var(--crema); border:1.5px solid var(--tinta); border-radius:14px;
+  padding:11px 13px; margin-bottom:7px; box-shadow:1.5px 2px 0 var(--tinta);
+}
+.meal-tipo {
+  font-family:'Caveat',cursive; font-size:0.95rem; color:var(--vino); font-weight:600;
+  width:56px; flex-shrink:0;
+}
+.meal-info { flex:1; min-width:0; }
+.meal-platillo { font-family:'Manrope',sans-serif; font-size:0.9rem; font-weight:600; }
+.meal-by { font-family:'Caveat',cursive; font-size:0.85rem; color:var(--tinta-soft); }
+.meal-del { background:none; border:none; color:var(--tinta-soft); font-size:0.95rem; cursor:pointer; }
+.meal-empty {
+  font-family:'Caveat',cursive; font-size:0.95rem; color:var(--tinta-soft);
+  padding:8px 13px; border:1.5px dashed var(--tinta-soft); border-radius:12px;
+}
+
+
 
 </style>
 </head>
@@ -1129,7 +1186,20 @@ body::before {
     <button class="fab" onclick="openCtModal()">+</button>
   </div>
   <div id="screen-tareas" class="screen">
-    <div class="app-content"><div class="coming-soon"><img src="pamache.png" alt=""><h2>tareas de la casa</h2><p>esta sección llega pronto</p></div></div>
+    <div class="app-content">
+      <div class="section-header">
+        <div class="section-title">tareas de la casa</div>
+        <div class="section-sub">quién hace qué esta semana</div>
+      </div>
+
+      <div class="sub-tabs">
+        <button class="sub-tab active" id="tab-tareas" onclick="switchTareaTab('tareas')">tareas</button>
+        <button class="sub-tab" id="tab-menu" onclick="switchTareaTab('menu')">menú de la semana</button>
+      </div>
+
+      <div id="tareas-vista"></div>
+    </div>
+    <button class="fab" id="tareas-fab" onclick="fabTareas()">+</button>
   </div>
 
   <!-- ============ BOTTOM NAV ============ -->
@@ -1262,6 +1332,50 @@ body::before {
       <div id="historial-list"><div class="center-msg">cargando...</div></div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModal('historial-modal')">cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL TAREA ============ -->
+  <div class="modal-overlay" id="tarea-modal">
+    <div class="modal">
+      <div class="modal-title">nueva tarea</div>
+      <div class="modal-sub">algo de la casa por hacer</div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué hay que hacer?</div>
+        <input type="text" id="tarea-titulo" class="input" placeholder="ej. sacar la basura">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿a quién le toca?</div>
+        <div class="chips-row" id="tarea-asignado-chips"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('tarea-modal')">cancelar</button>
+        <button class="btn" id="tarea-save-btn" onclick="saveTarea()">guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL COMIDA ============ -->
+  <div class="modal-overlay" id="comida-modal">
+    <div class="modal">
+      <div class="modal-title">agregar al menú</div>
+      <div class="modal-sub">para decirle a la señora qué hacer</div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué día?</div>
+        <input type="date" id="comida-dia" class="input">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿comida o cena?</div>
+        <div class="chips-row" id="comida-tipo-chips"></div>
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué platillo?</div>
+        <input type="text" id="comida-platillo" class="input" placeholder="ej. pollo al limón con verdes">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('comida-modal')">cancelar</button>
+        <button class="btn" id="comida-save-btn" onclick="saveComida()">guardar</button>
       </div>
     </div>
   </div>
@@ -1513,6 +1627,7 @@ function goTo(name) {
   if (name === 'futuro') cargarFuturo();
   if (name === 'nonego') cargarNonego();
   if (name === 'capsulatiempo') cargarCapsulaTiempo();
+  if (name === 'tareas') cargarTareas();
 }
 
 function toast(msg) {
@@ -3029,6 +3144,250 @@ async function saveCt() {
   await cargarCapsulaTiempo();
 }
 
+// ============================================
+// TAREAS DE LA CASA
+// ============================================
+let TAREAS = [];
+let MEALS = [];
+let tareaTab = 'tareas';
+let tareaAsignadoForm = null;
+let comidaTipoForm = null;
+
+// lunes de la semana actual
+function inicioSemana() {
+  const hoy = new Date();
+  const dia = hoy.getDay(); // 0 dom .. 6 sab
+  const diff = (dia === 0 ? -6 : 1 - dia); // mover a lunes
+  const lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() + diff);
+  lunes.setHours(0,0,0,0);
+  return lunes;
+}
+
+async function cargarTareas() {
+  // tareas de esta semana (o sin semana asignada)
+  const lunes = inicioSemana();
+  const lunesStr = lunes.toISOString().slice(0,10);
+  const { data: tareas } = await sb.from('tasks')
+    .select('*').order('creado',{ascending:true});
+  TAREAS = tareas || [];
+
+  // menú: comidas de los próximos 7 días desde el lunes
+  const domingo = new Date(lunes);
+  domingo.setDate(lunes.getDate() + 6);
+  const domStr = domingo.toISOString().slice(0,10);
+  const { data: meals } = await sb.from('meals')
+    .select('*').gte('dia', lunesStr).lte('dia', domStr).order('dia',{ascending:true});
+  MEALS = meals || [];
+
+  renderTareaVista();
+}
+
+function switchTareaTab(tab) {
+  tareaTab = tab;
+  $('tab-tareas').classList.toggle('active', tab==='tareas');
+  $('tab-menu').classList.toggle('active', tab==='menu');
+  renderTareaVista();
+}
+
+function fabTareas() {
+  if (tareaTab === 'tareas') openTareaModal();
+  else openComidaModal();
+}
+
+function renderTareaVista() {
+  const cont = $('tareas-vista');
+  if (tareaTab === 'tareas') {
+    renderTareasList(cont);
+  } else {
+    renderMenu(cont);
+  }
+}
+
+function avatarClase(asignadoId) {
+  if (!asignadoId) return 'nadie';
+  const p = PROFILES[asignadoId];
+  if (!p) return 'nadie';
+  return p.rol; // 'dani' o 'alfredo'
+}
+function avatarLetra(asignadoId) {
+  if (!asignadoId) return '?';
+  const p = PROFILES[asignadoId];
+  if (!p) return '?';
+  return p.nombre.charAt(0).toUpperCase();
+}
+function nombreDe(id) {
+  const p = PROFILES[id];
+  return p ? p.nombre : 'nadie';
+}
+
+function renderTareasList(cont) {
+  if (TAREAS.length === 0) {
+    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">aún no hay tareas.<br>toca el + para agregar la primera</div>`;
+    return;
+  }
+  // pendientes primero, luego hechas
+  const pendientes = TAREAS.filter(t => !t.hecha);
+  const hechas = TAREAS.filter(t => t.hecha);
+  const ordenadas = [...pendientes, ...hechas];
+
+  cont.innerHTML = ordenadas.map(t => `
+    <div class="task-row">
+      <div class="task-avatar ${avatarClase(t.asignado)}">${avatarLetra(t.asignado)}</div>
+      <div class="task-info">
+        <div class="task-title ${t.hecha?'done':''}">${escapeHtml(t.titulo)}</div>
+        <div class="task-who">${t.asignado ? 'le toca a ' + nombreDe(t.asignado) : 'sin asignar'}</div>
+      </div>
+      <button class="task-check ${t.hecha?'done':''}" onclick="toggleTarea('${t.id}', ${t.hecha})"></button>
+      <button class="task-del" onclick="borrarTarea('${t.id}')">✕</button>
+    </div>`).join('');
+}
+
+async function toggleTarea(id, estaba) {
+  const { error } = await sb.from('tasks').update({ hecha: !estaba }).eq('id', id);
+  if (error) { toast('no se pudo actualizar'); return; }
+  if (!estaba) toast('tarea hecha 🦝');
+  await cargarTareas();
+}
+
+async function borrarTarea(id) {
+  if (!confirm('¿borrar esta tarea?')) return;
+  const { error } = await sb.from('tasks').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  toast('tarea borrada');
+  await cargarTareas();
+}
+
+function openTareaModal() {
+  $('tarea-titulo').value = '';
+  tareaAsignadoForm = null;
+  let chips = '';
+  if (DANI) chips += `<button class="chip" onclick="selTareaAsignado(this,'${DANI.id}')">dani</button>`;
+  if (ALFREDO) chips += `<button class="chip" onclick="selTareaAsignado(this,'${ALFREDO.id}')">alfredo</button>`;
+  chips += `<button class="chip" onclick="selTareaAsignado(this,'')">los dos</button>`;
+  $('tarea-asignado-chips').innerHTML = chips;
+  $('tarea-modal').classList.add('active');
+  setTimeout(() => $('tarea-titulo').focus(), 200);
+}
+function selTareaAsignado(el, val) {
+  document.querySelectorAll('#tarea-asignado-chips .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  tareaAsignadoForm = val || null;
+}
+async function saveTarea() {
+  const titulo = $('tarea-titulo').value.trim();
+  if (!titulo) { toast('falta la tarea'); return; }
+  const btn = $('tarea-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const lunes = inicioSemana().toISOString().slice(0,10);
+  const { error } = await sb.from('tasks').insert({
+    couple_id: ME.couple_id,
+    titulo,
+    asignado: tareaAsignadoForm,
+    hecha: false,
+    semana: lunes
+  });
+  btn.disabled = false; btn.textContent = 'guardar';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('tarea-modal');
+  toast('tarea agregada');
+  await cargarTareas();
+}
+
+// ---- menú ----
+function renderMenu(cont) {
+  const lunes = inicioSemana();
+  const dias = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+  const hoyStr = new Date().toISOString().slice(0,10);
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(lunes);
+    d.setDate(lunes.getDate() + i);
+    const dStr = d.toISOString().slice(0,10);
+    const esHoy = dStr === hoyStr;
+
+    const delDia = MEALS.filter(m => m.dia === dStr);
+    const comida = delDia.find(m => m.tipo === 'comida');
+    const cena = delDia.find(m => m.tipo === 'cena');
+
+    html += `<div class="menu-day">
+      <div class="menu-day-label ${esHoy?'hoy':''}">${dias[i]} ${d.getDate()} ${meses[d.getMonth()]}</div>
+      ${renderMealLine('comida', comida)}
+      ${renderMealLine('cena', cena)}
+    </div>`;
+  }
+  cont.innerHTML = html;
+}
+
+function renderMealLine(tipo, meal) {
+  if (!meal) {
+    return `<div class="meal-empty">${tipo}: sin definir</div>`;
+  }
+  return `<div class="meal-card">
+    <div class="meal-tipo">${tipo}</div>
+    <div class="meal-info">
+      <div class="meal-platillo">${escapeHtml(meal.platillo)}</div>
+      ${meal.propuesto_por ? `<div class="meal-by">propuesto por ${nombreDe(meal.propuesto_por)}</div>` : ''}
+    </div>
+    <button class="meal-del" onclick="borrarComida('${meal.id}')">✕</button>
+  </div>`;
+}
+
+function openComidaModal() {
+  const hoy = new Date();
+  $('comida-dia').value = hoy.toISOString().slice(0,10);
+  $('comida-platillo').value = '';
+  comidaTipoForm = null;
+  $('comida-tipo-chips').innerHTML = `
+    <button class="chip" onclick="selComidaTipo(this,'comida')">comida</button>
+    <button class="chip" onclick="selComidaTipo(this,'cena')">cena</button>`;
+  $('comida-modal').classList.add('active');
+}
+function selComidaTipo(el, val) {
+  document.querySelectorAll('#comida-tipo-chips .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  comidaTipoForm = val;
+}
+async function saveComida() {
+  const dia = $('comida-dia').value;
+  const platillo = $('comida-platillo').value.trim();
+  if (!dia) { toast('elige el día'); return; }
+  if (!comidaTipoForm) { toast('¿comida o cena?'); return; }
+  if (!platillo) { toast('falta el platillo'); return; }
+
+  const btn = $('comida-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+
+  // si ya hay una comida/cena ese día, la reemplazamos
+  const existente = MEALS.find(m => m.dia === dia && m.tipo === comidaTipoForm);
+  let error;
+  if (existente) {
+    ({ error } = await sb.from('meals').update({
+      platillo, propuesto_por: ME.id
+    }).eq('id', existente.id));
+  } else {
+    ({ error } = await sb.from('meals').insert({
+      couple_id: ME.couple_id,
+      dia, tipo: comidaTipoForm, platillo, propuesto_por: ME.id
+    }));
+  }
+  btn.disabled = false; btn.textContent = 'guardar';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('comida-modal');
+  toast('menú actualizado');
+  await cargarTareas();
+}
+
+async function borrarComida(id) {
+  if (!confirm('¿quitar este platillo del menú?')) return;
+  const { error } = await sb.from('meals').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  toast('quitado del menú');
+  await cargarTareas();
+}
+
 
 function suscribirRealtime() {
   sb.channel('cambios-pamaches')
@@ -3081,6 +3440,12 @@ function suscribirRealtime() {
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'timecapsule' }, () => {
       if (currentScreen === 'capsulatiempo') cargarCapsulaTiempo();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'tasks' }, () => {
+      if (currentScreen === 'tareas') cargarTareas();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'meals' }, () => {
+      if (currentScreen === 'tareas') cargarTareas();
     })
     .subscribe();
 }
