@@ -444,6 +444,144 @@ body::before {
   display:inline-block; font-family:'Caveat',cursive; font-size:0.85rem;
   padding:1px 9px; border-radius:10px; background:var(--cielo-soft); color:var(--vino);
 }
+
+/* ============ NOSOTROS — hub ============ */
+.hub-grid { display:flex; flex-direction:column; gap:12px; }
+.hub-card {
+  display:flex; align-items:center; gap:14px;
+  background:var(--crema); border:2px solid var(--tinta); border-radius:20px;
+  padding:16px 18px; box-shadow:3px 3px 0 var(--tinta); cursor:pointer; text-align:left;
+}
+.hub-card:nth-child(odd) { transform:rotate(-0.5deg); }
+.hub-card:nth-child(even) { transform:rotate(0.5deg); }
+.hub-card-icon {
+  width:48px; height:48px; flex-shrink:0; border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+}
+.hub-card-icon.c1 { background:var(--cielo-soft); }
+.hub-card-icon.c2 { background:var(--rosa-soft); }
+.hub-card-icon.c3 { background:var(--crema-deep); }
+.hub-card-icon.c4 { background:var(--cielo-soft); }
+.hub-card-icon.c5 { background:var(--rosa-soft); }
+.hub-card-text { flex:1; }
+.hub-card-title { font-family:'Fraunces',serif; font-style:italic; font-size:1.15rem; color:var(--vino); }
+.hub-card-sub { font-family:'Caveat',cursive; font-size:1rem; color:var(--tinta-soft); }
+.hub-card-arrow { color:var(--tinta-soft); font-size:1.2rem; }
+
+/* back button */
+.back-btn {
+  background:none; border:1.5px solid var(--tinta-soft); border-radius:12px;
+  padding:6px 12px; font-family:'Caveat',cursive; font-size:1rem; color:var(--tinta-soft);
+  cursor:pointer; margin-bottom:14px;
+}
+
+/* ============ CÁPSULA EMOCIONAL ============ */
+.capsule-screen { }
+.qow-card {
+  background:var(--crema); border:2px solid var(--tinta); border-radius:22px;
+  padding:20px; margin-bottom:16px; box-shadow:3px 4px 0 var(--tinta);
+}
+.qow-tag {
+  display:inline-block; font-family:'Caveat',cursive; background:var(--vino); color:var(--crema);
+  padding:3px 12px; border-radius:12px; font-size:0.9rem; margin-bottom:10px;
+}
+.qow-cat {
+  display:inline-block; font-family:'Caveat',cursive; font-size:0.85rem;
+  padding:2px 10px; border-radius:10px; background:var(--cielo-soft); color:var(--vino); margin-left:6px;
+}
+.qow-text {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.25rem; line-height:1.35; color:var(--tinta);
+}
+.answer-zone { margin-top:16px; padding-top:14px; border-top:1.5px dashed var(--tinta-soft); }
+.answer-block { margin-bottom:12px; }
+.answer-author { font-family:'Caveat',cursive; font-size:1.05rem; color:var(--vino); font-weight:600; }
+.answer-text {
+  font-family:'Manrope',sans-serif; font-size:0.88rem; color:var(--tinta-soft);
+  font-style:italic; margin-top:3px; line-height:1.4;
+}
+.answer-hidden {
+  font-family:'Caveat',cursive; font-size:1rem; color:var(--tinta-soft);
+  background:var(--crema-deep); padding:10px 12px; border-radius:12px; text-align:center; margin-top:3px;
+}
+.answer-mine-box { margin-top:8px; }
+.answer-mine-box textarea {
+  width:100%; min-height:70px; padding:12px 14px; border:1.8px solid var(--tinta); border-radius:14px;
+  background:var(--crema); font-family:'Caveat',cursive; font-size:1.1rem; color:var(--tinta);
+  resize:none; box-shadow:2px 2px 0 var(--tinta);
+}
+.answer-mine-box textarea:focus { outline:none; border-color:var(--vino); }
+
+.capsule-actions { display:flex; gap:8px; margin-bottom:16px; }
+.capsule-actions .btn { margin-top:0; }
+
+.archivo-item {
+  background:var(--crema); border:1.5px solid var(--tinta); border-radius:14px;
+  padding:12px 14px; margin-bottom:8px; box-shadow:1.5px 2px 0 var(--tinta);
+}
+.archivo-q { font-family:'Fraunces',serif; font-style:italic; font-size:0.95rem; color:var(--vino); }
+.archivo-meta { font-family:'Caveat',cursive; font-size:0.9rem; color:var(--tinta-soft); margin-top:3px; }
+.archivo-answers { margin-top:8px; padding-top:8px; border-top:1px dashed var(--tinta-soft); }
+.archivo-ans { font-size:0.82rem; margin-top:4px; }
+.archivo-ans b { font-family:'Caveat',cursive; color:var(--vino); font-size:0.95rem; }
+
+/* ============ ESTAMOS RAROS ============ */
+.repair-screen { }
+.repair-intro {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.05rem; line-height:1.4;
+  margin-bottom:18px; padding:16px; background:var(--cielo-soft); border-radius:18px;
+  border-left:4px solid var(--vino);
+}
+.semaforo-title { font-family:'Caveat',cursive; font-size:1.25rem; color:var(--vino); text-align:center; margin-bottom:12px; }
+.semaforo { display:flex; justify-content:center; gap:14px; margin-bottom:10px; }
+.semaforo-light {
+  width:80px; height:80px; border-radius:50%; border:2.5px solid var(--tinta);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-family:'Caveat',cursive; font-size:0.95rem; cursor:pointer; color:var(--tinta);
+  box-shadow:2px 3px 0 var(--tinta); transition:transform 0.1s;
+}
+.semaforo-light:active { transform:translate(2px,3px); box-shadow:0 0 0 var(--tinta); }
+.semaforo-light.verde { background:#C8E6C9; }
+.semaforo-light.amarillo { background:#FFE082; }
+.semaforo-light.rojo { background:var(--coral); color:var(--crema); }
+.semaforo-light.selected { border-width:4px; }
+.semaforo-estado {
+  text-align:center; font-family:'Caveat',cursive; font-size:1.1rem; color:var(--tinta-soft);
+  margin-bottom:20px; min-height:26px;
+}
+
+.repair-section-title {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.2rem; color:var(--vino);
+  margin:18px 0 10px;
+}
+.repair-btn {
+  display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+  background:var(--crema); border:1.8px solid var(--tinta); border-radius:16px;
+  padding:14px 16px; margin-bottom:10px; box-shadow:2px 3px 0 var(--tinta); cursor:pointer;
+}
+.repair-btn-icon {
+  width:42px; height:42px; flex-shrink:0; border-radius:12px; background:var(--cielo-soft);
+  display:flex; align-items:center; justify-content:center;
+}
+.repair-btn-text { flex:1; }
+.repair-btn-title { font-family:'Fraunces',serif; font-size:1rem; color:var(--tinta); }
+.repair-btn-sub { font-family:'Caveat',cursive; font-size:0.95rem; color:var(--tinta-soft); }
+
+/* ejercicio expandible */
+.ejercicio-contenido {
+  background:var(--crema-deep); border-radius:14px; padding:14px 16px; margin-bottom:10px;
+  display:none;
+}
+.ejercicio-contenido.show { display:block; }
+.ejercicio-contenido p { font-family:'Manrope',sans-serif; font-size:0.88rem; line-height:1.5; margin-bottom:8px; }
+.ejercicio-contenido .paso {
+  font-family:'Caveat',cursive; font-size:1.05rem; color:var(--vino); margin:8px 0 2px;
+}
+
+/* timer 20 min */
+.timer-display {
+  font-family:'Fraunces',serif; font-size:2.5rem; color:var(--vino); text-align:center; margin:10px 0;
+}
+
 </style>
 </head>
 <body>
@@ -658,9 +796,218 @@ body::before {
     </div>
   </div>
 
-  <!-- ============ PLACEHOLDERS ============ -->
+  <!-- ============ NOSOTROS — HUB ============ -->
   <div id="screen-nosotros" class="screen">
-    <div class="app-content"><div class="coming-soon"><img src="pamache.png" alt=""><h2>nosotros</h2><p>cápsula, futuro y más, muy pronto</p></div></div>
+    <div class="app-content">
+      <div class="section-header">
+        <div class="section-title">nosotros</div>
+        <div class="section-sub">lo que nos hace pamaches</div>
+      </div>
+      <div class="hub-grid">
+        <button class="hub-card" onclick="goTo('capsula')">
+          <div class="hub-card-icon c1">
+            <svg width="26" height="26" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M 8 14 Q 18 12 25 16 Q 32 12 42 14 L 42 38 Q 32 36 25 40 Q 18 36 8 38 Z"/><path d="M 25 16 L 25 40"/></g></svg>
+          </div>
+          <div class="hub-card-text">
+            <div class="hub-card-title">cápsula emocional</div>
+            <div class="hub-card-sub">para hablar de lo que importa</div>
+          </div>
+          <div class="hub-card-arrow">›</div>
+        </button>
+
+        <button class="hub-card" onclick="goTo('raros')">
+          <div class="hub-card-icon c2">
+            <svg width="26" height="26" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round"><circle cx="25" cy="25" r="16"/><path d="M 18 22 Q 20 20 22 22"/><path d="M 28 22 Q 30 20 32 22"/><path d="M 18 32 Q 25 28 32 32"/></g></svg>
+          </div>
+          <div class="hub-card-text">
+            <div class="hub-card-title">estamos raros</div>
+            <div class="hub-card-sub">aquí nos ayudamos</div>
+          </div>
+          <div class="hub-card-arrow">›</div>
+        </button>
+
+        <button class="hub-card" onclick="goTo('futuro')">
+          <div class="hub-card-icon c3">
+            <svg width="26" height="26" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M 8 35 Q 18 12 28 25 Q 36 35 44 14"/><path d="M 40 10 L 42 16 L 48 17 L 43 21 L 44 27 L 40 24 L 36 27 L 37 21 L 32 17 L 38 16 Z" fill="#BB1F31"/></g></svg>
+          </div>
+          <div class="hub-card-text">
+            <div class="hub-card-title">futuro nosotros</div>
+            <div class="hub-card-sub">a dónde queremos llegar</div>
+          </div>
+          <div class="hub-card-arrow">›</div>
+        </button>
+
+        <button class="hub-card" onclick="goTo('nonego')">
+          <div class="hub-card-icon c4">
+            <svg width="26" height="26" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 8 L 38 8 L 38 42 L 12 42 Z"/><path d="M 18 18 L 32 18 M 18 25 L 32 25 M 18 32 L 26 32"/></g></svg>
+          </div>
+          <div class="hub-card-text">
+            <div class="hub-card-title">no negociables</div>
+            <div class="hub-card-sub">lo que sí y lo que no</div>
+          </div>
+          <div class="hub-card-arrow">›</div>
+        </button>
+
+        <button class="hub-card" onclick="goTo('capsulatiempo')">
+          <div class="hub-card-icon c5">
+            <svg width="26" height="26" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 24 Q 12 10 25 10 Q 38 10 38 24"/><ellipse cx="25" cy="30" rx="18" ry="4"/><ellipse cx="25" cy="26" rx="18" ry="4"/><circle cx="25" cy="7" r="2"/></g></svg>
+          </div>
+          <div class="hub-card-text">
+            <div class="hub-card-title">cápsula del tiempo</div>
+            <div class="hub-card-sub">cartas para abrirnos después</div>
+          </div>
+          <div class="hub-card-arrow">›</div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CÁPSULA EMOCIONAL ============ -->
+  <div id="screen-capsula" class="screen">
+    <div class="app-content capsule-screen">
+      <button class="back-btn" onclick="goTo('nosotros')">‹ nosotros</button>
+      <div class="section-header">
+        <div class="section-title">cápsula emocional</div>
+        <div class="section-sub">para hablar de lo que importa</div>
+      </div>
+
+      <!-- pregunta de la semana -->
+      <div id="qow-container"></div>
+
+      <!-- acciones -->
+      <div class="capsule-actions">
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="nuevaPreguntaExtra()">otra pregunta</button>
+        <button class="btn btn-sm" style="flex:1;" onclick="openPreguntaModal()">escribir una</button>
+      </div>
+
+      <div class="repair-section-title">nuestro archivo</div>
+      <div id="archivo-list"></div>
+    </div>
+  </div>
+
+  <!-- ============ ESTAMOS RAROS ============ -->
+  <div id="screen-raros" class="screen">
+    <div class="app-content repair-screen">
+      <button class="back-btn" onclick="goTo('nosotros')">‹ nosotros</button>
+      <div class="section-header">
+        <div class="section-title">estamos raros</div>
+        <div class="section-sub">aquí nos ayudamos</div>
+      </div>
+
+      <div class="repair-intro">
+        "todas las parejas se desencuentran. lo que nos define es cómo volvemos a encontrarnos."
+      </div>
+
+      <div class="semaforo-title">¿cómo estás ahora?</div>
+      <div class="semaforo">
+        <button class="semaforo-light verde" id="sem-verde" onclick="ponerSemaforo('verde')">
+          <span>bien</span>
+        </button>
+        <button class="semaforo-light amarillo" id="sem-amarillo" onclick="ponerSemaforo('amarillo')">
+          <span>raro</span>
+        </button>
+        <button class="semaforo-light rojo" id="sem-rojo" onclick="ponerSemaforo('rojo')">
+          <span>mal</span>
+        </button>
+      </div>
+      <div class="semaforo-estado" id="semaforo-estado"></div>
+
+      <div class="repair-section-title">cuando lo necesiten</div>
+
+      <button class="repair-btn" onclick="toggleEjercicio('timeout')">
+        <div class="repair-btn-icon">
+          <svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round"><circle cx="20" cy="20" r="14"/><path d="M 20 12 L 20 20 L 26 23"/></g></svg>
+        </div>
+        <div class="repair-btn-text">
+          <div class="repair-btn-title">necesito 20 minutos</div>
+          <div class="repair-btn-sub">una pausa suave para calmarnos</div>
+        </div>
+      </button>
+      <div class="ejercicio-contenido" id="ej-timeout">
+        <p>cuando una conversación se calienta, el cuerpo entra en alerta y ya no pensamos claro. una pausa de 20 minutos no es huir — es darle tiempo al cuerpo de calmarse para volver a hablar bien.</p>
+        <div class="paso">cómo se hace:</div>
+        <p>1. di "necesito 20 minutos" sin reproches.<br>2. sepárense físicamente, hagan algo que calme (caminar, respirar, agua).<br>3. NO sigan rumiando el pleito en la cabeza.<br>4. al volver, retomen con calma.</p>
+        <div id="timer-zone"></div>
+        <button class="btn btn-sm" onclick="iniciarTimer()" style="margin-top:6px;">iniciar los 20 min</button>
+      </div>
+
+      <button class="repair-btn" onclick="toggleEjercicio('hablar')">
+        <div class="repair-btn-icon">
+          <svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M 8 12 L 32 12 L 32 26 L 20 26 L 15 31 L 14 26 L 8 26 Z"/><path d="M 13 18 L 27 18 M 13 22 L 22 22"/></g></svg>
+        </div>
+        <div class="repair-btn-text">
+          <div class="repair-btn-title">cómo decirlo sin herir</div>
+          <div class="repair-btn-sub">comunicación no violenta</div>
+        </div>
+      </button>
+      <div class="ejercicio-contenido" id="ej-hablar">
+        <p>la comunicación no violenta propone hablar desde lo que uno siente, no desde el reproche. en vez de "tú siempre...", se usa una fórmula de 4 pasos:</p>
+        <div class="paso">1. observación</div>
+        <p>describe el hecho concreto, sin juzgar. "cuando llegaste tarde y no avisaste..."</p>
+        <div class="paso">2. sentimiento</div>
+        <p>di cómo te hizo sentir. "...me sentí poco importante y preocupada."</p>
+        <div class="paso">3. necesidad</div>
+        <p>nombra lo que necesitas. "necesito sentir que somos un equipo."</p>
+        <div class="paso">4. petición</div>
+        <p>pide algo concreto y amable. "¿podrías mandarme un mensaje si vas a llegar tarde?"</p>
+      </div>
+
+      <button class="repair-btn" onclick="toggleEjercicio('recordar')">
+        <div class="repair-btn-icon">
+          <svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round"><path d="M 20 32 C 20 32 7 23 7 14 C 7 9 11 7 14 7 C 17 7 20 10 20 13 C 20 10 23 7 26 7 C 29 7 33 9 33 14 C 33 23 20 32 20 32 Z"/></g></svg>
+        </div>
+        <div class="repair-btn-text">
+          <div class="repair-btn-title">recordar quiénes somos</div>
+          <div class="repair-btn-sub">3 momentos buenos juntos</div>
+        </div>
+      </button>
+      <div class="ejercicio-contenido" id="ej-recordar">
+        <p>cuando estamos enojados, el cerebro borra lo bueno y solo ve lo malo. este ejercicio lo contrarresta: túrnense para decir, en voz alta, tres momentos en que el otro los hizo sentir amados.</p>
+        <div class="paso">la idea</div>
+        <p>no es ganar la discusión — es recordar que están del mismo lado. después de decir los 3 momentos cada quien, casi siempre la conversación se siente distinta.</p>
+      </div>
+
+      <button class="repair-btn" onclick="toggleEjercicio('reparar')">
+        <div class="repair-btn-icon">
+          <svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round"><circle cx="20" cy="20" r="13"/><path d="M 14 18 Q 16 16 18 18"/><path d="M 22 18 Q 24 16 26 18"/><path d="M 14 24 Q 20 28 26 24"/></g></svg>
+        </div>
+        <div class="repair-btn-text">
+          <div class="repair-btn-title">ejercicio de reparación</div>
+          <div class="repair-btn-sub">basado en gottman</div>
+        </div>
+      </button>
+      <div class="ejercicio-contenido" id="ej-reparar">
+        <p>después de un pleito, gottman sugiere "procesar" lo que pasó sin volver a pelear. no se trata de quién tuvo razón, sino de entenderse. túrnense estas frases:</p>
+        <div class="paso">1. cómo me sentí</div>
+        <p>"yo me sentí ___." (solo el sentimiento, sin culpar)</p>
+        <div class="paso">2. mi parte</div>
+        <p>"reconozco que mi parte fue ___." (cada quien admite algo suyo)</p>
+        <div class="paso">3. lo que necesito</div>
+        <p>"la próxima vez me ayudaría que ___."</p>
+        <div class="paso">4. cierre</div>
+        <p>un gesto de cariño: un abrazo, un "te amo", tomarse de la mano. el conflicto se cierra con contacto, no con silencio.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PLACEHOLDERS RESTANTES ============ -->
+  <div id="screen-futuro" class="screen">
+    <div class="app-content">
+      <button class="back-btn" onclick="goTo('nosotros')">‹ nosotros</button>
+      <div class="coming-soon"><img src="pamache.png" alt=""><h2>futuro nosotros</h2><p>llega en la siguiente entrega</p></div>
+    </div>
+  </div>
+  <div id="screen-nonego" class="screen">
+    <div class="app-content">
+      <button class="back-btn" onclick="goTo('nosotros')">‹ nosotros</button>
+      <div class="coming-soon"><img src="pamache.png" alt=""><h2>no negociables</h2><p>llega en la siguiente entrega</p></div>
+    </div>
+  </div>
+  <div id="screen-capsulatiempo" class="screen">
+    <div class="app-content">
+      <button class="back-btn" onclick="goTo('nosotros')">‹ nosotros</button>
+      <div class="coming-soon"><img src="pamache.png" alt=""><h2>cápsula del tiempo</h2><p>llega en la siguiente entrega</p></div>
+    </div>
   </div>
   <div id="screen-tareas" class="screen">
     <div class="app-content"><div class="coming-soon"><img src="pamache.png" alt=""><h2>tareas de la casa</h2><p>esta sección llega pronto</p></div></div>
@@ -800,6 +1147,26 @@ body::before {
     </div>
   </div>
 
+  <!-- ============ MODAL PREGUNTA ============ -->
+  <div class="modal-overlay" id="pregunta-modal">
+    <div class="modal">
+      <div class="modal-title">escribir una pregunta</div>
+      <div class="modal-sub">algo que quieran preguntarse</div>
+      <div class="mfield">
+        <div class="mfield-label">categoría</div>
+        <div class="chips-row" id="pregunta-cats"></div>
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">la pregunta</div>
+        <textarea id="pregunta-texto" placeholder="¿qué se quieren preguntar?"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('pregunta-modal')">cancelar</button>
+        <button class="btn" id="pregunta-save-btn" onclick="savePregunta()">usar esta pregunta</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ MODAL PLAN ============ -->
   <div class="modal-overlay" id="plan-modal">
     <div class="modal">
@@ -928,8 +1295,13 @@ function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $('screen-' + name).classList.add('active');
   currentScreen = name;
+  // sub-pantallas de "nosotros" marcan ese tab
+  const subNosotros = ['nosotros','capsula','raros','futuro','nonego','capsulatiempo'];
+  let navTarget = name;
+  if (subNosotros.includes(name)) navTarget = 'nosotros';
+  if (name === 'perfil') navTarget = '';
   document.querySelectorAll('.nav-item').forEach(n => {
-    n.classList.toggle('active', n.dataset.screen === name);
+    n.classList.toggle('active', n.dataset.screen === navTarget);
   });
   window.scrollTo(0, 0);
 }
@@ -938,6 +1310,8 @@ function goTo(name) {
   if (name === 'gastos') cargarGastos();
   if (name === 'planes') cargarPlanes();
   if (name === 'perfil') renderPerfil();
+  if (name === 'capsula') cargarCapsula();
+  if (name === 'raros') cargarRaros();
 }
 
 function toast(msg) {
@@ -1905,6 +2279,261 @@ async function borrarSubcategoria(id) {
   toast('subcategoría borrada');
 }
 
+// ============================================
+// CÁPSULA EMOCIONAL
+// ============================================
+const CATEGORIAS_PREGUNTA = ['amor','miedos','futuro','familia','dinero','sueños'];
+let PREGUNTA_ACTUAL = null;
+let preguntaCatForm = null;
+
+async function cargarCapsula() {
+  const { data: actual } = await sb.from('questions')
+    .select('*').eq('es_actual', true).limit(1).single();
+  PREGUNTA_ACTUAL = actual || null;
+  if (!PREGUNTA_ACTUAL) {
+    await nuevaPreguntaExtra(true);
+    return;
+  }
+  await renderPreguntaActual();
+  await renderArchivo();
+}
+
+async function renderPreguntaActual() {
+  const cont = $('qow-container');
+  if (!PREGUNTA_ACTUAL) { cont.innerHTML = '<div class="center-msg">no hay pregunta activa</div>'; return; }
+
+  const { data: respuestas } = await sb.from('answers')
+    .select('*').eq('question_id', PREGUNTA_ACTUAL.id);
+  const resp = respuestas || [];
+  const miResp = resp.find(r => r.autor === ME.id);
+  const otroId = (DANI && DANI.id === ME.id) ? (ALFREDO && ALFREDO.id) : (DANI && DANI.id);
+  const otroResp = resp.find(r => r.autor === otroId);
+  const otroNombre = PROFILES[otroId] ? PROFILES[otroId].nombre : 'tu pamache';
+
+  let answerZone = '<div class="answer-zone">';
+  if (miResp) {
+    answerZone += `
+      <div class="answer-block">
+        <div class="answer-author">tú respondiste:</div>
+        <div class="answer-text">"${escapeHtml(miResp.texto)}"</div>
+      </div>`;
+  } else {
+    answerZone += `
+      <div class="answer-block">
+        <div class="answer-author">tu respuesta:</div>
+        <div class="answer-mine-box">
+          <textarea id="mi-respuesta" placeholder="escribe lo que sientes, pamache..."></textarea>
+          <button class="btn btn-sm" style="margin-top:8px;width:100%;" id="resp-save-btn" onclick="guardarRespuesta()">responder</button>
+        </div>
+      </div>`;
+  }
+  answerZone += `<div class="answer-block"><div class="answer-author">${otroNombre}:</div>`;
+  if (otroResp) {
+    if (miResp) {
+      answerZone += `<div class="answer-text">"${escapeHtml(otroResp.texto)}"</div>`;
+    } else {
+      answerZone += `<div class="answer-hidden">${otroNombre} ya respondió · responde tú para revelar</div>`;
+    }
+  } else {
+    answerZone += `<div class="answer-hidden">${otroNombre} aún no responde</div>`;
+  }
+  answerZone += '</div></div>';
+
+  cont.innerHTML = `
+    <div class="qow-card">
+      <span class="qow-tag">pregunta de la semana</span>
+      <span class="qow-cat">${escapeHtml(PREGUNTA_ACTUAL.categoria||'')}</span>
+      <div class="qow-text">"${escapeHtml(PREGUNTA_ACTUAL.texto)}"</div>
+      ${answerZone}
+    </div>`;
+}
+
+async function guardarRespuesta() {
+  const ta = $('mi-respuesta');
+  if (!ta) return;
+  const texto = (ta.value || '').trim();
+  if (!texto) { toast('escribe tu respuesta'); return; }
+  const btn = $('resp-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { error } = await sb.from('answers').insert({
+    question_id: PREGUNTA_ACTUAL.id,
+    couple_id: ME.couple_id,
+    autor: ME.id,
+    texto
+  });
+  btn.disabled = false; btn.textContent = 'responder';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  toast('respuesta guardada 💕');
+  await renderPreguntaActual();
+  await renderArchivo();
+}
+
+async function nuevaPreguntaExtra(silencioso) {
+  const { data: disponibles } = await sb.from('questions')
+    .select('*').eq('usada', false);
+  if (!disponibles || disponibles.length === 0) {
+    if (!silencioso) toast('ya usaron todas · escriban una nueva');
+    return;
+  }
+  const elegida = disponibles[Math.floor(Math.random() * disponibles.length)];
+  await activarPregunta(elegida.id);
+  if (!silencioso) toast('nueva pregunta lista');
+}
+
+async function activarPregunta(qId) {
+  if (PREGUNTA_ACTUAL) {
+    await sb.from('questions').update({ es_actual: false }).eq('id', PREGUNTA_ACTUAL.id);
+  }
+  await sb.from('questions').update({
+    es_actual: true, usada: true, semana: new Date().toISOString().slice(0,10)
+  }).eq('id', qId);
+  const { data: actual } = await sb.from('questions').select('*').eq('id', qId).single();
+  PREGUNTA_ACTUAL = actual;
+  await renderPreguntaActual();
+  await renderArchivo();
+}
+
+function openPreguntaModal() {
+  $('pregunta-texto').value = '';
+  preguntaCatForm = null;
+  $('pregunta-cats').innerHTML = CATEGORIAS_PREGUNTA.map(c =>
+    `<button class="chip" onclick="selPreguntaCat(this,'${c}')">${c}</button>`
+  ).join('');
+  $('pregunta-modal').classList.add('active');
+}
+function selPreguntaCat(el, val) {
+  document.querySelectorAll('#pregunta-cats .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  preguntaCatForm = val;
+}
+async function savePregunta() {
+  const texto = ($('pregunta-texto').value || '').trim();
+  if (!texto) { toast('escribe la pregunta'); return; }
+  const btn = $('pregunta-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { data, error } = await sb.from('questions').insert({
+    couple_id: ME.couple_id,
+    categoria: preguntaCatForm || 'amor',
+    texto,
+    origen: 'pareja',
+    usada: false
+  }).select().single();
+  btn.disabled = false; btn.textContent = 'usar esta pregunta';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('pregunta-modal');
+  await activarPregunta(data.id);
+  toast('pregunta lista 💕');
+}
+
+async function renderArchivo() {
+  const cont = $('archivo-list');
+  const { data: respondidas } = await sb.from('questions')
+    .select('*').eq('usada', true).order('semana',{ascending:false});
+  if (!respondidas || respondidas.length === 0) {
+    cont.innerHTML = '<div class="center-msg">aún no hay preguntas en el archivo</div>';
+    return;
+  }
+  const { data: todasResp } = await sb.from('answers').select('*');
+  const respByQ = {};
+  (todasResp||[]).forEach(r => {
+    if (!respByQ[r.question_id]) respByQ[r.question_id] = [];
+    respByQ[r.question_id].push(r);
+  });
+  let html = '';
+  respondidas.forEach(q => {
+    if (PREGUNTA_ACTUAL && q.id === PREGUNTA_ACTUAL.id) return;
+    const resp = respByQ[q.id] || [];
+    if (resp.length === 0) return;
+    let ansHtml = '';
+    resp.forEach(r => {
+      const autor = PROFILES[r.autor];
+      ansHtml += `<div class="archivo-ans"><b>${autor?autor.nombre:'alguien'}:</b> "${escapeHtml(r.texto)}"</div>`;
+    });
+    html += `
+      <div class="archivo-item">
+        <div class="archivo-q">"${escapeHtml(q.texto)}"</div>
+        <div class="archivo-meta">${escapeHtml(q.categoria||'')}${q.semana ? ' · ' + fechaCorta(q.semana) : ''}</div>
+        <div class="archivo-answers">${ansHtml}</div>
+      </div>`;
+  });
+  cont.innerHTML = html || '<div class="center-msg">aún no hay preguntas respondidas en el archivo</div>';
+}
+
+// ============================================
+// ESTAMOS RAROS
+// ============================================
+let MI_SEMAFORO = null;
+let timerInterval = null;
+
+async function cargarRaros() {
+  const hoy = new Date().toISOString().slice(0,10);
+  const { data } = await sb.from('moods')
+    .select('*').gte('creado', hoy + 'T00:00:00')
+    .order('creado',{ascending:false});
+  const moods = data || [];
+  const miMood = moods.find(m => m.autor === ME.id);
+  const otroId = (DANI && DANI.id === ME.id) ? (ALFREDO && ALFREDO.id) : (DANI && DANI.id);
+  const otroMood = moods.find(m => m.autor === otroId);
+  const otroNombre = PROFILES[otroId] ? PROFILES[otroId].nombre : 'tu pamache';
+
+  ['verde','amarillo','rojo'].forEach(c => {
+    $('sem-'+c).classList.toggle('selected', miMood && miMood.estado === c);
+  });
+  MI_SEMAFORO = miMood ? miMood.estado : null;
+
+  const est = $('semaforo-estado');
+  if (otroMood) {
+    const txt = { verde:'está bien hoy', amarillo:'está medio raro hoy', rojo:'no está bien hoy' };
+    est.textContent = otroNombre + ' ' + txt[otroMood.estado];
+  } else {
+    est.textContent = otroNombre + ' aún no marca cómo está hoy';
+  }
+}
+
+async function ponerSemaforo(estado) {
+  ['verde','amarillo','rojo'].forEach(c => {
+    $('sem-'+c).classList.toggle('selected', c === estado);
+  });
+  MI_SEMAFORO = estado;
+  const { error } = await sb.from('moods').insert({
+    couple_id: ME.couple_id, autor: ME.id, estado
+  });
+  if (error) { toast('no se pudo guardar'); return; }
+  const msg = { verde:'me alegra que estés bien', amarillo:'gracias por avisar', rojo:'aquí estamos para ti' };
+  toast(msg[estado]);
+}
+
+function toggleEjercicio(cual) {
+  const el = $('ej-' + cual);
+  const estaba = el.classList.contains('show');
+  document.querySelectorAll('.ejercicio-contenido').forEach(e => e.classList.remove('show'));
+  if (!estaba) el.classList.add('show');
+}
+
+function iniciarTimer() {
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  let restante = 20 * 60;
+  const zona = $('timer-zone');
+  function pinta() {
+    const m = Math.floor(restante/60);
+    const s = restante % 60;
+    zona.innerHTML = `<div class="timer-display">${m}:${String(s).padStart(2,'0')}</div>`;
+  }
+  pinta();
+  timerInterval = setInterval(() => {
+    restante--;
+    if (restante < 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      zona.innerHTML = '<div class="timer-display">listo 💕</div><p style="text-align:center;font-family:Caveat,cursive;">ya pueden volver a hablar con calma</p>';
+      toast('los 20 minutos terminaron');
+      return;
+    }
+    pinta();
+  }, 1000);
+  toast('timer iniciado · respiren');
+}
+
 
 function suscribirRealtime() {
   sb.channel('cambios-pamaches')
@@ -1932,6 +2561,22 @@ function suscribirRealtime() {
     .on('postgres_changes', { event:'*', schema:'public', table:'subcategorias' }, async () => {
       await cargarCategorias();
       if (currentScreen === 'perfil') renderProfileCategorias();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'answers' }, () => {
+      if (currentScreen === 'capsula') { renderPreguntaActual(); renderArchivo(); }
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'questions' }, () => {
+      if (currentScreen === 'capsula') cargarCapsula();
+    })
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'moods' }, (payload) => {
+      if (payload.new && payload.new.autor !== ME.id) {
+        const autor = PROFILES[payload.new.autor];
+        const nombre = autor ? autor.nombre : 'tu pamache';
+        const e = payload.new.estado;
+        if (e === 'amarillo') toast('🟡 ' + nombre + ' está medio raro · pásate a verlo');
+        if (e === 'rojo') toast('🔴 ' + nombre + ' no está bien · pásate a verlo');
+      }
+      if (currentScreen === 'raros') cargarRaros();
     })
     .subscribe();
 }
