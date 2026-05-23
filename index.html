@@ -457,6 +457,36 @@ body::before {
   vertical-align:middle; border:1.5px solid var(--tinta);
 }
 
+/* fila de fecha editable */
+.fecha-row {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:9px 0; border-bottom:1px dashed var(--tinta-soft); cursor:pointer;
+}
+.fecha-row:last-child { border-bottom:none; }
+.fecha-row-left { flex:1; min-width:0; }
+.fecha-row-titulo { font-family:'Manrope',sans-serif; font-size:0.9rem; font-weight:600; }
+.fecha-row-cuando { font-family:'Caveat',cursive; font-size:0.95rem; color:var(--tinta-soft); }
+.fecha-row-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.fecha-row-edit { font-family:'Caveat',cursive; font-size:0.9rem; color:var(--vino); }
+.fecha-row-del { background:none; border:none; color:var(--tinta-soft); font-size:0.95rem; cursor:pointer; }
+.fecha-badge {
+  display:inline-block; font-family:'Caveat',cursive; font-size:0.78rem;
+  padding:0 7px; border-radius:9px; background:var(--cielo-soft); color:var(--vino); margin-left:5px;
+}
+
+/* aviso de fecha cercana en el home */
+.fecha-aviso-card {
+  background:linear-gradient(135deg, #FFD9F2 0%, var(--rosa) 100%);
+  border:2px solid var(--tinta); border-radius:18px; padding:14px 16px;
+  margin-bottom:18px; box-shadow:3px 3px 0 var(--tinta); transform:rotate(-0.5deg);
+  display:flex; align-items:center; gap:12px;
+}
+.fecha-aviso-emoji { font-size:1.6rem; flex-shrink:0; }
+.fecha-aviso-text { flex:1; }
+.fecha-aviso-titulo { font-family:'Fraunces',serif; font-style:italic; font-size:1.05rem; color:var(--tinta); }
+.fecha-aviso-cuenta { font-family:'Caveat',cursive; font-size:1.05rem; color:var(--vino); font-weight:600; }
+
+
 /* lista editable (categorías) */
 .edit-list-item {
   display:flex; justify-content:space-between; align-items:center;
@@ -918,6 +948,7 @@ body::before {
         <img src="pamache.png" alt="pamaches">
         <div class="hero-caption" id="hero-caption">juntos</div>
       </div>
+      <div id="fecha-aviso"></div>
       <div class="notitas-section">
         <div class="notitas-header">
           <div class="notitas-title">notitas</div>
@@ -1065,6 +1096,9 @@ body::before {
       <div class="profile-card">
         <div class="profile-card-title">fechas importantes</div>
         <div id="profile-fechas"></div>
+        <div class="add-inline" style="margin-top:12px;">
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openFechaModal()">+ agregar fecha</button>
+        </div>
       </div>
 
       <div class="profile-card">
@@ -1552,6 +1586,33 @@ body::before {
     </div>
   </div>
 
+  <!-- ============ MODAL FECHA ============ -->
+  <div class="modal-overlay" id="fecha-modal">
+    <div class="modal">
+      <div class="modal-title" id="fecha-modal-title">agregar fecha</div>
+      <div class="modal-sub">una fecha que les importa</div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué se celebra?</div>
+        <input type="text" id="fecha-titulo" class="input" placeholder="ej. el día que nos conocimos">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué día?</div>
+        <input type="date" id="fecha-fecha" class="input">
+      </div>
+      <div class="mfield" id="fecha-repite-field">
+        <div class="mfield-label">¿se repite?</div>
+        <div class="radio-row" id="fecha-repite-radio">
+          <button class="radio-opt selected" onclick="selFechaRepite(true)">cada año</button>
+          <button class="radio-opt" onclick="selFechaRepite(false)">una sola vez</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('fecha-modal')">cancelar</button>
+        <button class="btn" id="fecha-save-btn" onclick="saveFecha()">guardar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ MODAL SALDAR ============ -->
   <div class="modal-overlay" id="saldar-modal">
     <div class="modal">
@@ -1850,6 +1911,7 @@ let mesActual = new Date();   // mes que se está viendo en gastos
 let gastosDelMes = [];
 let CATEGORIAS = [];          // se cargan de la base
 let SUBCATEGORIAS = [];       // todas las subcategorías {id, categoria_id, nombre}
+let FECHAS = [];              // fechas importantes
 let PLANES = [];              // todos los planes
 let planTab = 'citas';        // 'citas' (por hacer) o 'hechas'
 let moodSeleccionado = null;
@@ -2066,7 +2128,29 @@ async function cargarPerfil() {
   if (cfg) CUPO = parseFloat(cfg.cupo);
   // categorías
   await cargarCategorias();
+  // fechas importantes
+  await cargarFechas();
   return true;
+}
+
+async function cargarFechas() {
+  const { data } = await sb.from('fechas').select('*').order('fecha',{ascending:true});
+  FECHAS = data || [];
+}
+
+// días que faltan para la próxima ocurrencia de una fecha
+function diasParaFecha(f) {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const fch = new Date(f.fecha + 'T00:00:00');
+  if (f.se_repite) {
+    // próxima ocurrencia este año o el siguiente
+    let prox = new Date(hoy.getFullYear(), fch.getMonth(), fch.getDate());
+    if (prox < hoy) prox = new Date(hoy.getFullYear()+1, fch.getMonth(), fch.getDate());
+    return Math.round((prox - hoy) / 86400000);
+  } else {
+    const diff = Math.round((fch - hoy) / 86400000);
+    return diff; // negativo si ya pasó
+  }
 }
 
 async function cargarCategorias() {
@@ -2890,15 +2974,8 @@ function renderPerfil() {
       <span class="profile-row-value">${p.rol}</span>
     </div>`).join('');
 
-  // fechas
-  let fechasHtml = '';
-  if (COUPLE && COUPLE.aniversario) {
-    fechasHtml += filaFecha('aniversario', COUPLE.aniversario);
-  }
-  [DANI, ALFREDO].filter(Boolean).forEach(p => {
-    if (p.cumple) fechasHtml += filaFecha('cumple de ' + p.nombre, p.cumple);
-  });
-  $('profile-fechas').innerHTML = fechasHtml || '<div class="center-msg">sin fechas</div>';
+  // fechas importantes
+  renderFechasPerfil();
 
   // categorías
   renderProfileCategorias();
@@ -2907,12 +2984,121 @@ function renderPerfil() {
   $('profile-cupo').textContent = fmtDinero(CUPO);
 }
 
-function filaFecha(label, iso) {
-  const d = new Date(iso + 'T00:00:00');
+function renderFechasPerfil() {
+  const cont = $('profile-fechas');
+  if (FECHAS.length === 0) {
+    cont.innerHTML = '<div class="center-msg">aún no hay fechas · agrega una abajo</div>';
+    return;
+  }
   const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  return `<div class="profile-row">
-    <span class="profile-row-label">${label}</span>
-    <span class="profile-row-value">${d.getDate()} de ${meses[d.getMonth()]}</span>
+  const ordenadas = [...FECHAS].sort((a,b) => diasParaFecha(a) - diasParaFecha(b));
+  cont.innerHTML = ordenadas.map(f => {
+    const d = new Date(f.fecha + 'T00:00:00');
+    let cuando = d.getDate() + ' de ' + meses[d.getMonth()];
+    if (!f.se_repite) cuando += ' de ' + d.getFullYear();
+    const badge = f.se_repite ? '<span class="fecha-badge">cada año</span>' : '<span class="fecha-badge">una vez</span>';
+    return `<div class="fecha-row" onclick="openFechaModal('${f.id}')">
+      <div class="fecha-row-left">
+        <div class="fecha-row-titulo">${escapeHtml(f.titulo)}${badge}</div>
+        <div class="fecha-row-cuando">${cuando}</div>
+      </div>
+      <div class="fecha-row-right">
+        <span class="fecha-row-edit">editar</span>
+        ${f.fija ? '' : `<button class="fecha-row-del" onclick="event.stopPropagation();borrarFecha('${f.id}')">✕</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---- modal de fecha ----
+let fechaEditandoId = null;
+let fechaRepiteForm = true;
+
+function openFechaModal(id) {
+  fechaEditandoId = id || null;
+  const f = id ? FECHAS.find(x => x.id === id) : null;
+  $('fecha-modal-title').textContent = f ? 'editar fecha' : 'agregar fecha';
+  $('fecha-titulo').value = f ? f.titulo : '';
+  $('fecha-fecha').value = f ? f.fecha : '';
+  fechaRepiteForm = f ? f.se_repite : true;
+  selFechaRepite(fechaRepiteForm);
+  // las fechas fijas (aniversario/cumple): no se puede cambiar el título ni si se repite
+  if (f && f.fija) {
+    $('fecha-titulo').disabled = true;
+    $('fecha-repite-field').style.display = 'none';
+  } else {
+    $('fecha-titulo').disabled = false;
+    $('fecha-repite-field').style.display = 'block';
+  }
+  $('fecha-modal').classList.add('active');
+}
+function selFechaRepite(repite) {
+  fechaRepiteForm = repite;
+  document.querySelectorAll('#fecha-repite-radio .radio-opt').forEach((el, i) => {
+    el.classList.toggle('selected', (i===0 && repite) || (i===1 && !repite));
+  });
+}
+async function saveFecha() {
+  const titulo = $('fecha-titulo').value.trim();
+  const fecha = $('fecha-fecha').value;
+  if (!titulo) { toast('falta el nombre'); return; }
+  if (!fecha) { toast('elige la fecha'); return; }
+
+  const btn = $('fecha-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  let error;
+  if (fechaEditandoId) {
+    ({ error } = await sb.from('fechas').update({
+      titulo, fecha, se_repite: fechaRepiteForm
+    }).eq('id', fechaEditandoId));
+  } else {
+    ({ error } = await sb.from('fechas').insert({
+      couple_id: ME.couple_id,
+      titulo, fecha, se_repite: fechaRepiteForm, fija: false
+    }));
+  }
+  btn.disabled = false; btn.textContent = 'guardar';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('fecha-modal');
+  await cargarFechas();
+  renderFechasPerfil();
+  renderAvisoFecha();
+  toast(fechaEditandoId ? 'fecha actualizada' : 'fecha agregada');
+}
+async function borrarFecha(id) {
+  if (!confirm('¿borrar esta fecha?')) return;
+  const { error } = await sb.from('fechas').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  await cargarFechas();
+  renderFechasPerfil();
+  renderAvisoFecha();
+  toast('fecha borrada');
+}
+
+// ---- aviso de fecha cercana en el home ----
+function renderAvisoFecha() {
+  const cont = $('fecha-aviso');
+  if (!cont) return;
+  if (FECHAS.length === 0) { cont.innerHTML = ''; return; }
+  // buscar la fecha más cercana dentro de los próximos 14 días
+  let proxima = null, minDias = 999;
+  FECHAS.forEach(f => {
+    const d = diasParaFecha(f);
+    if (d >= 0 && d <= 14 && d < minDias) { minDias = d; proxima = f; }
+  });
+  if (!proxima) { cont.innerHTML = ''; return; }
+
+  let cuenta;
+  if (minDias === 0) cuenta = '¡es hoy! 🎉';
+  else if (minDias === 1) cuenta = 'es mañana';
+  else cuenta = 'faltan ' + minDias + ' días';
+
+  cont.innerHTML = `<div class="fecha-aviso-card">
+    <div class="fecha-aviso-emoji">💕</div>
+    <div class="fecha-aviso-text">
+      <div class="fecha-aviso-titulo">${escapeHtml(proxima.titulo)}</div>
+      <div class="fecha-aviso-cuenta">${cuenta}</div>
+    </div>
   </div>`;
 }
 
@@ -4392,6 +4578,11 @@ function suscribirRealtime() {
       }
       if (currentScreen === 'spicy-termometro') cargarTermometro();
     })
+    .on('postgres_changes', { event:'*', schema:'public', table:'fechas' }, async () => {
+      await cargarFechas();
+      renderAvisoFecha();
+      if (currentScreen === 'perfil') renderFechasPerfil();
+    })
     .subscribe();
 }
 
@@ -4411,6 +4602,7 @@ async function iniciarApp() {
 
   await cargarNotitas();
   await cargarSettlements();
+  renderAvisoFecha();
   suscribirRealtime();
 
   $('loader').style.display = 'none';
