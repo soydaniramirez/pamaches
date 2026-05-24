@@ -2306,7 +2306,7 @@ function goTo(name) {
   if (name === 'futuro') cargarFuturo();
   if (name === 'nonego') cargarNonego();
   if (name === 'capsulatiempo') cargarCapsulaTiempo();
-  if (name === 'tareas') cargarTareas();
+  if (name === 'tareas') { menuSemanaOffset = 0; cargarTareas(); }
   if (name === 'notitas') cargarTodasNotitas();
   if (name === 'spicy-ruleta') cargarRuleta();
   if (name === 'spicy-deseos') cargarDeseos();
@@ -4762,6 +4762,7 @@ let tareaAsignadoForm = null;
 let comidaBloqueForm = null;
 let tareaTipoForm = 'variable';
 let tareaRotaForm = false;
+let menuSemanaOffset = 0;   // 0 = esta semana, +1 = próxima, -1 = anterior
 
 // sugerencias de tareas comunes de casa
 const SUGERENCIAS_TAREAS = {
@@ -4782,6 +4783,25 @@ function inicioSemana() {
   lunes.setDate(hoy.getDate() + diff);
   lunes.setHours(0,0,0,0);
   return lunes;
+}
+
+// lunes de la semana que se está viendo en el menú (según el offset)
+function lunesMenu() {
+  const l = inicioSemana();
+  l.setDate(l.getDate() + menuSemanaOffset * 7);
+  return l;
+}
+
+// etiqueta de la semana del menú (ej. "25 — 31 may")
+function etiquetaSemanaMenu() {
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const lunes = lunesMenu();
+  const domingo = new Date(lunes);
+  domingo.setDate(lunes.getDate() + 6);
+  const dl = lunes.getDate(), dd = domingo.getDate();
+  const ml = meses[lunes.getMonth()], md = meses[domingo.getMonth()];
+  if (ml === md) return `${dl} — ${dd} ${md}`;
+  return `${dl} ${ml} — ${dd} ${md}`;
 }
 
 async function cargarTareas() {
@@ -5062,9 +5082,31 @@ const MENU_BLOQUES = [
 ];
 
 function renderMenu(cont) {
-  let html = `<div class="super-intro">organicen su meal prep · agreguen las preparaciones de la semana</div>`;
+  const lunesStr = lunesMenu().toISOString().slice(0,10);
+  const esEstaSemana = menuSemanaOffset === 0;
+
+  // selector de semana
+  let html = `
+    <div class="month-strip">
+      <button class="month-arrow" onclick="cambiarSemanaMenu(-1)">‹</button>
+      <div class="month-label">${etiquetaSemanaMenu()}</div>
+      <button class="month-arrow" onclick="cambiarSemanaMenu(1)">›</button>
+    </div>`;
+  if (esEstaSemana) {
+    html += `<div class="super-intro">esta semana · organicen su meal prep</div>`;
+  } else if (menuSemanaOffset === 1) {
+    html += `<div class="super-intro">la próxima semana · planéenla con calma</div>`;
+  } else if (menuSemanaOffset > 1) {
+    html += `<div class="super-intro">una semana futura</div>`;
+  } else {
+    html += `<div class="super-intro">una semana pasada · para inspirarse 🦝</div>`;
+  }
+
+  // solo las preparaciones de la semana que se está viendo
+  const mealsSemana = MEALS.filter(m => m.semana === lunesStr);
+
   MENU_BLOQUES.forEach(bloque => {
-    const items = MEALS.filter(m => m.bloque === bloque.id);
+    const items = mealsSemana.filter(m => m.bloque === bloque.id);
     html += `<div class="menu-bloque">
       <div class="menu-bloque-head">
         <div class="menu-bloque-icon">${bloque.icon}</div>
@@ -5086,6 +5128,11 @@ function renderMenu(cont) {
     html += `</div>`;
   });
   cont.innerHTML = html;
+}
+
+function cambiarSemanaMenu(delta) {
+  menuSemanaOffset += delta;
+  renderTareaVista();
 }
 
 function openComidaModal() {
@@ -5113,7 +5160,8 @@ async function saveComida() {
     couple_id: ME.couple_id,
     bloque: comidaBloqueForm,
     platillo,
-    propuesto_por: ME.id
+    propuesto_por: ME.id,
+    semana: lunesMenu().toISOString().slice(0,10)
   });
   btn.disabled = false; btn.textContent = 'guardar';
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
