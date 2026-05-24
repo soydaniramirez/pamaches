@@ -1020,32 +1020,65 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
 .task-del { background:none; border:none; color:var(--tinta-soft); font-size:1rem; cursor:pointer; padding:2px 4px; }
 
 /* menú semanal */
-.menu-day {
-  margin-bottom:14px;
+/* menú por bloques de preparación */
+.menu-bloque { margin-bottom:20px; }
+.menu-bloque-head {
+  display:flex; align-items:center; gap:10px; margin-bottom:8px;
 }
-.menu-day-label {
-  font-family:'Fraunces',serif; font-style:italic; font-size:1.1rem; color:var(--vino);
-  margin-bottom:6px;
+.menu-bloque-icon {
+  width:34px; height:34px; flex-shrink:0; border-radius:10px; background:var(--cielo-soft);
+  display:flex; align-items:center; justify-content:center;
 }
-.menu-day-label.hoy::after {
-  content:' · hoy'; font-family:'Caveat',cursive; font-size:0.95rem; color:var(--coral);
+.menu-bloque-title {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.2rem; color:var(--vino);
+}
+.menu-bloque-count {
+  margin-left:auto; font-family:'Caveat',cursive; font-size:0.95rem; color:var(--tinta-soft);
 }
 .meal-card {
   display:flex; align-items:center; gap:10px;
   background:var(--crema); border:1.5px solid var(--tinta); border-radius:14px;
   padding:11px 13px; margin-bottom:7px; box-shadow:1.5px 2px 0 var(--tinta);
 }
-.meal-tipo {
-  font-family:'Caveat',cursive; font-size:0.95rem; color:var(--vino); font-weight:600;
-  width:56px; flex-shrink:0;
-}
 .meal-info { flex:1; min-width:0; }
-.meal-platillo { font-family:'Manrope',sans-serif; font-size:0.9rem; font-weight:600; }
+.meal-platillo { font-family:'Manrope',sans-serif; font-size:0.92rem; font-weight:600; }
 .meal-by { font-family:'Caveat',cursive; font-size:0.85rem; color:var(--tinta-soft); }
 .meal-del { background:none; border:none; color:var(--tinta-soft); font-size:0.95rem; cursor:pointer; }
 .meal-empty {
   font-family:'Caveat',cursive; font-size:0.95rem; color:var(--tinta-soft);
-  padding:8px 13px; border:1.5px dashed var(--tinta-soft); border-radius:12px;
+  padding:9px 13px; border:1.5px dashed var(--tinta-soft); border-radius:12px;
+}
+
+/* lista de súper */
+.super-intro {
+  font-family:'Caveat',cursive; font-size:1.1rem; color:var(--tinta-soft);
+  text-align:center; margin-bottom:14px;
+}
+.super-grupo-label {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.05rem; color:var(--vino);
+  margin:16px 0 8px;
+}
+.super-item {
+  display:flex; align-items:center; gap:11px;
+  background:var(--crema); border:1.5px solid var(--tinta); border-radius:14px;
+  padding:11px 13px; margin-bottom:8px; box-shadow:1.5px 2px 0 var(--tinta);
+}
+.super-check {
+  width:24px; height:24px; border:1.8px solid var(--tinta); border-radius:7px;
+  flex-shrink:0; cursor:pointer; background:var(--crema);
+  display:flex; align-items:center; justify-content:center;
+}
+.super-check.done { background:var(--vino); }
+.super-check.done::after { content:'✓'; color:var(--crema); font-size:0.9rem; }
+.super-info { flex:1; min-width:0; }
+.super-text { font-family:'Manrope',sans-serif; font-size:0.92rem; font-weight:600; }
+.super-text.done { text-decoration:line-through; color:var(--tinta-soft); }
+.super-by { font-family:'Caveat',cursive; font-size:0.85rem; color:var(--tinta-soft); }
+.super-del { background:none; border:none; color:var(--tinta-soft); font-size:1rem; cursor:pointer; padding:2px 4px; }
+.super-clear {
+  width:100%; margin-top:6px; background:rgba(42,24,32,0.07); border:none;
+  border-radius:12px; padding:9px; font-family:'Caveat',cursive; font-size:1rem;
+  color:var(--tinta-soft); cursor:pointer;
 }
 
 /* sugerencias de tareas */
@@ -1665,7 +1698,8 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
 
       <div class="sub-tabs">
         <button class="sub-tab active" id="tab-tareas" onclick="switchTareaTab('tareas')">tareas</button>
-        <button class="sub-tab" id="tab-menu" onclick="switchTareaTab('menu')">menú de la semana</button>
+        <button class="sub-tab" id="tab-menu" onclick="switchTareaTab('menu')">menú</button>
+        <button class="sub-tab" id="tab-super" onclick="switchTareaTab('super')">súper</button>
       </div>
 
       <div id="tareas-vista"></div>
@@ -1947,22 +1981,34 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
   <div class="modal-overlay" id="comida-modal">
     <div class="modal">
       <div class="modal-title">agregar al menú</div>
-      <div class="modal-sub">para decirle a la señora qué hacer</div>
+      <div class="modal-sub">una preparación para la semana</div>
       <div class="mfield">
-        <div class="mfield-label">¿qué día?</div>
-        <input type="date" id="comida-dia" class="input">
+        <div class="mfield-label">¿qué bloque?</div>
+        <div class="chips-row" id="comida-bloque-chips"></div>
       </div>
       <div class="mfield">
-        <div class="mfield-label">¿comida o cena?</div>
-        <div class="chips-row" id="comida-tipo-chips"></div>
-      </div>
-      <div class="mfield">
-        <div class="mfield-label">¿qué platillo?</div>
+        <div class="mfield-label">¿qué preparación?</div>
         <input type="text" id="comida-platillo" class="input" placeholder="ej. pollo al limón con verdes">
       </div>
       <div class="modal-actions">
         <button class="btn btn-ghost" onclick="closeModal('comida-modal')">cancelar</button>
         <button class="btn" id="comida-save-btn" onclick="saveComida()">guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODAL SÚPER ============ -->
+  <div class="modal-overlay" id="super-modal">
+    <div class="modal">
+      <div class="modal-title">agregar al súper</div>
+      <div class="modal-sub">algo que falta comprar</div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué falta?</div>
+        <input type="text" id="super-texto" class="input" placeholder="ej. jitomate, leche, papel...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('super-modal')">cancelar</button>
+        <button class="btn" id="super-save-btn" onclick="saveSuper()">agregar</button>
       </div>
     </div>
   </div>
@@ -4710,9 +4756,10 @@ async function saveCt() {
 // ============================================
 let TAREAS = [];
 let MEALS = [];
+let SUPER = [];
 let tareaTab = 'tareas';
 let tareaAsignadoForm = null;
-let comidaTipoForm = null;
+let comidaBloqueForm = null;
 let tareaTipoForm = 'variable';
 let tareaRotaForm = false;
 
@@ -4753,13 +4800,15 @@ async function cargarTareas() {
     .select('*').order('creado',{ascending:true});
   TAREAS = tareas2 || [];
 
-  // menú
-  const domingo = new Date(lunes);
-  domingo.setDate(lunes.getDate() + 6);
-  const domStr = domingo.toISOString().slice(0,10);
+  // menú — ahora por bloques de preparación (sin filtro de día)
   const { data: meals } = await sb.from('meals')
-    .select('*').gte('dia', lunesStr).lte('dia', domStr).order('dia',{ascending:true});
+    .select('*').order('creado',{ascending:true});
   MEALS = meals || [];
+
+  // lista de súper
+  const { data: superd } = await sb.from('super')
+    .select('*').order('creado',{ascending:true});
+  SUPER = superd || [];
 
   renderTareaVista();
 }
@@ -4806,20 +4855,23 @@ async function regenerarRecurrentes(lunesStr) {
 
 function switchTareaTab(tab) {
   tareaTab = tab;
-  $('tab-tareas').classList.toggle('active', tab==='tareas');
-  $('tab-menu').classList.toggle('active', tab==='menu');
+  ['tareas','menu','super'].forEach(t => {
+    $('tab-'+t).classList.toggle('active', t===tab);
+  });
   renderTareaVista();
 }
 
 function fabTareas() {
   if (tareaTab === 'tareas') openTareaModal();
-  else openComidaModal();
+  else if (tareaTab === 'menu') openComidaModal();
+  else openSuperModal();
 }
 
 function renderTareaVista() {
   const cont = $('tareas-vista');
   if (tareaTab === 'tareas') renderTareasList(cont);
-  else renderMenu(cont);
+  else if (tareaTab === 'menu') renderMenu(cont);
+  else renderSuper(cont);
 }
 
 function avatarClase(asignadoId) {
@@ -4995,97 +5047,164 @@ async function saveTarea() {
   await cargarTareas();
 }
 
-// ---- menú ----
+// ---- menú por bloques de preparación ----
+const MENU_BLOQUES = [
+  { id:'desayuno',   nombre:'desayunos de la semana',
+    icon:`<svg width="20" height="20" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="22" r="11"/><path d="M 20 14 Q 17 10 20 6 Q 23 10 20 14"/><path d="M 14 22 Q 20 27 26 22"/></g></svg>` },
+  { id:'comida',     nombre:'comidas de la semana',
+    icon:`<svg width="20" height="20" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M 11 8 L 11 20 Q 11 23 14 23 L 14 32 M 11 14 L 17 14 M 14 8 L 14 20"/><path d="M 27 8 Q 23 12 23 18 Q 23 22 27 22 L 27 32"/></g></svg>` },
+  { id:'aditamento', nombre:'aditamentos',
+    icon:`<svg width="20" height="20" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M 8 18 Q 20 8 32 18 Q 20 14 8 18 Z"/><path d="M 8 18 Q 20 30 32 18"/></g></svg>` },
+  { id:'tentempie',  nombre:'tentempié',
+    icon:`<svg width="20" height="20" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M 14 10 L 26 10 L 30 16 L 20 32 L 10 16 Z"/><path d="M 10 16 L 30 16 M 17 10 L 14 16 M 23 10 L 26 16"/></g></svg>` },
+  { id:'cena',       nombre:'cenas de la semana',
+    icon:`<svg width="20" height="20" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 28 Q 12 16 20 16 Q 28 16 28 28 Z"/><path d="M 8 28 L 32 28"/><path d="M 20 16 L 20 11 M 17 8 Q 20 6 23 8"/></g></svg>` }
+];
+
 function renderMenu(cont) {
-  const lunes = inicioSemana();
-  const dias = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
-  const hoyStr = new Date().toISOString().slice(0,10);
-  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-
-  let html = '';
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(lunes);
-    d.setDate(lunes.getDate() + i);
-    const dStr = d.toISOString().slice(0,10);
-    const esHoy = dStr === hoyStr;
-
-    const delDia = MEALS.filter(m => m.dia === dStr);
-    const comida = delDia.find(m => m.tipo === 'comida');
-    const cena = delDia.find(m => m.tipo === 'cena');
-
-    html += `<div class="menu-day">
-      <div class="menu-day-label ${esHoy?'hoy':''}">${dias[i]} ${d.getDate()} ${meses[d.getMonth()]}</div>
-      ${renderMealLine('comida', comida)}
-      ${renderMealLine('cena', cena)}
-    </div>`;
-  }
+  let html = `<div class="super-intro">organicen su meal prep · agreguen las preparaciones de la semana</div>`;
+  MENU_BLOQUES.forEach(bloque => {
+    const items = MEALS.filter(m => m.bloque === bloque.id);
+    html += `<div class="menu-bloque">
+      <div class="menu-bloque-head">
+        <div class="menu-bloque-icon">${bloque.icon}</div>
+        <div class="menu-bloque-title">${bloque.nombre}</div>
+        <div class="menu-bloque-count">${items.length || ''}</div>
+      </div>`;
+    if (items.length === 0) {
+      html += `<div class="meal-empty">nada todavía · toca el + para agregar</div>`;
+    } else {
+      html += items.map(m => `
+        <div class="meal-card">
+          <div class="meal-info">
+            <div class="meal-platillo">${escapeHtml(m.platillo)}</div>
+            ${m.propuesto_por ? `<div class="meal-by">propuesto por ${nombreDe(m.propuesto_por)}</div>` : ''}
+          </div>
+          <button class="meal-del" onclick="borrarComida('${m.id}')">✕</button>
+        </div>`).join('');
+    }
+    html += `</div>`;
+  });
   cont.innerHTML = html;
 }
 
-function renderMealLine(tipo, meal) {
-  if (!meal) {
-    return `<div class="meal-empty">${tipo}: sin definir</div>`;
-  }
-  return `<div class="meal-card">
-    <div class="meal-tipo">${tipo}</div>
-    <div class="meal-info">
-      <div class="meal-platillo">${escapeHtml(meal.platillo)}</div>
-      ${meal.propuesto_por ? `<div class="meal-by">propuesto por ${nombreDe(meal.propuesto_por)}</div>` : ''}
-    </div>
-    <button class="meal-del" onclick="borrarComida('${meal.id}')">✕</button>
-  </div>`;
-}
-
 function openComidaModal() {
-  const hoy = new Date();
-  $('comida-dia').value = hoy.toISOString().slice(0,10);
   $('comida-platillo').value = '';
-  comidaTipoForm = null;
-  $('comida-tipo-chips').innerHTML = `
-    <button class="chip" onclick="selComidaTipo(this,'comida')">comida</button>
-    <button class="chip" onclick="selComidaTipo(this,'cena')">cena</button>`;
+  comidaBloqueForm = null;
+  $('comida-bloque-chips').innerHTML = MENU_BLOQUES.map(b =>
+    `<button class="chip" onclick="selComidaBloque(this,'${b.id}')">${b.nombre}</button>`
+  ).join('');
   $('comida-modal').classList.add('active');
+  setTimeout(() => $('comida-platillo').focus(), 200);
 }
-function selComidaTipo(el, val) {
-  document.querySelectorAll('#comida-tipo-chips .chip').forEach(c => c.classList.remove('selected'));
+function selComidaBloque(el, val) {
+  document.querySelectorAll('#comida-bloque-chips .chip').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  comidaTipoForm = val;
+  comidaBloqueForm = val;
 }
 async function saveComida() {
-  const dia = $('comida-dia').value;
   const platillo = $('comida-platillo').value.trim();
-  if (!dia) { toast('elige el día'); return; }
-  if (!comidaTipoForm) { toast('¿comida o cena?'); return; }
-  if (!platillo) { toast('falta el platillo'); return; }
+  if (!comidaBloqueForm) { toast('elige el bloque'); return; }
+  if (!platillo) { toast('falta la preparación'); return; }
 
   const btn = $('comida-save-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
-
-  // si ya hay una comida/cena ese día, la reemplazamos
-  const existente = MEALS.find(m => m.dia === dia && m.tipo === comidaTipoForm);
-  let error;
-  if (existente) {
-    ({ error } = await sb.from('meals').update({
-      platillo, propuesto_por: ME.id
-    }).eq('id', existente.id));
-  } else {
-    ({ error } = await sb.from('meals').insert({
-      couple_id: ME.couple_id,
-      dia, tipo: comidaTipoForm, platillo, propuesto_por: ME.id
-    }));
-  }
+  const { error } = await sb.from('meals').insert({
+    couple_id: ME.couple_id,
+    bloque: comidaBloqueForm,
+    platillo,
+    propuesto_por: ME.id
+  });
   btn.disabled = false; btn.textContent = 'guardar';
   if (error) { toast('no se pudo guardar'); console.error(error); return; }
   closeModal('comida-modal');
-  toast('menú actualizado');
+  toast('agregado al menú');
   await cargarTareas();
 }
 
 async function borrarComida(id) {
-  if (!confirm('¿quitar este platillo del menú?')) return;
+  if (!confirm('¿quitar esta preparación del menú?')) return;
   const { error } = await sb.from('meals').delete().eq('id', id);
   if (error) { toast('no se pudo borrar'); return; }
   toast('quitado del menú');
+  await cargarTareas();
+}
+
+// ---- lista de súper ----
+function renderSuper(cont) {
+  const pendientes = SUPER.filter(s => !s.comprado);
+  const comprados = SUPER.filter(s => s.comprado);
+
+  let html = `<div class="super-intro">lo que falta comprar · cada quien va sumando</div>`;
+
+  if (SUPER.length === 0) {
+    html += `<div class="mov-empty"><img src="pamache.png" alt="">la lista está vacía.<br>toca el + para agregar lo primero</div>`;
+    cont.innerHTML = html;
+    return;
+  }
+
+  html += `<div class="super-grupo-label">por comprar</div>`;
+  if (pendientes.length === 0) {
+    html += `<div class="meal-empty">¡todo comprado! 🦝</div>`;
+  } else {
+    html += pendientes.map(s => renderSuperItem(s)).join('');
+  }
+
+  if (comprados.length > 0) {
+    html += `<div class="super-grupo-label">ya en el carrito</div>`;
+    html += comprados.map(s => renderSuperItem(s)).join('');
+    html += `<button class="super-clear" onclick="limpiarComprados()">quitar los comprados de la lista</button>`;
+  }
+
+  cont.innerHTML = html;
+}
+
+function renderSuperItem(s) {
+  return `<div class="super-item">
+    <button class="super-check ${s.comprado?'done':''}" onclick="toggleSuper('${s.id}', ${s.comprado})"></button>
+    <div class="super-info">
+      <div class="super-text ${s.comprado?'done':''}">${escapeHtml(s.texto)}</div>
+      <div class="super-by">lo agregó ${nombreDe(s.autor)}</div>
+    </div>
+    <button class="super-del" onclick="borrarSuper('${s.id}')">✕</button>
+  </div>`;
+}
+
+function openSuperModal() {
+  $('super-texto').value = '';
+  $('super-modal').classList.add('active');
+  setTimeout(() => $('super-texto').focus(), 200);
+}
+async function saveSuper() {
+  const texto = $('super-texto').value.trim();
+  if (!texto) { toast('escribe qué falta'); return; }
+  const btn = $('super-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const { error } = await sb.from('super').insert({
+    couple_id: ME.couple_id, texto, autor: ME.id
+  });
+  btn.disabled = false; btn.textContent = 'agregar';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('super-modal');
+  toast('agregado a la lista');
+  await cargarTareas();
+}
+async function toggleSuper(id, estaba) {
+  const { error } = await sb.from('super').update({ comprado: !estaba }).eq('id', id);
+  if (error) { toast('no se pudo'); return; }
+  await cargarTareas();
+}
+async function borrarSuper(id) {
+  const { error } = await sb.from('super').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  await cargarTareas();
+}
+async function limpiarComprados() {
+  if (!confirm('¿quitar todo lo comprado de la lista?')) return;
+  const { error } = await sb.from('super').delete()
+    .eq('couple_id', ME.couple_id).eq('comprado', true);
+  if (error) { toast('no se pudo'); return; }
+  toast('lista limpia 🦝');
   await cargarTareas();
 }
 
@@ -5381,6 +5500,9 @@ function suscribirRealtime() {
       if (currentScreen === 'tareas') cargarTareas();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'meals' }, () => {
+      if (currentScreen === 'tareas') cargarTareas();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'super' }, () => {
       if (currentScreen === 'tareas') cargarTareas();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'spicy_deseos' }, () => {
