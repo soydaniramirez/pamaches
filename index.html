@@ -541,8 +541,12 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
 /* campanita de novedades */
 .campana-btn { position:relative; }
 .campana-dot {
-  position:absolute; top:3px; right:3px; width:10px; height:10px;
-  background:var(--vino); border:1.5px solid var(--crema); border-radius:50%;
+  position:absolute; top:0px; right:0px; min-width:16px; height:16px;
+  padding:0 4px; background:var(--vino); border:1.5px solid var(--crema);
+  border-radius:8px; color:var(--crema);
+  font-family:'Manrope',sans-serif; font-size:0.65rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  line-height:1;
 }
 
 /* lista de novedades */
@@ -2822,9 +2826,30 @@ function reaccionById(id) { return REACCIONES.find(r => r.id === id) || null; }
 async function revisarNovedades() {
   const dot = $('campana-dot');
   if (!dot || !ME) return;
-  const { data } = await sb.from('novedades')
-    .select('id').eq('para', ME.id).eq('vista', false).limit(1);
-  dot.style.display = (data && data.length > 0) ? 'block' : 'none';
+  const { data, count } = await sb.from('novedades')
+    .select('id', { count: 'exact' }).eq('para', ME.id).eq('vista', false);
+  const total = count || (data ? data.length : 0);
+  dot.style.display = total > 0 ? 'block' : 'none';
+  // si hay puntito numérico, actualizarlo
+  if (total > 0) {
+    dot.textContent = total > 9 ? '9+' : String(total);
+  } else {
+    dot.textContent = '';
+  }
+  // insignia (badge) en el ícono de la app — solo funciona si está agregada a pantalla de inicio
+  setAppBadge(total);
+}
+
+// pone o limpia el badge en el ícono de la app
+async function setAppBadge(n) {
+  try {
+    if ('setAppBadge' in navigator) {
+      if (n > 0) await navigator.setAppBadge(n);
+      else await navigator.clearAppBadge();
+    }
+  } catch (e) {
+    // si el navegador no soporta o el usuario no dio permiso, ignoramos silenciosamente
+  }
 }
 
 async function openNovedades() {
@@ -2856,6 +2881,8 @@ async function openNovedades() {
   // marcar todas como vistas
   await sb.from('novedades').update({ vista: true }).eq('para', ME.id).eq('vista', false);
   $('campana-dot').style.display = 'none';
+  $('campana-dot').textContent = '';
+  setAppBadge(0);
 }
 
 async function borrarNovedad(id) {
@@ -5803,7 +5830,7 @@ function suscribirRealtime() {
     })
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'novedades' }, (payload) => {
       if (payload.new && payload.new.para === ME.id) {
-        $('campana-dot').style.display = 'block';
+        revisarNovedades();  // recalcula total y actualiza dot + badge
       }
     })
     .subscribe();
