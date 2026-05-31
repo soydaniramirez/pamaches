@@ -624,6 +624,11 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
   display:flex; align-items:center; gap:12px;
 }
 .fecha-aviso-emoji { font-size:1.6rem; flex-shrink:0; }
+.fecha-aviso-icon-box {
+  width:36px; height:36px; flex-shrink:0; border-radius:50%;
+  background:var(--crema); border:1.8px solid var(--tinta);
+  display:flex; align-items:center; justify-content:center;
+}
 .fecha-aviso-text { flex:1; }
 .fecha-aviso-titulo { font-family:'Fraunces',serif; font-style:italic; font-size:1.05rem; color:var(--tinta); }
 .fecha-aviso-cuenta { font-family:'Caveat',cursive; font-size:1.05rem; color:var(--vino); font-weight:600; }
@@ -1038,6 +1043,54 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
   border-radius:12px; font-family:'Caveat',cursive; font-size:1rem; cursor:pointer; background:var(--crema);
 }
 .radio-opt.selected { background:var(--vino); color:var(--crema); }
+
+/* ============ AGENDA ============ */
+.agenda-card {
+  display:flex; gap:13px; align-items:flex-start;
+  background:var(--crema); border:1.8px solid var(--tinta); border-radius:18px;
+  padding:14px 15px; margin-bottom:11px; box-shadow:2px 3px 0 var(--tinta);
+  position:relative;
+}
+.agenda-card.pasado { opacity:0.62; }
+.agenda-card.pronto { background:linear-gradient(135deg, #FFD9F2 0%, var(--rosa-soft) 100%); }
+.agenda-card.hoy {
+  background:linear-gradient(135deg, var(--coral) 0%, var(--vino) 100%);
+  color:var(--crema);
+}
+.agenda-card.hoy .ag-titulo,
+.agenda-card.hoy .ag-cuenta,
+.agenda-card.hoy .ag-info,
+.agenda-card.hoy .ag-detalle { color:var(--crema); }
+.agenda-card.hoy .ag-icon-box { background:rgba(255,241,241,0.18); }
+.agenda-card.hoy .ag-icon-box svg g { stroke:var(--crema); }
+
+.ag-icon-box {
+  width:44px; height:44px; flex-shrink:0; border-radius:13px;
+  background:var(--cielo-soft);
+  display:flex; align-items:center; justify-content:center;
+}
+.ag-body { flex:1; min-width:0; }
+.ag-titulo { font-family:'Fraunces',serif; font-style:italic; font-size:1.1rem; color:var(--vino); }
+.ag-cuenta { font-family:'Caveat',cursive; font-size:1rem; color:var(--vino); font-weight:600; margin-top:1px; }
+.ag-info { font-family:'Manrope',sans-serif; font-size:0.82rem; color:var(--tinta-soft); margin-top:3px; }
+.ag-detalle { font-family:'Caveat',cursive; font-size:0.92rem; color:var(--tinta-soft); margin-top:3px; }
+.ag-actions { display:flex; gap:6px; position:absolute; top:10px; right:10px; }
+.ag-del, .ag-edit {
+  background:none; border:none; color:var(--tinta-soft); font-size:0.95rem;
+  cursor:pointer; padding:2px 5px;
+}
+.ag-edit { font-family:'Caveat',cursive; color:var(--vino); }
+.agenda-card.hoy .ag-edit, .agenda-card.hoy .ag-del { color:var(--crema); }
+
+.agenda-seccion {
+  font-family:'Fraunces',serif; font-style:italic; font-size:1.15rem;
+  color:var(--vino); margin:18px 0 10px;
+}
+.agenda-archivo-toggle {
+  width:100%; background:rgba(42,24,32,0.07); border:none; border-radius:12px;
+  padding:11px; font-family:'Caveat',cursive; font-size:1.05rem; color:var(--tinta-soft);
+  cursor:pointer; margin-top:14px;
+}
 
 /* ============ TAREAS DE LA CASA ============ */
 .task-row {
@@ -1610,6 +1663,17 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
           <div class="hub-card-arrow">›</div>
         </button>
 
+        <button class="hub-card" onclick="goTo('agenda')">
+          <div class="hub-card-icon c4">
+            <svg width="26" height="26" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="11" width="32" height="30" rx="3"/><path d="M 9 19 L 41 19"/><path d="M 17 7 L 17 14 M 33 7 L 33 14"/><circle cx="17" cy="27" r="1.8" fill="#BB1F31"/><circle cx="25" cy="27" r="1.8" fill="#BB1F31"/><circle cx="33" cy="27" r="1.8" fill="#BB1F31"/><circle cx="17" cy="34" r="1.8" fill="#BB1F31"/></g></svg>
+          </div>
+          <div class="hub-card-text">
+            <div class="hub-card-title">agenda</div>
+            <div class="hub-card-sub">conciertos, viajes, eventos</div>
+          </div>
+          <div class="hub-card-arrow">›</div>
+        </button>
+
         <button class="hub-card" onclick="goTo('perfil')">
           <div class="hub-card-icon c1">
             <svg width="26" height="26" viewBox="0 0 50 50"><g fill="none" stroke="#BB1F31" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="25" cy="18" r="8"/><path d="M 10 42 C 10 32 17 28 25 28 C 33 28 40 32 40 42"/></g></svg>
@@ -1755,6 +1819,19 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
       <div id="tareas-vista"></div>
     </div>
     <button class="fab" id="tareas-fab" onclick="fabTareas()">+</button>
+  </div>
+
+  <!-- ============ AGENDA ============ -->
+  <div id="screen-agenda" class="screen">
+    <div class="app-content">
+      <button class="back-btn" onclick="goTo('mas')">‹ más</button>
+      <div class="section-header">
+        <div class="section-title">agenda</div>
+        <div class="section-sub">eventos que no se nos pueden olvidar</div>
+      </div>
+      <div id="agenda-list"></div>
+    </div>
+    <button class="fab" onclick="openAgendaModal()">+</button>
   </div>
 
   <!-- ============ BOTTOM NAV ============ -->
@@ -2064,6 +2141,50 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
     </div>
   </div>
 
+  <!-- ============ MODAL AGENDA ============ -->
+  <div class="modal-overlay" id="agenda-modal">
+    <div class="modal">
+      <div class="modal-title" id="agenda-modal-title">nuevo evento</div>
+      <div class="modal-sub">algo que ya compraron o tienen fecha fija</div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué es?</div>
+        <input type="text" id="agenda-titulo" class="input" placeholder="ej. concierto de coldplay">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">categoría</div>
+        <div class="chips-row" id="agenda-cat-chips"></div>
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿qué día?</div>
+        <input type="date" id="agenda-fecha" class="input">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿a qué hora? (opcional)</div>
+        <input type="time" id="agenda-hora" class="input">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿dónde? (opcional)</div>
+        <input type="text" id="agenda-lugar" class="input" placeholder="ej. foro sol">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">info del boleto (opcional)</div>
+        <input type="text" id="agenda-boleto" class="input" placeholder="número, código, link...">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">¿cuánto costó? (opcional)</div>
+        <input type="number" id="agenda-costo" class="input" placeholder="0" inputmode="decimal">
+      </div>
+      <div class="mfield">
+        <div class="mfield-label">nota (opcional)</div>
+        <input type="text" id="agenda-nota" class="input" placeholder="algún detalle...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal('agenda-modal')">cancelar</button>
+        <button class="btn" id="agenda-save-btn" onclick="saveAgenda()">guardar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ MODAL FUTURO ============ -->
   <div class="modal-overlay" id="futuro-modal">
     <div class="modal">
@@ -2337,7 +2458,7 @@ function showScreen(name) {
   currentScreen = name;
   // sub-pantallas de "nosotros" marcan ese tab
   const subNosotros = ['nosotros','capsula','raros','futuro','nonego','capsulatiempo'];
-  const subMas = ['mas','tareas','spicy','spicy-ruleta','spicy-deseos','spicy-termometro','spicy-cartas','perfil'];
+  const subMas = ['mas','tareas','spicy','spicy-ruleta','spicy-deseos','spicy-termometro','spicy-cartas','perfil','agenda'];
   let navTarget = name;
   if (subNosotros.includes(name)) navTarget = 'nosotros';
   if (subMas.includes(name)) navTarget = 'mas';
@@ -2363,6 +2484,7 @@ function goTo(name) {
   if (name === 'spicy-deseos') cargarDeseos();
   if (name === 'spicy-termometro') cargarTermometro();
   if (name === 'spicy-cartas') cargarCartasSpicy();
+  if (name === 'agenda') cargarAgenda();
 }
 
 function toast(msg) {
@@ -2596,6 +2718,7 @@ async function refrescarHome(silencioso) {
     await cargarPreguntaHome();
     await cargarSettlements();
     await cargarFechas();
+    await cargarEventosProximos();
     renderAvisoFecha();
     await revisarNovedades();
   } catch (e) { console.error('refresh', e); }
@@ -2804,7 +2927,7 @@ async function crearNovedad(tipo, texto, destino) {
 const NOVEDAD_EMOJI = {
   notita:'💌', respuesta:'📖', plan:'🦝', semaforo:'🟡',
   ganas:'🌶️', carta:'😏', fecha:'💕', deseo:'👀', tarea:'🧹',
-  reaccion:'💞'
+  reaccion:'💞', agenda:'📅'
 };
 
 // reacciones a notitas — iconos ilustrados en el estilo de la app
@@ -3953,13 +4076,23 @@ async function borrarFecha(id) {
 function renderAvisoFecha() {
   const cont = $('fecha-aviso');
   if (!cont) return;
-  if (FECHAS.length === 0) { cont.innerHTML = ''; return; }
-  // buscar la fecha más cercana dentro de los próximos 14 días
-  let proxima = null, minDias = 999;
+
+  // candidato: fechas importantes (cumple/aniversario) + eventos próximos
+  let proxima = null, minDias = 999, tipoProx = null;
+
   FECHAS.forEach(f => {
     const d = diasParaFecha(f);
-    if (d >= 0 && d <= 14 && d < minDias) { minDias = d; proxima = f; }
+    if (d >= 0 && d <= 14 && d < minDias) {
+      minDias = d; proxima = f; tipoProx = 'fecha';
+    }
   });
+  (EVENTOS_PROX || []).forEach(e => {
+    const d = diasParaEvento(e);
+    if (d >= 0 && d <= 14 && d < minDias) {
+      minDias = d; proxima = e; tipoProx = 'evento';
+    }
+  });
+
   if (!proxima) { cont.innerHTML = ''; return; }
 
   let cuenta;
@@ -3967,8 +4100,18 @@ function renderAvisoFecha() {
   else if (minDias === 1) cuenta = 'es mañana';
   else cuenta = 'faltan ' + minDias + ' días';
 
-  cont.innerHTML = `<div class="fecha-aviso-card">
-    <div class="fecha-aviso-emoji">💕</div>
+  // icono según tipo
+  let icono;
+  if (tipoProx === 'evento') {
+    const cat = agendaCatById(proxima.categoria);
+    icono = `<div class="fecha-aviso-icon-box">${cat.svg}</div>`;
+  } else {
+    icono = `<div class="fecha-aviso-emoji">💕</div>`;
+  }
+
+  const clickAttr = tipoProx === 'evento' ? `onclick="goTo('agenda')" style="cursor:pointer;"` : '';
+  cont.innerHTML = `<div class="fecha-aviso-card" ${clickAttr}>
+    ${icono}
     <div class="fecha-aviso-text">
       <div class="fecha-aviso-titulo">${escapeHtml(proxima.titulo)}</div>
       <div class="fecha-aviso-cuenta">${cuenta}</div>
@@ -5737,6 +5880,223 @@ async function borrarCartaSpicy(id) {
   await cargarCartasSpicy();
 }
 
+// ============================================
+// AGENDA — eventos comprados / fechas fijas
+// ============================================
+let AGENDA = [];
+let agendaEditandoId = null;
+let agendaCatForm = null;
+let agendaArchivoAbierto = false;
+
+const AGENDA_CATS = [
+  { id:'concierto', label:'concierto',
+    svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M 16 30 L 16 12 L 26 9 L 26 27"/><ellipse cx="14" cy="30" rx="3" ry="2.5"/><ellipse cx="24" cy="27" rx="3" ry="2.5"/></g></svg>` },
+  { id:'obra', label:'obra',
+    svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 8 Q 13 18 16 26 Q 18 30 20 30 Q 22 30 24 26 Q 27 18 28 8 Z"/><circle cx="17" cy="15" r="1.2" fill="#BB1F31"/><circle cx="23" cy="15" r="1.2" fill="#BB1F31"/><path d="M 17 21 Q 20 24 23 21"/></g></svg>` },
+  { id:'viaje', label:'viaje',
+    svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M 6 22 L 18 18 L 22 10 L 26 10 L 24 18 L 32 16 L 36 18 L 34 22 L 8 28 Z"/></g></svg>` },
+  { id:'deporte', label:'deporte',
+    svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="20" r="12"/><path d="M 20 8 L 20 32 M 8 20 L 32 20 M 12 12 L 28 28 M 12 28 L 28 12"/></g></svg>` },
+  { id:'festival', label:'festival',
+    svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M 8 30 L 20 8 L 32 30 Z"/><path d="M 12 24 L 28 24 M 16 18 L 24 18"/><circle cx="20" cy="13" r="1.5" fill="#BB1F31"/></g></svg>` },
+  { id:'otro', label:'otro',
+    svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="11" width="24" height="22" rx="2.5"/><path d="M 8 17 L 32 17"/><path d="M 14 7 L 14 13 M 26 7 L 26 13"/><circle cx="14" cy="23" r="1.5" fill="#BB1F31"/><circle cx="20" cy="23" r="1.5" fill="#BB1F31"/><circle cx="26" cy="23" r="1.5" fill="#BB1F31"/></g></svg>` }
+];
+
+function agendaCatById(id) { return AGENDA_CATS.find(c => c.id === id) || AGENDA_CATS[5]; }
+
+async function cargarAgenda() {
+  const { data, error } = await sb.from('agenda')
+    .select('*').order('fecha',{ascending:true}).order('hora',{ascending:true});
+  if (error) { console.error(error); return; }
+  AGENDA = data || [];
+  renderAgenda();
+}
+
+// días que faltan para un evento de agenda
+function diasParaEvento(ev) {
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  const f = new Date(ev.fecha + 'T00:00:00');
+  return Math.round((f - hoy) / 86400000);
+}
+
+function fmtFechaAgenda(ev) {
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const d = new Date(ev.fecha + 'T00:00:00');
+  let txt = dias[d.getDay()] + ' ' + d.getDate() + ' de ' + meses[d.getMonth()];
+  if (d.getFullYear() !== new Date().getFullYear()) txt += ' ' + d.getFullYear();
+  if (ev.hora) {
+    // hora viene como "HH:MM:SS" o "HH:MM"
+    const partes = ev.hora.split(':');
+    const h = parseInt(partes[0]), m = partes[1];
+    const hh = h % 12 || 12;
+    const ampm = h >= 12 ? 'pm' : 'am';
+    txt += ' · ' + hh + ':' + m + ' ' + ampm;
+  }
+  return txt;
+}
+
+function cuentaRegresiva(ev) {
+  const dias = diasParaEvento(ev);
+  if (dias === 0) return '¡es hoy!';
+  if (dias === 1) return 'es mañana';
+  if (dias === -1) return 'fue ayer';
+  if (dias > 0) return 'faltan ' + dias + ' días';
+  return 'hace ' + Math.abs(dias) + ' días';
+}
+
+function renderAgenda() {
+  const cont = $('agenda-list');
+  if (AGENDA.length === 0) {
+    cont.innerHTML = `<div class="mov-empty"><img src="pamache.png" alt="">aún no hay nada en la agenda.<br>toca el + para agregar el primer evento</div>`;
+    return;
+  }
+  const proximos = AGENDA.filter(e => diasParaEvento(e) >= 0);
+  const pasados = AGENDA.filter(e => diasParaEvento(e) < 0);
+
+  let html = '';
+
+  if (proximos.length === 0) {
+    html += `<div class="center-msg">no hay eventos próximos · todos los anteriores quedaron en "ya fuimos"</div>`;
+  } else {
+    html += `<div class="agenda-seccion">próximos</div>`;
+    html += proximos.map(e => renderEventoCard(e)).join('');
+  }
+
+  if (pasados.length > 0) {
+    html += `<button class="agenda-archivo-toggle" onclick="toggleAgendaArchivo()">${agendaArchivoAbierto ? 'ocultar' : 'ver'} ya fuimos (${pasados.length}) ${agendaArchivoAbierto ? '▴' : '▾'}</button>`;
+    if (agendaArchivoAbierto) {
+      html += pasados.reverse().map(e => renderEventoCard(e)).join('');
+    }
+  }
+
+  cont.innerHTML = html;
+}
+
+function renderEventoCard(e) {
+  const cat = agendaCatById(e.categoria);
+  const dias = diasParaEvento(e);
+  let claseExtra = '';
+  if (dias < 0) claseExtra = 'pasado';
+  else if (dias === 0) claseExtra = 'hoy';
+  else if (dias <= 7) claseExtra = 'pronto';
+
+  const detalle = [];
+  if (e.lugar) detalle.push(e.lugar);
+  if (e.boleto_info) detalle.push('boleto: ' + e.boleto_info);
+  if (e.costo) detalle.push(fmtDinero(parseFloat(e.costo)));
+  if (e.nota) detalle.push(e.nota);
+
+  return `<div class="agenda-card ${claseExtra}">
+    <div class="ag-actions">
+      <button class="ag-edit" onclick="openAgendaModal('${e.id}')">editar</button>
+      <button class="ag-del" onclick="borrarAgenda('${e.id}')">✕</button>
+    </div>
+    <div class="ag-icon-box">${cat.svg}</div>
+    <div class="ag-body">
+      <div class="ag-titulo">${escapeHtml(e.titulo)}</div>
+      <div class="ag-cuenta">${cuentaRegresiva(e)}</div>
+      <div class="ag-info">${fmtFechaAgenda(e)}</div>
+      ${detalle.length ? `<div class="ag-detalle">${detalle.map(d => escapeHtml(d)).join(' · ')}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function toggleAgendaArchivo() {
+  agendaArchivoAbierto = !agendaArchivoAbierto;
+  renderAgenda();
+}
+
+function openAgendaModal(id) {
+  agendaEditandoId = (typeof id === 'string') ? id : null;
+  const e = agendaEditandoId ? AGENDA.find(x => x.id === agendaEditandoId) : null;
+  $('agenda-modal-title').textContent = e ? 'editar evento' : 'nuevo evento';
+  $('agenda-titulo').value = e ? e.titulo : '';
+  $('agenda-fecha').value = e ? e.fecha : '';
+  $('agenda-hora').value = e && e.hora ? e.hora.slice(0,5) : '';
+  $('agenda-lugar').value = e ? (e.lugar||'') : '';
+  $('agenda-boleto').value = e ? (e.boleto_info||'') : '';
+  $('agenda-costo').value = e && e.costo ? e.costo : '';
+  $('agenda-nota').value = e ? (e.nota||'') : '';
+  agendaCatForm = e ? e.categoria : null;
+  renderAgendaCatChips();
+  $('agenda-modal').classList.add('active');
+  setTimeout(() => $('agenda-titulo').focus(), 200);
+}
+
+function renderAgendaCatChips() {
+  $('agenda-cat-chips').innerHTML = AGENDA_CATS.map(c =>
+    `<button class="chip ${agendaCatForm===c.id?'selected':''}" onclick="selAgendaCat('${c.id}')">${c.label}</button>`
+  ).join('');
+}
+function selAgendaCat(id) { agendaCatForm = id; renderAgendaCatChips(); }
+
+async function saveAgenda() {
+  const titulo = $('agenda-titulo').value.trim();
+  const fecha = $('agenda-fecha').value;
+  if (!titulo) { toast('falta el nombre'); return; }
+  if (!agendaCatForm) { toast('elige una categoría'); return; }
+  if (!fecha) { toast('elige la fecha'); return; }
+  const hora = $('agenda-hora').value || null;
+  const lugar = $('agenda-lugar').value.trim() || null;
+  const boleto = $('agenda-boleto').value.trim() || null;
+  const costoVal = $('agenda-costo').value;
+  const costo = costoVal ? parseFloat(costoVal) : null;
+  const nota = $('agenda-nota').value.trim() || null;
+
+  const btn = $('agenda-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+
+  let error;
+  if (agendaEditandoId) {
+    ({ error } = await sb.from('agenda').update({
+      titulo, categoria: agendaCatForm, fecha, hora, lugar,
+      boleto_info: boleto, costo, nota
+    }).eq('id', agendaEditandoId));
+  } else {
+    ({ error } = await sb.from('agenda').insert({
+      couple_id: ME.couple_id,
+      titulo, categoria: agendaCatForm, fecha, hora, lugar,
+      boleto_info: boleto, costo, nota,
+      autor: ME.id
+    }));
+  }
+  btn.disabled = false; btn.textContent = 'guardar';
+  if (error) { toast('no se pudo guardar'); console.error(error); return; }
+  closeModal('agenda-modal');
+  toast(agendaEditandoId ? 'evento actualizado' : 'evento agregado');
+  if (!agendaEditandoId) {
+    await crearNovedad('agenda', ME.nombre + ' agregó un evento: ' + titulo, 'agenda');
+  }
+  await cargarAgenda();
+  // refrescar aviso del home si hay alguno próximo
+  await cargarEventosProximos();
+  renderAvisoFecha();
+}
+
+async function borrarAgenda(id) {
+  if (!confirm('¿borrar este evento?')) return;
+  const { error } = await sb.from('agenda').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); return; }
+  toast('evento borrado');
+  await cargarAgenda();
+  await cargarEventosProximos();
+  renderAvisoFecha();
+}
+
+// eventos próximos para el aviso del home
+let EVENTOS_PROX = [];
+async function cargarEventosProximos() {
+  const hoy = new Date().toISOString().slice(0,10);
+  const en15 = new Date(); en15.setDate(en15.getDate() + 15);
+  const en15Str = en15.toISOString().slice(0,10);
+  const { data } = await sb.from('agenda')
+    .select('*').gte('fecha', hoy).lte('fecha', en15Str)
+    .order('fecha',{ascending:true});
+  EVENTOS_PROX = data || [];
+}
+
 
 function suscribirRealtime() {
   sb.channel('cambios-pamaches')
@@ -5828,6 +6188,11 @@ function suscribirRealtime() {
       renderAvisoFecha();
       if (currentScreen === 'perfil') renderFechasPerfil();
     })
+    .on('postgres_changes', { event:'*', schema:'public', table:'agenda' }, async () => {
+      await cargarEventosProximos();
+      renderAvisoFecha();
+      if (currentScreen === 'agenda') cargarAgenda();
+    })
     .on('postgres_changes', { event:'INSERT', schema:'public', table:'novedades' }, (payload) => {
       if (payload.new && payload.new.para === ME.id) {
         revisarNovedades();  // recalcula total y actualiza dot + badge
@@ -5853,6 +6218,7 @@ async function iniciarApp() {
   await cargarNotitas();
   await cargarPreguntaHome();
   await cargarSettlements();
+  await cargarEventosProximos();
   renderAvisoFecha();
   await revisarNovedades();
   suscribirRealtime();
