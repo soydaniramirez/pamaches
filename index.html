@@ -2694,11 +2694,49 @@ async function cargarNotitas() {
 }
 
 // pregunta de la semana en el home
+// si la pregunta actual no es del lunes de esta semana, rota a una nueva
+// (se llama en cargarPreguntaHome y cargarCapsula)
+async function rotarPreguntaSiToca() {
+  // lunes de esta semana
+  const hoy = new Date();
+  const diaSem = hoy.getDay();
+  const diff = (diaSem === 0 ? -6 : 1 - diaSem);
+  const lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() + diff);
+  lunes.setHours(0,0,0,0);
+  const lunesStr = lunes.toISOString().slice(0,10);
+
+  const { data: actual } = await sb.from('questions')
+    .select('*').eq('es_actual', true).maybeSingle();
+  // si la actual ya es de este lunes, no hacer nada
+  if (actual && actual.semana === lunesStr) return false;
+
+  // buscar una nueva pregunta no usada
+  const { data: disponibles } = await sb.from('questions')
+    .select('id').eq('usada', false);
+  if (!disponibles || disponibles.length === 0) {
+    // si ya se usaron todas, no hacer nada — siguen con la actual
+    return false;
+  }
+  const elegida = disponibles[Math.floor(Math.random() * disponibles.length)];
+
+  // bajar la actual y subir la nueva
+  if (actual) {
+    await sb.from('questions').update({ es_actual: false }).eq('id', actual.id);
+  }
+  await sb.from('questions').update({
+    es_actual: true, usada: true, semana: lunesStr
+  }).eq('id', elegida.id);
+  return true;
+}
+
 async function cargarPreguntaHome() {
   const el = $('home-pregunta');
   if (!el) return;
+  // antes de mostrar, revisar si toca rotar
+  await rotarPreguntaSiToca();
   const { data } = await sb.from('questions')
-    .select('texto').eq('es_actual', true).limit(1).single();
+    .select('texto').eq('es_actual', true).maybeSingle();
   if (data && data.texto) {
     el.textContent = '"' + data.texto + '"';
   } else {
@@ -4203,8 +4241,10 @@ let preguntaCatForm = null;
 
 async function cargarCapsula() {
   await renderNivelConexion();
+  // si toca, rotar la pregunta al inicio de la semana
+  await rotarPreguntaSiToca();
   const { data: actual } = await sb.from('questions')
-    .select('*').eq('es_actual', true).limit(1).single();
+    .select('*').eq('es_actual', true).maybeSingle();
   PREGUNTA_ACTUAL = actual || null;
   if (!PREGUNTA_ACTUAL) {
     await nuevaPreguntaExtra(true);
@@ -5899,11 +5939,13 @@ const AGENDA_CATS = [
     svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="20" r="12"/><path d="M 20 8 L 20 32 M 8 20 L 32 20 M 12 12 L 28 28 M 12 28 L 28 12"/></g></svg>` },
   { id:'festival', label:'festival',
     svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M 8 30 L 20 8 L 32 30 Z"/><path d="M 12 24 L 28 24 M 16 18 L 24 18"/><circle cx="20" cy="13" r="1.5" fill="#BB1F31"/></g></svg>` },
+  { id:'familia', label:'familia',
+    svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="14" r="4.5"/><circle cx="26" cy="14" r="4.5"/><path d="M 6 32 C 6 24 10 22 14 22 C 18 22 22 24 22 32"/><path d="M 18 32 C 18 24 22 22 26 22 C 30 22 34 24 34 32"/></g></svg>` },
   { id:'otro', label:'otro',
     svg:`<svg width="22" height="22" viewBox="0 0 40 40"><g fill="none" stroke="#BB1F31" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="11" width="24" height="22" rx="2.5"/><path d="M 8 17 L 32 17"/><path d="M 14 7 L 14 13 M 26 7 L 26 13"/><circle cx="14" cy="23" r="1.5" fill="#BB1F31"/><circle cx="20" cy="23" r="1.5" fill="#BB1F31"/><circle cx="26" cy="23" r="1.5" fill="#BB1F31"/></g></svg>` }
 ];
 
-function agendaCatById(id) { return AGENDA_CATS.find(c => c.id === id) || AGENDA_CATS[5]; }
+function agendaCatById(id) { return AGENDA_CATS.find(c => c.id === id) || AGENDA_CATS[AGENDA_CATS.length-1]; }
 
 async function cargarAgenda() {
   const { data, error } = await sb.from('agenda')
