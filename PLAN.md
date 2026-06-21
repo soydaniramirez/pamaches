@@ -115,7 +115,7 @@ next-app/
 | home | `/` | ✅ Portada |
 | gastos | `/gastos` | ✅ Referencia (lista + total; falta balance/aportes) |
 | planes | `/planes` | ⬜ Stub |
-| perfil | `/perfil` | ⬜ Stub |
+| perfil | `/perfil` | ✅ Portada (categorías, subcategorías, fechas, cupo) |
 | notitas | `/notitas` | ⬜ Stub |
 | nosotros | `/nosotros` | ⬜ Stub |
 | capsula | `/nosotros/capsula` | ⬜ Stub |
@@ -141,7 +141,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 
 | Feature | Tablas | Funciones clave a portar |
 |---|---|---|
-| **Perfil/pareja** | `profiles`, `couples`, `aporte_config` | cargarPerfil, renderPerfil, saveCupo |
+| **Perfil/pareja** | `profiles`, `couples`, `aporte_config` | cargarPerfil ✅, renderPerfil ✅, saveCupo ✅, fechas/categorías/subcategorías CRUD ✅ |
 | **Notitas** | `notitas`, `notita_reacciones` | cargarNotitas ✅, reaccionar ✅, archivarNotita, borrarNotita |
 | **Novedades** | `novedades` | crearNovedad ✅, revisarNovedades, openNovedades |
 | **Gastos** | `expenses`, `categorias`, `subcategorias`, `settlements` | cargarGastos (parcial ✅), calcularYrenderGastos, cargarSettlements, saveSaldar |
@@ -190,16 +190,27 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 - ✅ **Home** portado (header, hero, aviso de fecha, notitas con reacciones y
   realtime, tarjetas, pregunta de la semana).
 - ✅ **Gastos** como port de referencia (navegación de mes, lista, total, realtime).
+- ✅ **Auditoría RLS + fixes aplicados** (ver `SECURITY_AUDIT.md`): 28/28 tablas con
+  RLS por pareja, funciones endurecidas, políticas a `authenticated`, INSERT de
+  profiles endurecido (Opción A).
+- ✅ **Perfil / Configuración** portado 1:1: datos de la pareja, "los dos", fechas
+  importantes (CRUD + date picker + fija), categorías y subcategorías (CRUD con
+  cascade), y cupo de aporte (upsert en `aporte_config`). Verificado: anon = 0
+  filas, autenticado solo ve/edita su pareja.
 - ✅ Stubs navegables para el resto de pantallas.
 - ✅ `npm run build` y `tsc --noEmit` pasan sin errores.
 
 ## 8. Próximos pasos sugeridos (orden recomendado)
 
-1. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
-2. Auditar y reforzar **RLS** (lo más importante de seguridad).
-3. Portar **perfil** (base de configuración: categorías, fechas, cupo).
-4. Completar **gastos** (balance, aportes, settlements, mensualidades).
-5. Portar **notitas** (vista completa + archivo) y **novedades** (campanita).
-6. Portar **planes**, **cápsula**, **tareas/agenda** y el resto.
-7. Centro de novedades + badges (`setAppBadge`) y realtime global.
+1. ✅ ~~Auditar y reforzar **RLS**~~ (hecho — `SECURITY_AUDIT.md`).
+2. ✅ ~~Portar **perfil** (categorías, subcategorías, fechas, cupo)~~ (hecho).
+3. **Completar #1 Gastos** (balance compartido, aportes vs cupo, settlements,
+   mensualidades) — reutiliza `aporte_config.cupo` que ya expone el contexto.
+4. Portar **#3 Notitas** (vista completa + archivo) y **novedades** (campanita).
+5. Portar **planes**, **cápsula**, **tareas/agenda** y el resto.
+6. Centro de novedades + badges (`setAppBadge`) y realtime global.
+7. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
 8. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
+
+> **Siguiente recomendado: #1 Gastos** (es la otra mitad financiera y ya tiene el
+> cupo listo desde Perfil), o **#3 Notitas** si prefieres cerrar features sociales.

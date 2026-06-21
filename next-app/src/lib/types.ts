@@ -16,11 +16,14 @@ export interface Profile {
   couple_id: string;
   nombre: string;
   rol: Rol | null;
+  color?: string | null;
+  cumple?: string | null;
   avatar?: string | null;
 }
 
 export interface Couple {
   id: string;
+  nombre?: string | null;
   aniversario: string | null;
 }
 
@@ -72,6 +75,7 @@ export interface Fecha {
   titulo: string;
   fecha: string;
   se_repite: boolean;
+  fija?: boolean;
 }
 
 export interface Question {
