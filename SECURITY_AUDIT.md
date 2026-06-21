@@ -11,6 +11,25 @@
 > riesgos que quedan son menores/de endurecimiento y **requieren una cuenta
 > autenticada**. No hay que romper la app HTML para arreglarlos.
 
+> ## ✅ ESTADO: FIXES APLICADOS (2026-06-21)
+> Se aplicaron las migraciones 01→02→03 y la 04 (Opción A) vía `apply_migration`:
+> - `20260621215104_harden_my_couple_id_search_path`
+> - `20260621215111_revoke_securitydefiner_rpc_execute`
+> - `20260621215124_scope_policies_to_authenticated`
+> - `20260621215147_harden_profiles_insert_own_new_couple`
+>
+> **Resultado del re-advisor:** H1, H2 y H3 resueltos. Quedan solo los lints
+> "by design" de `my_couple_id()` / `couple_has_members()` (las invocan las
+> políticas RLS, no se pueden revocar) y H5 (leaked password, lo activa el dueño).
+>
+> **Verificación funcional (post-fix):**
+> - Sesión `anon`: **0 filas** en notitas/expenses/profiles/couples/spicy_deseos. ✅
+> - Sesión `authenticated` (usuario real): ve **solo su pareja** (notitas=14,
+>   expenses=19, profiles=2), coincidiendo exactamente con los totales reales. ✅
+> - H4: insert de perfil sobre **pareja existente** → rechazado por RLS (`42501`). ✅
+> - H4: insert de perfil sobre **pareja nueva/vacía** → pasa RLS (solo falla luego
+>   por el FK a `auth.users` con un uid de prueba ficticio). ✅
+
 ---
 
 ## 1. Identidad / Auth
