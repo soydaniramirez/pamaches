@@ -38,10 +38,13 @@ function destinoToRoute(destino: string | null): string {
     case 'capsula':
       return '/nosotros/capsula';
     case 'raros':
+      return '/nosotros/raros';
     case 'futuro':
+      return '/nosotros/futuro';
     case 'nonego':
+      return '/nosotros/nonego';
     case 'capsulatiempo':
-      return '/nosotros';
+      return '/nosotros/capsulatiempo';
     case 'planes':
       return '/planes';
     default:

@@ -136,6 +136,27 @@ export interface Plan {
   creado: string;
 }
 
+export interface Nonego {
+  id: string;
+  couple_id: string;
+  autor: 'los_dos' | 'dani' | 'alfredo' | string;
+  texto: string;
+  creado?: string;
+}
+
+export interface TimeCapsule {
+  id: string;
+  couple_id: string;
+  autor: string;
+  titulo: string;
+  contenido: string | null;
+  tipo_apertura: 'fecha' | 'evento' | string | null;
+  abre_en: string | null;
+  evento: string | null;
+  sellada: boolean;
+  creado?: string;
+}
+
 export interface FutureMeta {
   id: string;
   couple_id: string;
