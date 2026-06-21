@@ -57,6 +57,28 @@ export function fechaCorta(iso: string): string {
   return `${d.getDate()} ${MESES_CORTOS[d.getMonth()]}`;
 }
 
+/**
+ * Fecha de la cuota n de una compra a meses (porta calcularFechaCuota del HTML).
+ * La primera cuota cae en el corte SIGUIENTE a la compra.
+ */
+export function calcularFechaCuota(fechaCompra: Date, diaCorte: number, n: number): Date {
+  let primerMes = fechaCompra.getMonth();
+  let primerAnio = fechaCompra.getFullYear();
+  if (diaCorte <= fechaCompra.getDate()) {
+    primerMes++;
+    if (primerMes > 11) {
+      primerMes = 0;
+      primerAnio++;
+    }
+  }
+  let mesCuota = primerMes + (n - 1);
+  const anioCuota = primerAnio + Math.floor(mesCuota / 12);
+  mesCuota = ((mesCuota % 12) + 12) % 12;
+  const ultimoDia = new Date(anioCuota, mesCuota + 1, 0).getDate();
+  const diaAUsar = Math.min(diaCorte, ultimoDia);
+  return new Date(anioCuota, mesCuota, diaAUsar);
+}
+
 /** Días que faltan para la próxima ocurrencia de una fecha (negativo si ya pasó). */
 export function diasParaFecha(f: { fecha: string; se_repite: boolean }): number {
   const hoy = new Date();

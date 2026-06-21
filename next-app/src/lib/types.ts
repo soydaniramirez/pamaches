@@ -60,13 +60,51 @@ export interface Expense {
   couple_id: string;
   autor: string;
   concepto: string;
-  monto: number;
-  categoria: string;
+  monto: number | string;
+  categoria: string | null;
   subcategoria_id: string | null;
   tipo: string;
-  split: number | null;
+  split: string | null;
   fecha: string;
   meta_id: string | null;
+  compra_meses_id?: string | null;
+  cuota_numero?: number | null;
+  cuota_total?: number | null;
+}
+
+export interface CompraMeses {
+  id: string;
+  couple_id: string;
+  autor: string;
+  concepto: string;
+  monto_total: number | string;
+  num_cuotas: number;
+  monto_cuota: number | string;
+  dia_corte: number;
+  categoria: string | null;
+  subcategoria_id: string | null;
+  tipo: string;
+  split: string;
+  fecha_compra: string;
+  creado?: string;
+}
+
+export interface Settlement {
+  id: string;
+  couple_id: string;
+  autor: string;
+  monto: number | string;
+  quien_pago: string | null;
+  nota: string | null;
+  creado: string;
+}
+
+export interface FutureMeta {
+  id: string;
+  couple_id: string;
+  titulo: string;
+  tiene_meta?: boolean;
+  meta_monto?: number | string | null;
 }
 
 export interface Fecha {
