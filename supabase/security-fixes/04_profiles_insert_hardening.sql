@@ -1,0 +1,44 @@
+-- ============================================================
+-- FIX H4 — Endurecer INSERT de profiles (evitar "secuestro de pareja")
+-- Estado: DRAFT — NO APLICAR sin decidir el flujo de onboarding.
+-- ============================================================
+--
+-- Problema: hoy la política de INSERT en profiles solo valida
+--   with check (id = auth.uid())
+-- es decir, un usuario autenticado puede crear su perfil con CUALQUIER
+-- couple_id. Si (a) el registro público está habilitado y (b) conoce el
+-- UUID couple_id de otra pareja, podría unirse a esa pareja y leer sus
+-- datos. Probabilidad baja (UUID no adivinable), pero endurecible.
+--
+-- IMPORTANTE: el onboarding actual de parejas/perfiles se hace con
+-- service role (ignora RLS), por lo que estas opciones NO afectan ese
+-- flujo administrativo ni a la pareja ya existente.
+--
+-- Elige UNA opción, descoméntala y aplícala. Requiere que la política de
+-- INSERT vigente se haya nombrado (ver 03_*.sql: 'profiles_insert').
+
+------------------------------------------------------------------
+-- OPCIÓN A (recomendada): solo permitir unirse a una pareja SIN miembros
+-- (bootstrap). Impide auto-adjuntarse a una pareja ya ocupada.
+------------------------------------------------------------------
+-- drop policy if exists profiles_insert on public.profiles;
+-- create policy profiles_insert on public.profiles
+--   for insert to authenticated
+--   with check (
+--     id = (select auth.uid())
+--     and not exists (
+--       select 1 from public.profiles p where p.couple_id = profiles.couple_id
+--     )
+--   );
+
+------------------------------------------------------------------
+-- OPCIÓN B (estricta): prohibir el auto-insert de usuarios. El onboarding
+-- se hace solo por service role o por una función SECURITY DEFINER con
+-- invitación validada (a implementar aparte).
+------------------------------------------------------------------
+-- drop policy if exists profiles_insert on public.profiles;
+-- -- (sin política de INSERT para 'authenticated' => nadie se auto-inserta)
+
+-- Verificación (Opción A):
+--   select policyname, with_check from pg_policies
+--   where schemaname='public' and tablename='profiles' and cmd='INSERT';
