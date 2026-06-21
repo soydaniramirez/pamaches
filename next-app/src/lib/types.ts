@@ -43,6 +43,18 @@ export interface NotitaReaccion {
   tipo: string;
 }
 
+export interface Novedad {
+  id: string;
+  couple_id: string;
+  autor: string;
+  para: string;
+  tipo: string;
+  texto: string;
+  destino: string | null;
+  vista: boolean;
+  creado: string;
+}
+
 export interface Categoria {
   id: string | null;
   nombre: string;

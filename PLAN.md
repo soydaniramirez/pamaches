@@ -116,7 +116,7 @@ next-app/
 | gastos | `/gastos` | ✅ Completo (pasada 1 paridad + pasada 2 viajes/proyectos) |
 | planes | `/planes` | ⬜ Stub |
 | perfil | `/perfil` | ✅ Portada (categorías, subcategorías, fechas, cupo) |
-| notitas | `/notitas` | ⬜ Stub |
+| notitas | `/notitas` | ✅ Portada (buzón + archivadas, reacciones, archivar/borrar, campanita de novedades) |
 | nosotros | `/nosotros` | ⬜ Stub |
 | capsula | `/nosotros/capsula` | ⬜ Stub |
 | raros | `/nosotros/raros` | ⬜ Pendiente |
@@ -142,8 +142,8 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | Feature | Tablas | Funciones clave a portar |
 |---|---|---|
 | **Perfil/pareja** | `profiles`, `couples`, `aporte_config` | cargarPerfil ✅, renderPerfil ✅, saveCupo ✅, fechas/categorías/subcategorías CRUD ✅ |
-| **Notitas** | `notitas`, `notita_reacciones` | cargarNotitas ✅, reaccionar ✅, archivarNotita, borrarNotita |
-| **Novedades** | `novedades` | crearNovedad ✅, revisarNovedades, openNovedades |
+| **Notitas** | `notitas`, `notita_reacciones` | cargarNotitas ✅, cargarTodasNotitas ✅, reaccionar ✅, archivarNotita ✅, borrarNotita ✅ |
+| **Novedades** | `novedades` | crearNovedad ✅, revisarNovedades ✅, openNovedades ✅, limpiarNovedades ✅, setAppBadge ✅ |
 | **Gastos** | `expenses`, `categorias`, `subcategorias`, `settlements`, `aporte_config` | cargarGastos ✅, calcularYrenderGastos ✅, cargarSettlements ✅, saveSaldar ✅, saveGasto ✅, resumen ✅ |
 | **Mensualidades** | `compras_meses` (+ cuotas en `expenses`) | cargarComprasMeses ✅, renderMeses ✅, calcularFechaCuota ✅ |
 | **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅ |
@@ -211,6 +211,11 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   importantes (CRUD + date picker + fija), categorías y subcategorías (CRUD con
   cascade), y cupo de aporte (upsert en `aporte_config`). Verificado: anon = 0
   filas, autenticado solo ve/edita su pareja.
+- ✅ **Notitas (#3) + campanita** portado 1:1: vista completa (buzón + archivadas),
+  reacciones (5 tipos), crear/archivar/desarchivar/borrar; campanita de novedades
+  en el home con punto de no-leídas, feed (marcar vistas al abrir, borrar item,
+  limpiar todo, navegar al destino) y badge de app. Verificado: anon = 0 filas,
+  autenticado solo su pareja.
 - ✅ Stubs navegables para el resto de pantallas.
 - ✅ `npm run build` y `tsc --noEmit` pasan sin errores.
 
@@ -219,11 +224,13 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 1. ✅ ~~Auditar y reforzar **RLS**~~ (hecho — `SECURITY_AUDIT.md`).
 2. ✅ ~~Portar **perfil** (categorías, subcategorías, fechas, cupo)~~ (hecho).
 3. ✅ ~~**#1 Gastos** (pasada 1 paridad + pasada 2 viajes/proyectos)~~ (hecho).
-4. Portar **#3 Notitas** (vista completa + archivo) y **novedades** (campanita).
-5. Portar **planes**, **cápsula**, **tareas/agenda** y el resto.
-6. Centro de novedades + badges (`setAppBadge`) y realtime global.
-7. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
-8. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
+4. ✅ ~~Portar **#3 Notitas** (vista completa + archivo) y **novedades** (campanita)~~ (hecho).
+5. Portar **planes** (`plans`, `moods`) — generador de ideas + lista por hacer/hechas.
+6. Portar **cápsula** (`questions`, `answers`) y subpantallas de **nosotros**
+   (raros, futuro, no-negociables, cápsula del tiempo).
+7. Portar **tareas/agenda** (`tasks`, `meals`, `super`, `agenda`) y **spicy**.
+8. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
+9. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
 
 ### Tareas técnicas pendientes (aparte)
 - ✅ ~~**Fix del quirk de settlements**~~ (hecho): balance acumulado (opción A),

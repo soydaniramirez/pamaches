@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAppData } from '@/context/AppData';
 import { fmtFecha, tiempoJuntos, diasParaFecha } from '@/lib/helpers';
 import NotitasSection from '@/components/NotitasSection';
+import Novedades from '@/components/Novedades';
 
 export default function HomePage() {
   const router = useRouter();
@@ -79,6 +80,7 @@ export default function HomePage() {
                 <path d="M 20 5 L 20 11 L 14 11" />
               </svg>
             </button>
+            <Novedades />
             <Link className="profile-btn" href="/perfil" title="perfil">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A4048" strokeWidth="2" strokeLinecap="round">
                 <circle cx="12" cy="8" r="4" />
