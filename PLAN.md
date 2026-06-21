@@ -114,7 +114,7 @@ next-app/
 | login | `/login` | ✅ Portada |
 | home | `/` | ✅ Portada |
 | gastos | `/gastos` | ✅ Completo (pasada 1 paridad + pasada 2 viajes/proyectos) |
-| planes | `/planes` | ⬜ Stub |
+| planes | `/planes` | ✅ Portada (próximo plan, generador de ideas por mood, citas/hechas, CRUD) |
 | perfil | `/perfil` | ✅ Portada (categorías, subcategorías, fechas, cupo) |
 | notitas | `/notitas` | ✅ Portada (buzón + archivadas, reacciones, archivar/borrar, campanita de novedades) |
 | nosotros | `/nosotros` | ⬜ Stub |
@@ -148,7 +148,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Mensualidades** | `compras_meses` (+ cuotas en `expenses`) | cargarComprasMeses ✅, renderMeses ✅, calcularFechaCuota ✅ |
 | **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅ |
 | **Metas/futuro** | `future`, `meta_abonos` | cargarFuturo, saveAbono, ahorradoDe (meta chips de ahorro ya consumidas en Gastos ✅) |
-| **Planes/citas** | `plans`, `moods` | cargarPlanes, generarIdea, guardarIdeaComoPlan |
+| **Planes/citas** | `plans` (los "moods" son const, no tabla) | cargarPlanes ✅, generarIdea ✅, guardarIdeaComoPlan ✅, savePlan ✅, togglePlan ✅ |
 | **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula, rotarPreguntaSiToca, guardarRespuesta |
 | **Raros (semáforo)** | `moods` | cargarRaros, ponerSemaforo |
 | **No-negociables** | `nonnegotiables` | cargarNonego, saveNn |
@@ -216,6 +216,10 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   en el home con punto de no-leídas, feed (marcar vistas al abrir, borrar item,
   limpiar todo, navegar al destino) y badge de app. Verificado: anon = 0 filas,
   autenticado solo su pareja.
+- ✅ **Planes** portado 1:1: próximo plan agendado, generador de ideas por mood
+  (const MOODS/IDEAS_BASE + ideas guardadas), pestañas por hacer/hechos, crear
+  plan (modal), marcar hecho, borrar. (Aclaración: "mood" aquí es categoría de
+  idea, NO la tabla `moods` que respalda "raros"). anon = 0 filas; auth solo su pareja.
 - ✅ Stubs navegables para el resto de pantallas.
 - ✅ `npm run build` y `tsc --noEmit` pasan sin errores.
 
@@ -225,7 +229,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 2. ✅ ~~Portar **perfil** (categorías, subcategorías, fechas, cupo)~~ (hecho).
 3. ✅ ~~**#1 Gastos** (pasada 1 paridad + pasada 2 viajes/proyectos)~~ (hecho).
 4. ✅ ~~Portar **#3 Notitas** (vista completa + archivo) y **novedades** (campanita)~~ (hecho).
-5. Portar **planes** (`plans`, `moods`) — generador de ideas + lista por hacer/hechas.
+5. ✅ ~~Portar **planes**~~ (hecho).
 6. Portar **cápsula** (`questions`, `answers`) y subpantallas de **nosotros**
    (raros, futuro, no-negociables, cápsula del tiempo).
 7. Portar **tareas/agenda** (`tasks`, `meals`, `super`, `agenda`) y **spicy**.

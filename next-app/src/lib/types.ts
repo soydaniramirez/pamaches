@@ -124,6 +124,18 @@ export interface Settlement {
   creado: string;
 }
 
+export interface Plan {
+  id: string;
+  couple_id: string;
+  titulo: string;
+  tipo: string | null;
+  mood: string | null;
+  fecha: string | null;
+  hecho: boolean;
+  nota: string | null;
+  creado: string;
+}
+
 export interface FutureMeta {
   id: string;
   couple_id: string;

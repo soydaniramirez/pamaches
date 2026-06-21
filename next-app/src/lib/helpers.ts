@@ -52,6 +52,10 @@ export function tiempoJuntos(aniversario: string | null): string {
   return txt + ' juntos';
 }
 
+export function fmtFechaLarga(d: Date): string {
+  return `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;
+}
+
 export function fechaCorta(iso: string): string {
   const d = new Date(iso + 'T00:00:00');
   return `${d.getDate()} ${MESES_CORTOS[d.getMonth()]}`;
