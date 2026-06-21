@@ -113,7 +113,7 @@ next-app/
 |---|---|---|
 | login | `/login` | ✅ Portada |
 | home | `/` | ✅ Portada |
-| gastos | `/gastos` | 🟡 Pasada 1/2 portada (compartidas, personales, a meses, resumen; aporte, balance, settlements) |
+| gastos | `/gastos` | ✅ Completo (pasada 1 paridad + pasada 2 viajes/proyectos) |
 | planes | `/planes` | ⬜ Stub |
 | perfil | `/perfil` | ✅ Portada (categorías, subcategorías, fechas, cupo) |
 | notitas | `/notitas` | ⬜ Stub |
@@ -146,6 +146,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Novedades** | `novedades` | crearNovedad ✅, revisarNovedades, openNovedades |
 | **Gastos** | `expenses`, `categorias`, `subcategorias`, `settlements`, `aporte_config` | cargarGastos ✅, calcularYrenderGastos ✅, cargarSettlements ✅, saveSaldar ✅, saveGasto ✅, resumen ✅ |
 | **Mensualidades** | `compras_meses` (+ cuotas en `expenses`) | cargarComprasMeses ✅, renderMeses ✅, calcularFechaCuota ✅ |
+| **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅ |
 | **Metas/futuro** | `future`, `meta_abonos` | cargarFuturo, saveAbono, ahorradoDe (meta chips de ahorro ya consumidas en Gastos ✅) |
 | **Planes/citas** | `plans`, `moods` | cargarPlanes, generarIdea, guardarIdeaComoPlan |
 | **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula, rotarPreguntaSiToca, guardarRespuesta |
@@ -189,12 +190,19 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 - ✅ Shell de la app: layout, `AppDataProvider`, `BottomNav`, toasts.
 - ✅ **Home** portado (header, hero, aviso de fecha, notitas con reacciones y
   realtime, tarjetas, pregunta de la semana).
-- 🟡 **Gastos — pasada 1/2** (paridad 1:1): pestañas compartidas / personales /
-  a meses / resumen; barra de aporte (cupo vs aportado), balance compartido y
-  settlements ("ya quedamos a mano" + historial), modal de registrar gasto
-  (incluye compra a meses → `compras_meses` + N cuotas en `expenses`). Verificado:
-  anon = 0 filas, autenticado solo ve su pareja; totales cuadran con la app vieja.
-  Pendiente pasada 2: capa de "buckets" (viajes/proyectos) + unir "a meses" al total.
+- ✅ **Gastos — completo (pasadas 1 y 2)**:
+  - Pasada 1 (paridad 1:1): pestañas compartidas / personales / a meses / resumen;
+    barra de aporte (cupo vs aportado), balance compartido y settlements ("ya
+    quedamos a mano" + historial), modal de registrar gasto (incluye compra a
+    meses → `compras_meses` + N cuotas en `expenses`).
+  - Pasada 2 (aditiva): capa de **viajes/proyectos** (`proyectos` + columna
+    `expenses.proyecto_id`). Pestaña "viajes" con CRUD, total gastado y barra de
+    presupuesto, detalle por proyecto; selector opcional de proyecto en el modal
+    (no en "a meses"). RLS de `proyectos` couple-scoped (FOR ALL TO authenticated).
+  - Verificado: anon = 0 filas, autenticado solo ve su pareja; paridad intacta
+    (proyecto_id null en todos los gastos → totales/balance/meses sin cambios).
+  - ⚠️ Pendiente (tarea aparte): arreglar el *quirk* del balance de settlements
+    por mes (un settlement puede mostrar saldo aunque no haya compartidos ese mes).
 - ✅ **Auditoría RLS + fixes aplicados** (ver `SECURITY_AUDIT.md`): 28/28 tablas con
   RLS por pareja, funciones endurecidas, políticas a `authenticated`, INSERT de
   profiles endurecido (Opción A).
@@ -209,14 +217,18 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 
 1. ✅ ~~Auditar y reforzar **RLS**~~ (hecho — `SECURITY_AUDIT.md`).
 2. ✅ ~~Portar **perfil** (categorías, subcategorías, fechas, cupo)~~ (hecho).
-3. 🟡 **#1 Gastos — pasada 1/2 hecha** (paridad). Falta **pasada 2**: capa de
-   "buckets" (viajes/proyectos especiales) + unir la pestaña "a meses" al total
-   del mes (requiere migraciones de esquema, a diseñar tras revisar el modelo).
+3. ✅ ~~**#1 Gastos** (pasada 1 paridad + pasada 2 viajes/proyectos)~~ (hecho).
 4. Portar **#3 Notitas** (vista completa + archivo) y **novedades** (campanita).
 5. Portar **planes**, **cápsula**, **tareas/agenda** y el resto.
 6. Centro de novedades + badges (`setAppBadge`) y realtime global.
 7. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
 8. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
+
+### Tareas técnicas pendientes (aparte)
+- **Fix del quirk de settlements**: el balance de compartidos se calcula por mes y
+  resta los settlements creados en ese mes; un settlement puede mostrar saldo
+  aunque el mes no tenga gastos compartidos. Se portó idéntico a propósito (paridad).
+  Rediseñar el modelo de saldado para que sea consistente.
 
 > **Siguiente recomendado: #1 Gastos** (es la otra mitad financiera y ya tiene el
 > cupo listo desde Perfil), o **#3 Notitas** si prefieres cerrar features sociales.

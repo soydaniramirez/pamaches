@@ -5,7 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { useAppData } from '@/context/AppData';
 import { fmtDinero, calcularFechaCuota } from '@/lib/helpers';
 import { crearNovedad } from '@/lib/social';
-import type { FutureMeta } from '@/lib/types';
+import type { FutureMeta, Proyecto } from '@/lib/types';
 
 interface GForm {
   categoria_id: string | null;
@@ -15,6 +15,7 @@ interface GForm {
   tipo: string | null;
   meta_id: string | null;
   tipo_meses: string | null;
+  proyecto_id: string | null;
 }
 
 const G_INICIAL: GForm = {
@@ -25,6 +26,7 @@ const G_INICIAL: GForm = {
   tipo: null,
   meta_id: null,
   tipo_meses: null,
+  proyecto_id: null,
 };
 
 function hoyISO() {
@@ -55,11 +57,13 @@ const TIPOS_MESES = [
 export default function GastoModal({
   supabase,
   metas,
+  proyectos,
   onClose,
   onSaved,
 }: {
   supabase: SupabaseClient;
   metas: FutureMeta[];
+  proyectos: Proyecto[];
   onClose: () => void;
   onSaved: (wasMeses: boolean) => void;
 }) {
@@ -266,6 +270,7 @@ export default function GastoModal({
       split,
       fecha,
       meta_id: g.tipo === 'ahorro' ? g.meta_id : null,
+      proyecto_id: g.proyecto_id,
     });
     setSaving(false);
     if (error) {
@@ -470,6 +475,30 @@ export default function GastoModal({
                   onClick={() => setG((prev) => ({ ...prev, meta_id: m.id }))}
                 >
                   {m.titulo}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {g.tipo !== 'meses' && proyectos.length > 0 && (
+          <div className="mfield">
+            <div className="mfield-label">¿es de algún viaje o proyecto? (opcional)</div>
+            <div className="chips-row">
+              <button
+                className={`chip${g.proyecto_id === null ? ' selected' : ''}`}
+                onClick={() => setG((prev) => ({ ...prev, proyecto_id: null }))}
+              >
+                ninguno
+              </button>
+              {proyectos.map((p) => (
+                <button
+                  key={p.id}
+                  className={`chip${g.proyecto_id === p.id ? ' selected' : ''}`}
+                  onClick={() => setG((prev) => ({ ...prev, proyecto_id: p.id }))}
+                >
+                  {p.tipo === 'viaje' ? '✈️ ' : ''}
+                  {p.nombre}
                 </button>
               ))}
             </div>

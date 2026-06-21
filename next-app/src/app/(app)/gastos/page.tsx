@@ -8,9 +8,16 @@ import { useAppData } from '@/context/AppData';
 import { nombreMes, fmtDinero, fechaCorta, calcularFechaCuota } from '@/lib/helpers';
 import { num, calcAporte, calcSaldoBase, calcSaldados, sumaPorCat, totalObj } from '@/lib/gastos';
 import GastoModal from '@/components/gastos/GastoModal';
-import type { CompraMeses, Expense, FutureMeta, Settlement, Subcategoria } from '@/lib/types';
+import type {
+  CompraMeses,
+  Expense,
+  FutureMeta,
+  Proyecto,
+  Settlement,
+  Subcategoria,
+} from '@/lib/types';
 
-type Tab = 'compartidas' | 'personales' | 'meses' | 'resumen';
+type Tab = 'compartidas' | 'personales' | 'meses' | 'resumen' | 'viajes';
 
 function rangoMes(mes: Date): { desde: string; hasta: string } {
   const y = mes.getFullYear();
@@ -33,6 +40,8 @@ export default function GastosPage() {
   const [comprasMeses, setComprasMeses] = useState<CompraMeses[]>([]);
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [metas, setMetas] = useState<FutureMeta[]>([]);
+  const [proyectos, setProyectos] = useState<Proyecto[]>([]);
+  const [gastosProyecto, setGastosProyecto] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [showGasto, setShowGasto] = useState(false);
@@ -40,13 +49,19 @@ export default function GastosPage() {
   const [showHistorial, setShowHistorial] = useState(false);
   const [showCupo, setShowCupo] = useState(false);
   const [showRubros, setShowRubros] = useState(false);
+  const [proyectoSel, setProyectoSel] = useState<Proyecto | null>(null);
+  const [proyectoModal, setProyectoModal] = useState<{ open: boolean; editing: Proyecto | null }>({
+    open: false,
+    editing: null,
+  });
+  const [verArchivados, setVerArchivados] = useState(false);
 
   const cargar = useCallback(async () => {
     const { desde, hasta } = rangoMes(mes);
     const prev = new Date(mes.getFullYear(), mes.getMonth() - 1, 1);
     const rPrev = rangoMes(prev);
 
-    const [gRes, gPrevRes, cmRes, sRes, fRes] = await Promise.all([
+    const [gRes, gPrevRes, cmRes, sRes, fRes, pRes, gpRes] = await Promise.all([
       supabase
         .from('expenses')
         .select('*')
@@ -58,6 +73,13 @@ export default function GastosPage() {
       supabase.from('compras_meses').select('*').order('fecha_compra', { ascending: false }),
       supabase.from('settlements').select('*').order('creado', { ascending: false }),
       supabase.from('future').select('*').order('orden', { ascending: true }),
+      supabase.from('proyectos').select('*').order('creado', { ascending: false }),
+      // gastos etiquetados a un proyecto (todos los meses) para totales y detalle
+      supabase
+        .from('expenses')
+        .select('*')
+        .not('proyecto_id', 'is', null)
+        .order('fecha', { ascending: false }),
     ]);
 
     setGastos((gRes.data as unknown as Expense[]) ?? []);
@@ -65,6 +87,8 @@ export default function GastosPage() {
     setComprasMeses((cmRes.data as unknown as CompraMeses[]) ?? []);
     setSettlements((sRes.data as unknown as Settlement[]) ?? []);
     setMetas((fRes.data as unknown as FutureMeta[]) ?? []);
+    setProyectos((pRes.data as unknown as Proyecto[]) ?? []);
+    setGastosProyecto((gpRes.data as unknown as Expense[]) ?? []);
     setLoading(false);
   }, [supabase, mes]);
 
@@ -75,6 +99,7 @@ export default function GastosPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => cargar())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'compras_meses' }, () => cargar())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'settlements' }, () => cargar())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'proyectos' }, () => cargar())
       .subscribe();
     return () => {
       void supabase.removeChannel(channel);
@@ -260,6 +285,63 @@ export default function GastosPage() {
     window.location.reload();
   }
 
+  // ---- proyectos (capa aditiva) ----
+  async function guardarProyecto(
+    values: {
+      nombre: string;
+      tipo: 'viaje' | 'proyecto';
+      presupuesto: number | null;
+      fecha_inicio: string | null;
+      fecha_fin: string | null;
+    },
+    editingId: string | null,
+  ) {
+    if (!me) return;
+    let error;
+    if (editingId) {
+      ({ error } = await supabase.from('proyectos').update(values).eq('id', editingId));
+    } else {
+      ({ error } = await supabase.from('proyectos').insert({ couple_id: me.couple_id, ...values }));
+    }
+    if (error) {
+      toast('no se pudo guardar');
+      return;
+    }
+    setProyectoModal({ open: false, editing: null });
+    await cargar();
+    toast(editingId ? 'proyecto actualizado' : 'proyecto creado');
+  }
+
+  async function archivarProyecto(p: Proyecto) {
+    const { error } = await supabase
+      .from('proyectos')
+      .update({ archivado: !p.archivado })
+      .eq('id', p.id);
+    if (error) {
+      toast('no se pudo');
+      return;
+    }
+    await cargar();
+    toast(p.archivado ? 'proyecto reactivado' : 'proyecto archivado');
+  }
+
+  async function borrarProyecto(p: Proyecto) {
+    if (!confirm('¿borrar este proyecto? los gastos NO se borran, solo se despegan del proyecto')) {
+      return;
+    }
+    const { error } = await supabase.from('proyectos').delete().eq('id', p.id);
+    if (error) {
+      toast('no se pudo borrar');
+      return;
+    }
+    if (proyectoSel?.id === p.id) setProyectoSel(null);
+    await cargar();
+    toast('proyecto borrado');
+  }
+
+  const totalProyecto = (id: string): number =>
+    gastosProyecto.filter((g) => g.proyecto_id === id).reduce((s, g) => s + num(g.monto), 0);
+
   if (loading) {
     return (
       <div id="loader">
@@ -298,6 +380,7 @@ export default function GastosPage() {
             ['compartidas', 'compartidas'],
             ['personales', 'personales'],
             ['meses', 'a meses'],
+            ['viajes', 'viajes'],
             ['resumen', 'resumen'],
           ] as [Tab, string][]).map(([t, label]) => (
             <button key={t} className={`sub-tab${tab === t ? ' active' : ''}`} onClick={() => setTab(t)}>
@@ -443,6 +526,116 @@ export default function GastosPage() {
           </div>
         )}
 
+        {/* ===== VIAJES Y PROYECTOS (capa aditiva) ===== */}
+        {tab === 'viajes' && !proyectoSel && (
+          <div>
+            <div className="add-inline" style={{ marginBottom: 16 }}>
+              <button
+                className="btn btn-sm"
+                style={{ flex: 1 }}
+                onClick={() => setProyectoModal({ open: true, editing: null })}
+              >
+                + nuevo viaje o proyecto
+              </button>
+            </div>
+
+            {proyectos.filter((p) => !p.archivado).length === 0 && (
+              <div className="mov-empty">
+                <img src="/pamache.png" alt="" />
+                aún no hay viajes ni proyectos.
+                <br />
+                crea uno y etiqueta gastos para llevar su cuenta aparte
+              </div>
+            )}
+
+            {proyectos
+              .filter((p) => !p.archivado)
+              .map((p) => (
+                <ProyectoCard
+                  key={p.id}
+                  proyecto={p}
+                  total={totalProyecto(p.id)}
+                  onOpen={() => setProyectoSel(p)}
+                  onEdit={() => setProyectoModal({ open: true, editing: p })}
+                  onArchive={() => archivarProyecto(p)}
+                  onDelete={() => borrarProyecto(p)}
+                />
+              ))}
+
+            {proyectos.some((p) => p.archivado) && (
+              <>
+                <button
+                  className="balance-toggle"
+                  style={{ display: 'block' }}
+                  onClick={() => setVerArchivados((s) => !s)}
+                >
+                  {verArchivados ? 'ocultar archivados ▴' : 'ver archivados ▾'}
+                </button>
+                {verArchivados &&
+                  proyectos
+                    .filter((p) => p.archivado)
+                    .map((p) => (
+                      <ProyectoCard
+                        key={p.id}
+                        proyecto={p}
+                        total={totalProyecto(p.id)}
+                        onOpen={() => setProyectoSel(p)}
+                        onEdit={() => setProyectoModal({ open: true, editing: p })}
+                        onArchive={() => archivarProyecto(p)}
+                        onDelete={() => borrarProyecto(p)}
+                      />
+                    ))}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* detalle de un proyecto: sus gastos (todos los meses) */}
+        {tab === 'viajes' && proyectoSel && (
+          <div>
+            <button className="back-btn" onClick={() => setProyectoSel(null)}>
+              ‹ proyectos
+            </button>
+            <div className="cm-card" style={{ marginTop: 8 }}>
+              <div className="cm-top">
+                <div className="cm-concepto">
+                  {proyectoSel.tipo === 'viaje' ? '✈️ ' : ''}
+                  {proyectoSel.nombre}
+                </div>
+                <div className="cm-monto">{fmtDinero(totalProyecto(proyectoSel.id))}</div>
+              </div>
+              {proyectoSel.presupuesto != null && num(proyectoSel.presupuesto) > 0 && (
+                <>
+                  <div className="cm-bar">
+                    <div
+                      className="cm-bar-fill"
+                      style={{
+                        width: `${Math.min(100, (totalProyecto(proyectoSel.id) / num(proyectoSel.presupuesto)) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="cm-progreso">
+                    {fmtDinero(totalProyecto(proyectoSel.id))} de {fmtDinero(num(proyectoSel.presupuesto))} de
+                    presupuesto
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="mov-list">
+              {gastosProyecto.filter((g) => g.proyecto_id === proyectoSel.id).length === 0 ? (
+                <div className="mov-empty">
+                  aún no hay gastos en este proyecto.
+                  <br />
+                  etiquétalos al registrar un gasto con el +
+                </div>
+              ) : (
+                listaPorFecha(gastosProyecto.filter((g) => g.proyecto_id === proyectoSel.id))
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ===== RESUMEN ===== */}
         {tab === 'resumen' && <Resumen gastos={gastos} gastosPrev={gastosPrev} />}
       </div>
@@ -455,6 +648,7 @@ export default function GastosPage() {
         <GastoModal
           supabase={supabase}
           metas={metas}
+          proyectos={proyectos.filter((p) => !p.archivado)}
           onClose={() => setShowGasto(false)}
           onSaved={(wasMeses) => {
             setShowGasto(false);
@@ -467,6 +661,13 @@ export default function GastosPage() {
       {showSaldar && <SaldarModal saldo={saldo} onClose={() => setShowSaldar(false)} onSave={saveSaldar} />}
       {showHistorial && <HistorialModal supabase={supabase} onClose={() => setShowHistorial(false)} />}
       {showCupo && <CupoModal cupo={cupo} onClose={() => setShowCupo(false)} onSave={saveCupo} />}
+      {proyectoModal.open && (
+        <ProyectoModal
+          editing={proyectoModal.editing}
+          onClose={() => setProyectoModal({ open: false, editing: null })}
+          onSubmit={guardarProyecto}
+        />
+      )}
     </div>
   );
 }
@@ -733,6 +934,180 @@ function HistorialModal({
         <div className="modal-actions">
           <button className="btn btn-ghost" onClick={onClose}>
             cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- tarjeta de proyecto (reusa el estilo de las tarjetas de "a meses") ----
+function ProyectoCard({
+  proyecto,
+  total,
+  onOpen,
+  onEdit,
+  onArchive,
+  onDelete,
+}: {
+  proyecto: Proyecto;
+  total: number;
+  onOpen: () => void;
+  onEdit: () => void;
+  onArchive: () => void;
+  onDelete: () => void;
+}) {
+  const presup = proyecto.presupuesto != null ? num(proyecto.presupuesto) : 0;
+  const pct = presup > 0 ? Math.min(100, (total / presup) * 100) : 0;
+  const stop = (e: React.MouseEvent) => e.stopPropagation();
+  return (
+    <div className="cm-card" style={{ cursor: 'pointer', opacity: proyecto.archivado ? 0.6 : 1 }} onClick={onOpen}>
+      <div className="cm-top">
+        <div className="cm-concepto">
+          {proyecto.tipo === 'viaje' ? '✈️ ' : ''}
+          {proyecto.nombre}
+        </div>
+        <div className="cm-monto">{fmtDinero(total)}</div>
+      </div>
+      <div className="cm-meta">
+        <span className="cm-pill">{proyecto.tipo === 'viaje' ? 'viaje' : 'proyecto'}</span>
+        {proyecto.archivado ? ' · archivado' : ''}
+      </div>
+      {presup > 0 && (
+        <>
+          <div className="cm-bar">
+            <div className="cm-bar-fill" style={{ width: `${pct}%` }} />
+          </div>
+          <div className={`cm-progreso ${total >= presup ? 'completa' : ''}`}>
+            {fmtDinero(total)} de {fmtDinero(presup)}
+            {total >= presup ? ' · presupuesto alcanzado' : ` · quedan ${fmtDinero(presup - total)}`}
+          </div>
+        </>
+      )}
+      <div className="balance-actions" style={{ marginTop: 10 }} onClick={stop}>
+        <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={onEdit}>
+          editar
+        </button>
+        <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={onArchive}>
+          {proyecto.archivado ? 'reactivar' : 'archivar'}
+        </button>
+        <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={onDelete}>
+          borrar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ProyectoModal({
+  editing,
+  onClose,
+  onSubmit,
+}: {
+  editing: Proyecto | null;
+  onClose: () => void;
+  onSubmit: (
+    values: {
+      nombre: string;
+      tipo: 'viaje' | 'proyecto';
+      presupuesto: number | null;
+      fecha_inicio: string | null;
+      fecha_fin: string | null;
+    },
+    editingId: string | null,
+  ) => void;
+}) {
+  const [nombre, setNombre] = useState(editing?.nombre ?? '');
+  const [tipo, setTipo] = useState<'viaje' | 'proyecto'>(editing?.tipo ?? 'proyecto');
+  const [presupuesto, setPresupuesto] = useState(
+    editing?.presupuesto != null ? String(num(editing.presupuesto)) : '',
+  );
+  const [fechaInicio, setFechaInicio] = useState(editing?.fecha_inicio ?? '');
+  const [fechaFin, setFechaFin] = useState(editing?.fecha_fin ?? '');
+
+  function submit() {
+    if (!nombre.trim()) return;
+    const presNum = parseFloat(presupuesto);
+    onSubmit(
+      {
+        nombre: nombre.trim(),
+        tipo,
+        presupuesto: presNum > 0 ? presNum : null,
+        fecha_inicio: fechaInicio || null,
+        fecha_fin: fechaFin || null,
+      },
+      editing?.id ?? null,
+    );
+  }
+
+  return (
+    <div className="modal-overlay active" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-title">{editing ? 'editar proyecto' : 'nuevo viaje o proyecto'}</div>
+        <div className="modal-sub">para llevar la cuenta de un viaje o proyecto especial</div>
+        <div className="mfield">
+          <div className="mfield-label">nombre</div>
+          <input
+            type="text"
+            className="input"
+            placeholder="ej. Japón 2026"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <div className="mfield">
+          <div className="mfield-label">¿qué es?</div>
+          <div className="chips-row">
+            <button
+              className={`chip${tipo === 'viaje' ? ' selected' : ''}`}
+              onClick={() => setTipo('viaje')}
+            >
+              ✈️ viaje
+            </button>
+            <button
+              className={`chip${tipo === 'proyecto' ? ' selected' : ''}`}
+              onClick={() => setTipo('proyecto')}
+            >
+              proyecto
+            </button>
+          </div>
+        </div>
+        <div className="mfield">
+          <div className="mfield-label">presupuesto (opcional)</div>
+          <input
+            type="number"
+            className="input"
+            placeholder="0"
+            inputMode="decimal"
+            value={presupuesto}
+            onChange={(e) => setPresupuesto(e.target.value)}
+          />
+        </div>
+        <div className="mfield">
+          <div className="mfield-label">inicio (opcional)</div>
+          <input
+            type="date"
+            className="input"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
+          />
+        </div>
+        <div className="mfield">
+          <div className="mfield-label">fin (opcional)</div>
+          <input
+            type="date"
+            className="input"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+          />
+        </div>
+        <div className="modal-actions">
+          <button className="btn btn-ghost" onClick={onClose}>
+            cancelar
+          </button>
+          <button className="btn" onClick={submit}>
+            guardar
           </button>
         </div>
       </div>

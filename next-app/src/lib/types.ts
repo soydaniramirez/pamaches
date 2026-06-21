@@ -67,9 +67,22 @@ export interface Expense {
   split: string | null;
   fecha: string;
   meta_id: string | null;
+  proyecto_id?: string | null;
   compra_meses_id?: string | null;
   cuota_numero?: number | null;
   cuota_total?: number | null;
+}
+
+export interface Proyecto {
+  id: string;
+  couple_id: string;
+  nombre: string;
+  tipo: 'viaje' | 'proyecto';
+  presupuesto: number | string | null;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+  archivado: boolean;
+  creado?: string;
 }
 
 export interface CompraMeses {
