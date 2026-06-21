@@ -119,7 +119,7 @@ next-app/
 | notitas | `/notitas` | ✅ Portada (buzón + archivadas, reacciones, archivar/borrar, campanita de novedades) |
 | nosotros | `/nosotros` | ✅ Hub (5 tarjetas) |
 | capsula | `/nosotros/capsula` | ⬜ Stub (pendiente — Grupo 4) |
-| raros | `/nosotros/raros` | ⬜ Placeholder (pendiente — Grupo 3) |
+| raros | `/nosotros/raros` | ✅ Portada (semáforo diario + biblioteca de ejercicios + timer) |
 | futuro | `/nosotros/futuro` | ⬜ Placeholder (pendiente — Grupo 2) |
 | nonego | `/nosotros/nonego` | ✅ Portada (3 tabs por autor, crear/borrar) |
 | capsulatiempo | `/nosotros/capsulatiempo` | ✅ Portada (sellar/abrir con gating, borrar) |
@@ -150,7 +150,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Metas/futuro** | `future`, `meta_abonos` | cargarFuturo, saveAbono, ahorradoDe (meta chips de ahorro ya consumidas en Gastos ✅) |
 | **Planes/citas** | `plans` (los "moods" son const, no tabla) | cargarPlanes ✅, generarIdea ✅, guardarIdeaComoPlan ✅, savePlan ✅, togglePlan ✅ |
 | **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula, rotarPreguntaSiToca, guardarRespuesta |
-| **Raros (semáforo)** | `moods` | cargarRaros, ponerSemaforo |
+| **Raros (semáforo)** | `moods` (+ ejercicios estáticos) | cargarRaros ✅, ponerSemaforo ✅ (siempre insert), biblioteca + timer ✅ |
 | **No-negociables** | `nonnegotiables` | cargarNonego ✅, saveNn ✅, borrarNn ✅ (autor es text: los_dos/dani/alfredo; `tipo` sin usar) |
 | **Cápsula del tiempo** | `timecapsule` | cargarCapsulaTiempo ✅, saveCt ✅, abrirCapsula ✅ (gating fecha/evento), borrarCapsula ✅ |
 | **Tareas/hogar** | `tasks`, `meals`, `super` | cargarTareas, renderMenu, renderSuper |
@@ -224,6 +224,10 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   (3 tabs por autor, crear/borrar) + **cápsula del tiempo** (sellar/abrir con
   gating fecha-o-evento, borrar). Rutas placeholder para raros/futuro/capsula.
   anon = 0 filas; autenticado solo su pareja.
+- ✅ **Nosotros — Grupo 3 (raros)**: semáforo diario (`moods`: marcar mi estado
+  con insert, ver el del otro de hoy, novedad en amarillo/rojo) + biblioteca de
+  ejercicios (`EJERCICIOS_CATS` verbatim, acordeón) + timer de 20 min. anon = 0
+  filas; autenticado solo su pareja.
 - ✅ Stubs navegables para el resto de pantallas.
 - ✅ `npm run build` y `tsc --noEmit` pasan sin errores.
 
@@ -236,10 +240,10 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 5. ✅ ~~Portar **planes**~~ (hecho).
 6. Bloque **Nosotros** restante, en el orden acordado:
    - ✅ ~~Grupo 1: hub + no-negociables + cápsula del tiempo~~ (hecho).
-   - Grupo 2: **futuro** (`future`, `meta_abonos`; cruza con Gastos).
-   - Grupo 3: **raros** (`moods` semáforo + biblioteca de ejercicios estática).
-   - Grupo 4: **cápsula de preguntas** (`questions`, `answers`; rotación, reveal,
-     nivel de conexión, archivo — la más compleja).
+   - ✅ ~~Grupo 3: **raros**~~ (hecho).
+   - **Siguiente → Grupo 2: futuro** (`future`, `meta_abonos`; cruza con Gastos, va con cuidado).
+   - Luego Grupo 4: **cápsula de preguntas** (`questions`, `answers`; rotación,
+     reveal, nivel de conexión, archivo — la más compleja).
 7. Portar **tareas/agenda** (`tasks`, `meals`, `super`, `agenda`) y **spicy**.
 8. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
 9. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
