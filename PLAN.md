@@ -201,8 +201,9 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
     (no en "a meses"). RLS de `proyectos` couple-scoped (FOR ALL TO authenticated).
   - Verificado: anon = 0 filas, autenticado solo ve su pareja; paridad intacta
     (proyecto_id null en todos los gastos → totales/balance/meses sin cambios).
-  - ⚠️ Pendiente (tarea aparte): arreglar el *quirk* del balance de settlements
-    por mes (un settlement puede mostrar saldo aunque no haya compartidos ese mes).
+  - ✅ Fix del *quirk* de settlements: el balance pasó a **acumulado** (toda la
+    historia de compartidos − todos los settlements), mostrado igual en cualquier
+    mes; el selector de mes solo filtra la lista de movimientos. Adiós saldo fantasma.
 - ✅ **Auditoría RLS + fixes aplicados** (ver `SECURITY_AUDIT.md`): 28/28 tablas con
   RLS por pareja, funciones endurecidas, políticas a `authenticated`, INSERT de
   profiles endurecido (Opción A).
@@ -225,10 +226,8 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 8. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
 
 ### Tareas técnicas pendientes (aparte)
-- **Fix del quirk de settlements**: el balance de compartidos se calcula por mes y
-  resta los settlements creados en ese mes; un settlement puede mostrar saldo
-  aunque el mes no tenga gastos compartidos. Se portó idéntico a propósito (paridad).
-  Rediseñar el modelo de saldado para que sea consistente.
+- ✅ ~~**Fix del quirk de settlements**~~ (hecho): balance acumulado (opción A),
+  consistente en cualquier mes.
 
 > **Siguiente recomendado: #1 Gastos** (es la otra mitad financiera y ya tiene el
 > cupo listo desde Perfil), o **#3 Notitas** si prefieres cerrar features sociales.

@@ -62,21 +62,17 @@ export function calcSaldoBase(gastos: Expense[]): {
 }
 
 /**
- * Ajuste por settlements creados en el mes que se está viendo.
- * (porta aplicarSettlementsYrender)
+ * Ajuste acumulado por TODOS los settlements de la historia (modelo opción A).
+ * + monto si pagó alfredo, − monto si pagó dani.
+ * saldo = saldoNeto − ajuste. (reemplaza el cálculo por-mes que producía saldos fantasma)
  */
-export function calcSaldados(settlements: Settlement[], mes: Date): number {
-  const y = mes.getFullYear();
-  const m = mes.getMonth();
-  let saldados = 0;
+export function calcSaldadosTotal(settlements: Settlement[]): number {
+  let ajuste = 0;
   settlements.forEach((s) => {
-    const sd = new Date(s.creado);
-    if (sd.getFullYear() === y && sd.getMonth() === m) {
-      if (s.quien_pago === 'alfredo') saldados += num(s.monto);
-      else if (s.quien_pago === 'dani') saldados -= num(s.monto);
-    }
+    if (s.quien_pago === 'alfredo') ajuste += num(s.monto);
+    else if (s.quien_pago === 'dani') ajuste -= num(s.monto);
   });
-  return saldados;
+  return ajuste;
 }
 
 /** Suma por categoría filtrando por tipo. (porta sumaPorCat) */

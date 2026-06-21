@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { useAppData } from '@/context/AppData';
 import { nombreMes, fmtDinero, fechaCorta, calcularFechaCuota } from '@/lib/helpers';
-import { num, calcAporte, calcSaldoBase, calcSaldados, sumaPorCat, totalObj } from '@/lib/gastos';
+import { num, calcAporte, calcSaldoBase, calcSaldadosTotal, sumaPorCat, totalObj } from '@/lib/gastos';
 import GastoModal from '@/components/gastos/GastoModal';
 import type {
   CompraMeses,
@@ -37,6 +37,8 @@ export default function GastosPage() {
   const [tab, setTab] = useState<Tab>('compartidas');
   const [gastos, setGastos] = useState<Expense[]>([]);
   const [gastosPrev, setGastosPrev] = useState<Expense[]>([]);
+  // todos los compartidos de la historia (para el balance acumulado, opción A)
+  const [compartidosAll, setCompartidosAll] = useState<Expense[]>([]);
   const [comprasMeses, setComprasMeses] = useState<CompraMeses[]>([]);
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [metas, setMetas] = useState<FutureMeta[]>([]);
@@ -61,7 +63,7 @@ export default function GastosPage() {
     const prev = new Date(mes.getFullYear(), mes.getMonth() - 1, 1);
     const rPrev = rangoMes(prev);
 
-    const [gRes, gPrevRes, cmRes, sRes, fRes, pRes, gpRes] = await Promise.all([
+    const [gRes, gPrevRes, cmRes, sRes, fRes, pRes, gpRes, caRes] = await Promise.all([
       supabase
         .from('expenses')
         .select('*')
@@ -80,10 +82,13 @@ export default function GastosPage() {
         .select('*')
         .not('proyecto_id', 'is', null)
         .order('fecha', { ascending: false }),
+      // todos los compartidos de la historia (balance acumulado)
+      supabase.from('expenses').select('*').eq('tipo', 'compartido'),
     ]);
 
     setGastos((gRes.data as unknown as Expense[]) ?? []);
     setGastosPrev((gPrevRes.data as unknown as Expense[]) ?? []);
+    setCompartidosAll((caRes.data as unknown as Expense[]) ?? []);
     setComprasMeses((cmRes.data as unknown as CompraMeses[]) ?? []);
     setSettlements((sRes.data as unknown as Settlement[]) ?? []);
     setMetas((fRes.data as unknown as FutureMeta[]) ?? []);
@@ -112,10 +117,13 @@ export default function GastosPage() {
     setMes(d);
   };
 
-  // ---- cálculos (porta calcularYrenderGastos / aplicarSettlementsYrender) ----
+  // ---- cálculos ----
+  // aporte: del mes visible (sin cambios).
   const aporte = calcAporte(gastos, cupo);
-  const { saldoNeto, rubros } = calcSaldoBase(gastos);
-  const saldados = calcSaldados(settlements, mes);
+  // balance: ACUMULADO de toda la historia (opción A). El selector de mes NO lo
+  // afecta — solo filtra la lista de movimientos de abajo.
+  const { saldoNeto, rubros } = calcSaldoBase(compartidosAll);
+  const saldados = calcSaldadosTotal(settlements);
   const saldo = saldoNeto - saldados;
   const absSaldo = Math.abs(saldo);
 
