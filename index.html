@@ -1205,6 +1205,23 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
 }
 
 
+/* ============ COMPRAS A MESES ============ */
+.cm-card {
+  background:var(--crema); border:2px solid var(--tinta); border-radius:18px;
+  padding:14px 16px; margin-bottom:10px; box-shadow:2px 3px 0 var(--tinta);
+  position:relative;
+}
+.cm-top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; padding-right:24px; }
+.cm-concepto { font-family:'Fraunces',serif; font-style:italic; font-size:1.1rem; color:var(--vino); }
+.cm-monto { font-family:'Manrope',sans-serif; font-size:0.88rem; font-weight:600; }
+.cm-meta { font-family:'Caveat',cursive; font-size:0.95rem; color:var(--tinta-soft); margin-bottom:8px; }
+.cm-bar { height:11px; background:rgba(42,24,32,0.1); border-radius:6px; overflow:hidden; border:1.3px solid var(--tinta); }
+.cm-bar-fill { height:100%; background:linear-gradient(90deg, var(--coral), var(--rosa)); border-radius:5px; transition:width 0.6s ease; }
+.cm-progreso { font-family:'Caveat',cursive; font-size:0.92rem; color:var(--tinta-soft); margin-top:6px; }
+.cm-progreso.completa { color:var(--verde); font-weight:600; }
+.cm-del { background:none; border:none; color:var(--tinta-soft); font-size:0.95rem; cursor:pointer; padding:2px 5px; position:absolute; top:10px; right:10px; }
+.cm-pill { display:inline-block; font-family:'Caveat',cursive; font-size:0.85rem; padding:1px 8px; border-radius:10px; background:var(--crema-deep); }
+.tag-meses { background:#FFE0B2; color:#7A4F00; }
 
 </style>
 </head>
@@ -1322,6 +1339,7 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
       <div class="sub-tabs">
         <button class="sub-tab active" id="gtab-compartidas" onclick="switchGastoTab('compartidas')">compartidas</button>
         <button class="sub-tab" id="gtab-personales" onclick="switchGastoTab('personales')">personales</button>
+        <button class="sub-tab" id="gtab-meses" onclick="switchGastoTab('meses')">a meses</button>
         <button class="sub-tab" id="gtab-resumen" onclick="switchGastoTab('resumen')">resumen</button>
       </div>
 
@@ -1356,6 +1374,11 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
       <!-- ===== pestaña PERSONALES ===== -->
       <div id="gasto-vista-personales" style="display:none;">
         <div id="personales-zona"></div>
+      </div>
+
+      <!-- ===== pestaña A MESES ===== -->
+      <div id="gasto-vista-meses" style="display:none;">
+        <div id="meses-zona"></div>
       </div>
 
       <!-- ===== pestaña RESUMEN ===== -->
@@ -1897,7 +1920,8 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
 
       <div class="mfield">
         <div class="mfield-label">¿cuánto?</div>
-        <input type="number" id="gasto-monto" class="input" placeholder="0" inputmode="decimal">
+        <input type="number" id="gasto-monto" class="input" placeholder="0" inputmode="decimal" oninput="actualizarHintMeses()">
+        <div id="gasto-monto-hint" style="font-family:'Caveat',cursive; font-size:0.95rem; color:var(--vino); margin-top:5px; display:none;"></div>
       </div>
 
       <div class="mfield">
@@ -1920,6 +1944,21 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
         <div class="chips-row" id="gasto-tipo"></div>
       </div>
 
+      <div class="mfield" id="gasto-meses-cuotas-field" style="display:none;">
+        <div class="mfield-label">¿en cuántas mensualidades?</div>
+        <input type="number" id="gasto-meses-cuotas" class="input" placeholder="3" inputmode="decimal" min="2" max="48" oninput="actualizarHintMeses()">
+      </div>
+
+      <div class="mfield" id="gasto-meses-corte-field" style="display:none;">
+        <div class="mfield-label">día de corte de la tarjeta (1-31)</div>
+        <input type="number" id="gasto-meses-corte" class="input" placeholder="15" inputmode="decimal" min="1" max="31">
+      </div>
+
+      <div class="mfield" id="gasto-meses-tipo-field" style="display:none;">
+        <div class="mfield-label">¿cómo cuenta cada cuota?</div>
+        <div class="chips-row" id="gasto-meses-tipo-chips"></div>
+      </div>
+
       <div class="mfield" id="gasto-split-field" style="display:none;">
         <div class="mfield-label">¿cómo se divide?</div>
         <div class="chips-row" id="gasto-split"></div>
@@ -1931,7 +1970,7 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
       </div>
 
       <div class="mfield">
-        <div class="mfield-label">fecha</div>
+        <div class="mfield-label" id="gasto-fecha-label">fecha</div>
         <input type="date" id="gasto-fecha" class="input">
       </div>
 
@@ -2383,6 +2422,7 @@ let gastosDelMes = [];
 let CATEGORIAS = [];          // se cargan de la base
 let SUBCATEGORIAS = [];       // todas las subcategorías {id, categoria_id, nombre}
 let FECHAS = [];              // fechas importantes
+let COMPRAS_MESES = [];       // compras a mensualidades
 let PLANES = [];              // todos los planes
 let planTab = 'citas';        // 'citas' (por hacer) o 'hechas'
 let moodSeleccionado = null;
@@ -2608,6 +2648,31 @@ async function cargarPerfil() {
 async function cargarFechas() {
   const { data } = await sb.from('fechas').select('*').order('fecha',{ascending:true});
   FECHAS = data || [];
+}
+
+async function cargarComprasMeses() {
+  const { data } = await sb.from('compras_meses')
+    .select('*').order('fecha_compra', {ascending:false});
+  COMPRAS_MESES = data || [];
+}
+
+// fecha de la cuota n para una compra (opción A: desde el corte SIGUIENTE a la compra)
+function calcularFechaCuota(fechaCompra, diaCorte, n) {
+  let primerMes = fechaCompra.getMonth();
+  let primerAnio = fechaCompra.getFullYear();
+  // si el día de corte ya pasó o es hoy en el mes de compra, primera cuota = mes siguiente
+  if (diaCorte <= fechaCompra.getDate()) {
+    primerMes++;
+    if (primerMes > 11) { primerMes = 0; primerAnio++; }
+  }
+  // n-ésima cuota = primer mes + (n-1)
+  let mesCuota = primerMes + (n - 1);
+  let anioCuota = primerAnio + Math.floor(mesCuota / 12);
+  mesCuota = ((mesCuota % 12) + 12) % 12;
+  // ajustar si el día de corte es más alto que el último día del mes (ej. 31 en febrero)
+  const ultimoDia = new Date(anioCuota, mesCuota + 1, 0).getDate();
+  const diaAUsar = Math.min(diaCorte, ultimoDia);
+  return new Date(anioCuota, mesCuota, diaAUsar);
 }
 
 // días que faltan para la próxima ocurrencia de una fecha
@@ -3102,7 +3167,9 @@ async function cargarGastos() {
     const { data: fut } = await sb.from('future').select('*').order('orden',{ascending:true});
     FUTURO = fut || [];
   }
+  await cargarComprasMeses();
   calcularYrenderGastos();
+  if (gastoTab === 'meses') renderMeses();
 }
 
 function calcularYrenderGastos() {
@@ -3189,10 +3256,69 @@ let gastoTab = 'compartidas';
 
 function switchGastoTab(tab) {
   gastoTab = tab;
-  ['compartidas','personales','resumen'].forEach(t => {
+  ['compartidas','personales','meses','resumen'].forEach(t => {
     $('gtab-'+t).classList.toggle('active', t===tab);
     $('gasto-vista-'+t).style.display = (t===tab) ? 'block' : 'none';
   });
+  if (tab === 'meses') renderMeses();
+}
+
+// ============================================
+// GASTOS — vista de compras a meses
+// ============================================
+function renderMeses() {
+  const cont = $('meses-zona');
+  if (!COMPRAS_MESES || COMPRAS_MESES.length === 0) {
+    cont.innerHTML = '<div class="mov-empty"><img src="pamache.png" alt="">aún no hay compras a meses.<br>regístralas con el + eligiendo "a meses"</div>';
+    return;
+  }
+  const hoy = new Date(); hoy.setHours(23,59,59,999);
+  let html = '';
+  COMPRAS_MESES.forEach(cm => {
+    const fechaCompra = new Date(cm.fecha_compra + 'T00:00:00');
+    let cuotasPagadas = 0;
+    for (let i = 1; i <= cm.num_cuotas; i++) {
+      const fechaCuota = calcularFechaCuota(fechaCompra, cm.dia_corte, i);
+      if (fechaCuota <= hoy) cuotasPagadas++;
+    }
+    const totalPagado = cuotasPagadas * parseFloat(cm.monto_cuota);
+    const falta = parseFloat(cm.monto_total) - totalPagado;
+    const pct = (cuotasPagadas / cm.num_cuotas) * 100;
+    let tipoTexto;
+    if (cm.tipo === 'compartido') tipoTexto = 'compartido 50/50';
+    else if (cm.tipo === 'personal') tipoTexto = 'personal';
+    else if (cm.tipo === 'invitacion') tipoTexto = 'invitación';
+    else tipoTexto = cm.tipo;
+    let pagadorTxt = '';
+    if (cm.split === 'pago-dani') pagadorTxt = 'paga dani';
+    else if (cm.split === 'pago-alfredo') pagadorTxt = 'paga alfredo';
+    const completa = cuotasPagadas >= cm.num_cuotas;
+    const proxima = cuotasPagadas < cm.num_cuotas
+      ? calcularFechaCuota(fechaCompra, cm.dia_corte, cuotasPagadas + 1)
+      : null;
+    const proxTxt = proxima ? ' · próxima ' + fechaCorta(proxima.toISOString().slice(0,10)) : '';
+    html += '<div class="cm-card">' +
+      '<button class="cm-del" onclick="borrarCompraMeses(\'' + cm.id + '\')">✕</button>' +
+      '<div class="cm-top">' +
+        '<div class="cm-concepto">' + escapeHtml(cm.concepto) + '</div>' +
+        '<div class="cm-monto">' + fmtDinero(parseFloat(cm.monto_total)) + '</div>' +
+      '</div>' +
+      '<div class="cm-meta">' + cm.num_cuotas + ' cuotas de ' + fmtDinero(parseFloat(cm.monto_cuota)) + ' · <span class="cm-pill">' + tipoTexto + (pagadorTxt ? ' · ' + pagadorTxt : '') + '</span></div>' +
+      '<div class="cm-bar"><div class="cm-bar-fill" style="width:' + pct + '%"></div></div>' +
+      '<div class="cm-progreso ' + (completa ? 'completa' : '') + '">' + cuotasPagadas + '/' + cm.num_cuotas + ' cuotas pagadas · ' + (completa ? '¡completa! 🎉' : 'faltan ' + fmtDinero(falta) + proxTxt) + '</div>' +
+    '</div>';
+  });
+  cont.innerHTML = html;
+}
+
+async function borrarCompraMeses(id) {
+  if (!confirm('¿borrar esta compra a meses? también se borrarán todas sus cuotas (pagadas y pendientes)')) return;
+  // borrar cuotas primero (por si la FK no es CASCADE)
+  await sb.from('expenses').delete().eq('compra_meses_id', id);
+  const { error } = await sb.from('compras_meses').delete().eq('id', id);
+  if (error) { toast('no se pudo borrar'); console.error(error); return; }
+  toast('compra a meses borrada');
+  await cargarGastos();
 }
 
 // ============================================
@@ -3483,7 +3609,17 @@ function renderMovItem(g) {
   const monto = parseFloat(g.monto);
   let tagClass, tagText, metaText;
 
-  if (g.tipo === 'aporte') {
+  if (g.compra_meses_id) {
+    tagClass = 'tag-meses';
+    tagText = 'a meses · ' + g.cuota_numero + '/' + g.cuota_total;
+    const quien = g.split === 'pago-dani' ? 'dani' : 'alfredo';
+    let tipoTxt = '';
+    if (g.tipo === 'compartido') tipoTxt = 'compartido';
+    else if (g.tipo === 'personal') tipoTxt = 'cosa de ' + quien;
+    else if (g.tipo === 'invitacion') tipoTxt = quien + ' invitó';
+    else tipoTxt = g.tipo;
+    metaText = tipoTxt + ' · paga ' + quien;
+  } else if (g.tipo === 'aporte') {
     tagClass = 'tag-aporte';
     tagText = 'aporte';
     metaText = 'cuenta a la renta de alfredo';
@@ -3548,7 +3684,7 @@ async function borrarGasto(id) {
 // GASTOS — modal registrar
 // ============================================
 function openGastoModal() {
-  gForm = { categoria_id:null, categoria_nombre:null, subcategoria_id:null, pagador:null, tipo:null, split:'50/50', meta_id:null };
+  gForm = { categoria_id:null, categoria_nombre:null, subcategoria_id:null, pagador:null, tipo:null, split:'50/50', meta_id:null, num_cuotas:null, dia_corte:null, tipo_meses:null };
   $('gasto-concepto').value = '';
   $('gasto-monto').value = '';
   const hoy = new Date();
@@ -3570,10 +3706,18 @@ function openGastoModal() {
     <button class="chip" onclick="selTipo(this,'aporte')">cuenta al aporte</button>
     <button class="chip" onclick="selTipo(this,'invitacion')">yo invito 💝</button>
     <button class="chip" onclick="selTipo(this,'personal')">personal</button>
-    <button class="chip" onclick="selTipo(this,'ahorro')">ahorro 🐷</button>`;
+    <button class="chip" onclick="selTipo(this,'ahorro')">ahorro 🐷</button>
+    <button class="chip" onclick="selTipo(this,'meses')">a meses 💳</button>`;
 
   $('gasto-split-field').style.display = 'none';
   $('gasto-meta-field').style.display = 'none';
+  $('gasto-meses-cuotas-field').style.display = 'none';
+  $('gasto-meses-corte-field').style.display = 'none';
+  $('gasto-meses-tipo-field').style.display = 'none';
+  $('gasto-meses-cuotas').value = '';
+  $('gasto-meses-corte').value = '';
+  $('gasto-monto-hint').style.display = 'none';
+  $('gasto-fecha-label').textContent = 'fecha';
   $('gasto-modal').classList.add('active');
   setTimeout(() => $('gasto-concepto').focus(), 200);
 }
@@ -3667,6 +3811,55 @@ function selTipo(el, val) {
     metaField.style.display = 'none';
     gForm.meta_id = null;
   }
+  // si es a meses, mostrar campos especiales y ocultar split normal
+  if (val === 'meses') {
+    $('gasto-meses-cuotas-field').style.display = 'block';
+    $('gasto-meses-corte-field').style.display = 'block';
+    $('gasto-meses-tipo-field').style.display = 'block';
+    $('gasto-split-field').style.display = 'none';
+    $('gasto-fecha-label').textContent = 'fecha de la compra';
+    renderGastoMesesTipoChips();
+    actualizarHintMeses();
+  } else {
+    $('gasto-meses-cuotas-field').style.display = 'none';
+    $('gasto-meses-corte-field').style.display = 'none';
+    $('gasto-meses-tipo-field').style.display = 'none';
+    $('gasto-monto-hint').style.display = 'none';
+    $('gasto-fecha-label').textContent = 'fecha';
+  }
+}
+
+function renderGastoMesesTipoChips() {
+  const opts = [
+    { val:'compartido', label:'compartido 50/50' },
+    { val:'personal', label:'personal' },
+    { val:'invitacion', label:'yo invito 💝' }
+  ];
+  $('gasto-meses-tipo-chips').innerHTML = opts.map(o =>
+    `<button class="chip ${gForm.tipo_meses===o.val?'selected':''}" onclick="selGastoMesesTipo('${o.val}')">${o.label}</button>`
+  ).join('');
+}
+
+function selGastoMesesTipo(val) {
+  gForm.tipo_meses = val;
+  renderGastoMesesTipoChips();
+}
+
+function actualizarHintMeses() {
+  if (gForm.tipo !== 'meses') {
+    $('gasto-monto-hint').style.display = 'none';
+    return;
+  }
+  const monto = parseFloat($('gasto-monto').value);
+  const cuotas = parseInt($('gasto-meses-cuotas').value);
+  const hint = $('gasto-monto-hint');
+  if (monto && monto > 0 && cuotas && cuotas >= 2) {
+    const porCuota = monto / cuotas;
+    hint.textContent = 'se divide en ' + cuotas + ' cuotas de ' + fmtDinero(porCuota);
+    hint.style.display = 'block';
+  } else {
+    hint.style.display = 'none';
+  }
 }
 
 function renderGastoMetaChips() {
@@ -3695,11 +3888,91 @@ async function saveGasto() {
   if (!gForm.pagador) { toast('elige quién pagó'); return; }
   if (!gForm.tipo) { toast('elige cómo cuenta'); return; }
 
+  const btn = $('gasto-save-btn');
+
+  // ---- caso especial: compra a meses ----
+  if (gForm.tipo === 'meses') {
+    const numCuotas = parseInt($('gasto-meses-cuotas').value);
+    const diaCorte = parseInt($('gasto-meses-corte').value);
+    if (!numCuotas || numCuotas < 2 || numCuotas > 48) { toast('pon entre 2 y 48 mensualidades'); return; }
+    if (!diaCorte || diaCorte < 1 || diaCorte > 31) { toast('el día de corte va de 1 a 31'); return; }
+    if (!gForm.tipo_meses) { toast('elige cómo cuenta cada cuota'); return; }
+
+    const splitMeses = 'pago-' + gForm.pagador;
+    const montoCuota = Math.round((monto / numCuotas) * 100) / 100;
+
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+
+    // crear la compra padre
+    const { data: cm, error: e1 } = await sb.from('compras_meses').insert({
+      couple_id: ME.couple_id,
+      autor: ME.id,
+      concepto,
+      monto_total: monto,
+      num_cuotas: numCuotas,
+      monto_cuota: montoCuota,
+      dia_corte: diaCorte,
+      categoria: gForm.categoria_nombre,
+      subcategoria_id: gForm.subcategoria_id,
+      tipo: gForm.tipo_meses,
+      split: splitMeses,
+      fecha_compra: fecha
+    }).select().single();
+
+    if (e1) {
+      btn.disabled = false; btn.textContent = 'guardar';
+      toast('no se pudo guardar la compra');
+      console.error(e1);
+      return;
+    }
+
+    // generar las N cuotas como expenses
+    const fechaCompra = new Date(fecha + 'T00:00:00');
+    const cuotasInsertar = [];
+    for (let i = 1; i <= numCuotas; i++) {
+      const fechaCuota = calcularFechaCuota(fechaCompra, diaCorte, i);
+      const yyyy = fechaCuota.getFullYear();
+      const mm = String(fechaCuota.getMonth() + 1).padStart(2,'0');
+      const dd = String(fechaCuota.getDate()).padStart(2,'0');
+      cuotasInsertar.push({
+        couple_id: ME.couple_id,
+        autor: ME.id,
+        concepto: concepto + ' · cuota ' + i + '/' + numCuotas,
+        monto: montoCuota,
+        categoria: gForm.categoria_nombre,
+        subcategoria_id: gForm.subcategoria_id,
+        tipo: gForm.tipo_meses,
+        split: splitMeses,
+        fecha: yyyy + '-' + mm + '-' + dd,
+        compra_meses_id: cm.id,
+        cuota_numero: i,
+        cuota_total: numCuotas
+      });
+    }
+
+    const { error: e2 } = await sb.from('expenses').insert(cuotasInsertar);
+    btn.disabled = false; btn.textContent = 'guardar';
+
+    if (e2) {
+      toast('se creó la compra pero fallaron las cuotas');
+      console.error(e2);
+      await sb.from('compras_meses').delete().eq('id', cm.id);
+      return;
+    }
+
+    closeModal('gasto-modal');
+    toast('compra a meses registrada 💳');
+    await crearNovedad('gasto', ME.nombre + ' agregó una compra a ' + numCuotas + ' meses: ' + concepto, 'gastos');
+    await cargarGastos();
+    if (gastoTab !== 'meses') switchGastoTab('meses');
+    return;
+  }
+
+  // ---- caso normal ----
   let split;
   if (gForm.tipo === 'aporte') split = 'pago-alfredo';
   else split = 'pago-' + gForm.pagador;
 
-  const btn = $('gasto-save-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
 
   const { error } = await sb.from('expenses').insert({
@@ -6158,6 +6431,9 @@ function suscribirRealtime() {
     .on('postgres_changes', { event:'*', schema:'public', table:'expenses' }, () => {
       if (currentScreen === 'gastos') cargarGastos();
       if (currentScreen === 'futuro') cargarFuturo();
+    })
+    .on('postgres_changes', { event:'*', schema:'public', table:'compras_meses' }, () => {
+      if (currentScreen === 'gastos') cargarGastos();
     })
     .on('postgres_changes', { event:'*', schema:'public', table:'settlements' }, async () => {
       await cargarSettlements();
