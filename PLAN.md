@@ -258,12 +258,12 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 ### Tareas técnicas pendientes (aparte)
 - ✅ ~~**Fix del quirk de settlements**~~ (hecho): balance acumulado (opción A),
   consistente en cualquier mes.
-- ⚠️ **`expenses_tipo_check` no permite `tipo='ahorro'`**: el constraint solo
-  acepta `aporte/compartido/invitacion/personal`. El tipo "ahorro 🐷" del modal de
-  Gastos (y del HTML original) **fallaría al guardar**, así que la fuente "ahorros
-  desde gastos" de las metas está siempre vacía. Decidir: (a) agregar `'ahorro'` al
-  CHECK con una migración para habilitar la feature, o (b) quitar el tipo ahorro del
-  modal. Requiere migración + decisión del dueño → NO aplicado.
+- ✅ ~~**`expenses_tipo_check` no permite `tipo='ahorro'`**~~ (resuelto 2026-06-22,
+  migración `expenses_tipo_allow_ahorro`): se agregó `'ahorro'` al CHECK preservando
+  los 4 valores previos. El tipo "ahorro 🐷" del modal de Gastos ya guarda, y la
+  fuente "ahorros desde gastos" de las metas (futuro) funciona end-to-end.
+  Verificado: insert de ahorro pasa, suma al ahorrado de la meta y al bloque de
+  ahorro del resumen; aporte/compartido/saldo SIN cambios; advisor sin warnings nuevos.
 
 > **Siguiente recomendado: #1 Gastos** (es la otra mitad financiera y ya tiene el
 > cupo listo desde Perfil), o **#3 Notitas** si prefieres cerrar features sociales.
