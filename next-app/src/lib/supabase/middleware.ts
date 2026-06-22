@@ -23,13 +23,23 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+        setAll(
+          cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[],
+          headers: Record<string, string> = {},
+        ) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
+          );
+          // @supabase/ssr 0.12 pasa cabeceras anti-caché (Cache-Control: private,
+          // no-store, …) que DEBEN escribirse en la respuesta que lleva el
+          // Set-Cookie de sesión, para que un CDN/proxy no cachee la respuesta de
+          // un usuario y se la sirva a otro. Las aplicamos al mismo response.
+          Object.entries(headers).forEach(([key, value]) =>
+            supabaseResponse.headers.set(key, value),
           );
         },
       },
