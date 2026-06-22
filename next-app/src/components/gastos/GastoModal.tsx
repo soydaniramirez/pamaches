@@ -5,6 +5,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { useAppData } from '@/context/AppData';
 import { fmtDinero, calcularFechaCuota } from '@/lib/helpers';
 import { crearNovedad } from '@/lib/social';
+import { emojiProyecto } from '@/lib/proyectos';
 import type { FutureMeta, Proyecto } from '@/lib/types';
 
 interface GForm {
@@ -497,8 +498,7 @@ export default function GastoModal({
                   className={`chip${g.proyecto_id === p.id ? ' selected' : ''}`}
                   onClick={() => setG((prev) => ({ ...prev, proyecto_id: p.id }))}
                 >
-                  {p.tipo === 'viaje' ? '✈️ ' : ''}
-                  {p.nombre}
+                  {emojiProyecto(p)} {p.nombre}
                 </button>
               ))}
             </div>

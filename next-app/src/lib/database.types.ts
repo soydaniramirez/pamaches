@@ -877,8 +877,10 @@ export type Database = {
       proyectos: {
         Row: {
           archivado: boolean
+          color: string | null
           couple_id: string
           creado: string | null
+          emoji: string | null
           fecha_fin: string | null
           fecha_inicio: string | null
           id: string
@@ -888,8 +890,10 @@ export type Database = {
         }
         Insert: {
           archivado?: boolean
+          color?: string | null
           couple_id: string
           creado?: string | null
+          emoji?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
@@ -899,8 +903,10 @@ export type Database = {
         }
         Update: {
           archivado?: boolean
+          color?: string | null
           couple_id?: string
           creado?: string | null
+          emoji?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
