@@ -269,7 +269,15 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 7. ✅ ~~Portar **tareas/agenda** y **spicy** (hub + cartas + ruleta + termómetro +
    deseos)~~ (hecho). **→ CONTENIDO DE LA APP COMPLETO.**
 ## Cierre técnico (lo único que queda)
-8. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
+8. ✅ ~~Generar tipos reales: `supabase gen types typescript` → `database.types.ts`~~
+   (hecho 2026-06-22). Tipos reales del esquema en `src/lib/database.types.ts`,
+   `createClient` (browser/server/middleware) tipado con `<Database>`. Para que el
+   genérico `Database` se propagara hubo que alinear `@supabase/ssr` (0.5.2 → 0.12.0,
+   cuyo peer es `@supabase/supabase-js ^2.108.0`, coincidiendo con el 2.108.2 ya
+   instalado); la API de cookies (`getAll`/`setAll`) es idéntica entre 0.5 y 0.12, así
+   que **no hubo cambio de comportamiento**. `tsc --noEmit` y `next build` limpios, sin
+   `any` / `as any` / `@ts-ignore` / `@ts-expect-error`. No se aplicó ninguna migración
+   (solo se leyó el esquema).
 9. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
 10. Repaso de completitud del **home** (p. ej. `cargarEventosProximos` para el aviso
     de agenda en el home, que quedó pendiente).
