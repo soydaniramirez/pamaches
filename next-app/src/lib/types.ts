@@ -96,6 +96,7 @@ export interface Proyecto {
   archivado: boolean;
   emoji: string | null;
   color: string | null;
+  destacado: boolean;
   creado?: string;
 }
 

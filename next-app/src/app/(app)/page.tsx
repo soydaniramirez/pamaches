@@ -11,7 +11,7 @@ import { num } from '@/lib/gastos';
 import { rotarPreguntaSiToca } from '@/lib/capsula';
 import { agendaCatById, diasParaEvento } from '@/lib/agenda';
 import { hoyEnMexico, diaEnMexico } from '@/lib/fechas';
-import { viajeActivo, diaXdeY, emojiProyecto, colorProyecto } from '@/lib/proyectos';
+import { viajeActivo, estadoViaje, emojiProyecto, colorProyecto } from '@/lib/proyectos';
 import type { AgendaEvent, Proyecto } from '@/lib/types';
 import NotitasSection from '@/components/NotitasSection';
 import Novedades from '@/components/Novedades';
@@ -190,9 +190,29 @@ export default function HomePage() {
         {viaje &&
           (() => {
             const p = viaje.proyecto;
-            const dxy = diaXdeY(p);
+            const est = estadoViaje(p);
             const presup = p.presupuesto != null ? num(p.presupuesto) : 0;
             const pct = presup > 0 ? Math.min(100, (viaje.gastado / presup) * 100) : 0;
+            const label =
+              est.fase === 'durante'
+                ? 'viaje en curso'
+                : est.fase === 'antes'
+                  ? 'próximo viaje'
+                  : est.fase === 'despues'
+                    ? 'viaje terminado'
+                    : 'viaje';
+            const contador =
+              est.fase === 'durante'
+                ? `día ${est.x} de ${est.y}`
+                : est.fase === 'antes'
+                  ? est.faltan === 0
+                    ? 'empieza hoy'
+                    : est.faltan === 1
+                      ? 'falta 1 día'
+                      : `faltan ${est.faltan} días`
+                  : est.fase === 'despues'
+                    ? 'viaje terminado'
+                    : null;
             return (
               <div
                 className="viaje-activo-card"
@@ -202,13 +222,9 @@ export default function HomePage() {
                 <div className="viaje-activo-top">
                   <span className="viaje-activo-emoji">{emojiProyecto(p)}</span>
                   <div className="viaje-activo-info">
-                    <div className="viaje-activo-label">viaje en curso</div>
+                    <div className="viaje-activo-label">{label}</div>
                     <div className="viaje-activo-nombre">{p.nombre}</div>
-                    {dxy && (
-                      <div className="viaje-activo-dia">
-                        día {dxy.x} de {dxy.y}
-                      </div>
-                    )}
+                    {contador && <div className="viaje-activo-dia">{contador}</div>}
                   </div>
                 </div>
                 {presup > 0 && (

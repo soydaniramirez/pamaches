@@ -883,6 +883,7 @@ export type Database = {
           color: string | null
           couple_id: string
           creado: string | null
+          destacado: boolean
           emoji: string | null
           fecha_fin: string | null
           fecha_inicio: string | null
@@ -896,6 +897,7 @@ export type Database = {
           color?: string | null
           couple_id: string
           creado?: string | null
+          destacado?: boolean
           emoji?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
@@ -909,6 +911,7 @@ export type Database = {
           color?: string | null
           couple_id?: string
           creado?: string | null
+          destacado?: boolean
           emoji?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
