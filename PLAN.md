@@ -120,7 +120,7 @@ next-app/
 | nosotros | `/nosotros` | ✅ Hub (5 tarjetas) |
 | capsula | `/nosotros/capsula` | ⬜ Stub (pendiente — Grupo 4) |
 | raros | `/nosotros/raros` | ✅ Portada (semáforo diario + biblioteca de ejercicios + timer) |
-| futuro | `/nosotros/futuro` | ⬜ Placeholder (pendiente — Grupo 2) |
+| futuro | `/nosotros/futuro` | ✅ Portada (timeline de hitos, metas, abonos, historial mixto) |
 | nonego | `/nosotros/nonego` | ✅ Portada (3 tabs por autor, crear/borrar) |
 | capsulatiempo | `/nosotros/capsulatiempo` | ✅ Portada (sellar/abrir con gating, borrar) |
 | mas | `/mas` | ⬜ Stub |
@@ -147,7 +147,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Gastos** | `expenses`, `categorias`, `subcategorias`, `settlements`, `aporte_config` | cargarGastos ✅, calcularYrenderGastos ✅, cargarSettlements ✅, saveSaldar ✅, saveGasto ✅, resumen ✅ |
 | **Mensualidades** | `compras_meses` (+ cuotas en `expenses`) | cargarComprasMeses ✅, renderMeses ✅, calcularFechaCuota ✅ |
 | **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅ |
-| **Metas/futuro** | `future`, `meta_abonos` | cargarFuturo, saveAbono, ahorradoDe (meta chips de ahorro ya consumidas en Gastos ✅) |
+| **Metas/futuro** | `future`, `meta_abonos` (+ lee `expenses` ahorro) | cargarFuturo ✅, ahorradoDe ✅, saveFuturo ✅, saveAbono ✅, historial mixto ✅ |
 | **Planes/citas** | `plans` (los "moods" son const, no tabla) | cargarPlanes ✅, generarIdea ✅, guardarIdeaComoPlan ✅, savePlan ✅, togglePlan ✅ |
 | **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula, rotarPreguntaSiToca, guardarRespuesta |
 | **Raros (semáforo)** | `moods` (+ ejercicios estáticos) | cargarRaros ✅, ponerSemaforo ✅ (siempre insert), biblioteca + timer ✅ |
@@ -224,6 +224,13 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   (3 tabs por autor, crear/borrar) + **cápsula del tiempo** (sellar/abrir con
   gating fecha-o-evento, borrar). Rutas placeholder para raros/futuro/capsula.
   anon = 0 filas; autenticado solo su pareja.
+- ✅ **Nosotros — Grupo 2 (futuro)**: timeline de hitos (`future`: crear/editar/
+  logrado/borrar) + metas con barra `ahorrado/meta` donde `ahorrado = Σ meta_abonos
+  + Σ expenses(ahorro, meta_id)` + abonos (insert `meta_abonos`, historial mixto,
+  borrar). Solo LEE de Gastos. Verificado: cálculo idéntico al HTML, sin doble
+  conteo (fuentes en tablas distintas). anon = 0; autenticado solo su pareja.
+  ⚠️ Hallazgo: `expenses_tipo_check` NO permite `tipo='ahorro'` → la fuente
+  "ahorros desde gastos" está siempre vacía en esta base (ver tareas pendientes).
 - ✅ **Nosotros — Grupo 3 (raros)**: semáforo diario (`moods`: marcar mi estado
   con insert, ver el del otro de hoy, novedad en amarillo/rojo) + biblioteca de
   ejercicios (`EJERCICIOS_CATS` verbatim, acordeón) + timer de 20 min. anon = 0
@@ -241,9 +248,9 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 6. Bloque **Nosotros** restante, en el orden acordado:
    - ✅ ~~Grupo 1: hub + no-negociables + cápsula del tiempo~~ (hecho).
    - ✅ ~~Grupo 3: **raros**~~ (hecho).
-   - **Siguiente → Grupo 2: futuro** (`future`, `meta_abonos`; cruza con Gastos, va con cuidado).
-   - Luego Grupo 4: **cápsula de preguntas** (`questions`, `answers`; rotación,
-     reveal, nivel de conexión, archivo — la más compleja).
+   - ✅ ~~Grupo 2: **futuro**~~ (hecho).
+   - **Último de Nosotros → Grupo 4: cápsula de preguntas** (`questions`, `answers`;
+     rotación, reveal, nivel de conexión, archivo — la más compleja).
 7. Portar **tareas/agenda** (`tasks`, `meals`, `super`, `agenda`) y **spicy**.
 8. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
 9. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
@@ -251,6 +258,12 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 ### Tareas técnicas pendientes (aparte)
 - ✅ ~~**Fix del quirk de settlements**~~ (hecho): balance acumulado (opción A),
   consistente en cualquier mes.
+- ⚠️ **`expenses_tipo_check` no permite `tipo='ahorro'`**: el constraint solo
+  acepta `aporte/compartido/invitacion/personal`. El tipo "ahorro 🐷" del modal de
+  Gastos (y del HTML original) **fallaría al guardar**, así que la fuente "ahorros
+  desde gastos" de las metas está siempre vacía. Decidir: (a) agregar `'ahorro'` al
+  CHECK con una migración para habilitar la feature, o (b) quitar el tipo ahorro del
+  modal. Requiere migración + decisión del dueño → NO aplicado.
 
 > **Siguiente recomendado: #1 Gastos** (es la otra mitad financiera y ya tiene el
 > cupo listo desde Perfil), o **#3 Notitas** si prefieres cerrar features sociales.

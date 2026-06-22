@@ -161,8 +161,22 @@ export interface FutureMeta {
   id: string;
   couple_id: string;
   titulo: string;
+  cuando?: string | null;
+  nota?: string | null;
+  logrado?: boolean;
+  orden?: number;
   tiene_meta?: boolean;
   meta_monto?: number | string | null;
+}
+
+export interface MetaAbono {
+  id: string;
+  couple_id: string;
+  future_id: string;
+  autor: string;
+  monto: number | string;
+  nota: string | null;
+  creado: string;
 }
 
 export interface Fecha {
