@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/client';
 import { useAppData } from '@/context/AppData';
 import { fmtFecha, tiempoJuntos, diasParaFecha } from '@/lib/helpers';
 import { rotarPreguntaSiToca } from '@/lib/capsula';
+import { agendaCatById, diasParaEvento } from '@/lib/agenda';
+import type { AgendaEvent } from '@/lib/types';
 import NotitasSection from '@/components/NotitasSection';
 import Novedades from '@/components/Novedades';
 
@@ -16,6 +18,7 @@ export default function HomePage() {
   const supabase = createClient();
   const { me, couple, fechas, loading, logout, reload, toast } = useAppData();
   const [pregunta, setPregunta] = useState('cargando...');
+  const [eventos, setEventos] = useState<AgendaEvent[]>([]);
 
   const cargarPregunta = useCallback(async () => {
     // antes de mostrar, revisar si toca rotar (misma función compartida que la cápsula)
@@ -28,9 +31,41 @@ export default function HomePage() {
     setPregunta(data?.texto ? `"${data.texto}"` : 'aún no hay pregunta · entra a la cápsula');
   }, [supabase]);
 
+  // eventos próximos para el aviso del home (porta cargarEventosProximos).
+  // NOTA: usa toISOString() (UTC) para "hoy"/"+15 días", igual que el index.html
+  //   → bug UTC parqueado (ver PLAN.md, inventario de fechas). Portado 1:1 a propósito.
+  const cargarEventos = useCallback(async () => {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const en15 = new Date();
+    en15.setDate(en15.getDate() + 15);
+    const en15Str = en15.toISOString().slice(0, 10);
+    const { data } = await supabase
+      .from('agenda')
+      .select('*')
+      .gte('fecha', hoy)
+      .lte('fecha', en15Str)
+      .order('fecha', { ascending: true });
+    setEventos((data as unknown as AgendaEvent[]) ?? []);
+  }, [supabase]);
+
   useEffect(() => {
     void cargarPregunta();
-  }, [cargarPregunta]);
+    void cargarEventos();
+  }, [cargarPregunta, cargarEventos]);
+
+  // realtime: refrescar el aviso del home cuando cambie la agenda (igual que el
+  // index.html, que recargaba EVENTOS_PROX + renderAvisoFecha al cambiar agenda).
+  useEffect(() => {
+    const channel = supabase
+      .channel('home-agenda')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda' }, () => {
+        void cargarEventos();
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [supabase, cargarEventos]);
 
   if (loading) {
     return (
@@ -41,24 +76,34 @@ export default function HomePage() {
     );
   }
 
-  // próxima fecha importante dentro de 14 días (porta renderAvisoFecha, parte de fechas)
-  const proxima = (() => {
-    let best: { titulo: string; dias: number } | null = null;
+  // aviso del home: la próxima fecha importante (cumple/aniversario) O evento de
+  // agenda dentro de 14 días, lo que ocurra antes (porta renderAvisoFecha completo).
+  // Igual que el index.html: se revisan primero las fechas y luego los eventos con
+  // comparación estricta, así que en empate gana la fecha importante.
+  type Aviso = { titulo: string; dias: number; tipo: 'fecha' | 'evento'; categoria: string | null };
+  const aviso = (() => {
+    let best: Aviso | null = null;
     fechas.forEach((f) => {
       const d = diasParaFecha(f);
       if (d >= 0 && d <= 14 && (!best || d < best.dias)) {
-        best = { titulo: f.titulo, dias: d };
+        best = { titulo: f.titulo, dias: d, tipo: 'fecha', categoria: null };
       }
     });
-    return best as { titulo: string; dias: number } | null;
+    eventos.forEach((e) => {
+      const d = diasParaEvento(e);
+      if (d >= 0 && d <= 14 && (!best || d < best.dias)) {
+        best = { titulo: e.titulo, dias: d, tipo: 'evento', categoria: e.categoria };
+      }
+    });
+    return best as Aviso | null;
   })();
 
-  const cuenta = proxima
-    ? proxima.dias === 0
+  const cuenta = aviso
+    ? aviso.dias === 0
       ? '¡es hoy! 🎉'
-      : proxima.dias === 1
+      : aviso.dias === 1
         ? 'es mañana'
-        : `faltan ${proxima.dias} días`
+        : `faltan ${aviso.dias} días`
     : '';
 
   return (
@@ -107,12 +152,24 @@ export default function HomePage() {
           <div className="hero-caption">{tiempoJuntos(couple?.aniversario ?? null)}</div>
         </div>
 
-        {proxima && (
+        {aviso && (
           <div id="fecha-aviso">
-            <div className="fecha-aviso-card">
-              <div className="fecha-aviso-emoji">💕</div>
+            <div
+              className="fecha-aviso-card"
+              {...(aviso.tipo === 'evento'
+                ? { onClick: () => router.push('/agenda'), style: { cursor: 'pointer' } }
+                : {})}
+            >
+              {aviso.tipo === 'evento' ? (
+                <div
+                  className="fecha-aviso-icon-box"
+                  dangerouslySetInnerHTML={{ __html: agendaCatById(aviso.categoria).svg }}
+                />
+              ) : (
+                <div className="fecha-aviso-emoji">💕</div>
+              )}
               <div className="fecha-aviso-text">
-                <div className="fecha-aviso-titulo">{proxima.titulo}</div>
+                <div className="fecha-aviso-titulo">{aviso.titulo}</div>
                 <div className="fecha-aviso-cuenta">{cuenta}</div>
               </div>
             </div>

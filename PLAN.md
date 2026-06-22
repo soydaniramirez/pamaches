@@ -154,8 +154,8 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **No-negociables** | `nonnegotiables` | cargarNonego ✅, saveNn ✅, borrarNn ✅ (autor es text: los_dos/dani/alfredo; `tipo` sin usar) |
 | **Cápsula del tiempo** | `timecapsule` | cargarCapsulaTiempo ✅, saveCt ✅, abrirCapsula ✅ (gating fecha/evento), borrarCapsula ✅ |
 | **Tareas/hogar** | `tasks`, `meals`, `super` | cargarTareas ✅, recurrentes ✅, renderMenu ✅, renderSuper ✅ |
-| **Fechas importantes** | `fechas` | cargarFechas ✅, renderAvisoFecha (parcial ✅) |
-| **Agenda** | `agenda` | cargarAgenda ✅, CRUD ✅ (cargarEventosProximos para aviso del home: pendiente) |
+| **Fechas importantes** | `fechas` | cargarFechas ✅, renderAvisoFecha ✅ (fechas + eventos) |
+| **Agenda** | `agenda` | cargarAgenda ✅, CRUD ✅, cargarEventosProximos (aviso del home) ✅ |
 | **Spicy** | `spicy_cartas`, `spicy_retos`, `spicy_termometro`, `spicy_deseos` | cartas ✅, ruleta ✅, termómetro ✅, deseos ✅ (gating seguro) |
 
 ---
@@ -278,23 +278,40 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
    que **no hubo cambio de comportamiento**. `tsc --noEmit` y `next build` limpios, sin
    `any` / `as any` / `@ts-ignore` / `@ts-expect-error`. No se aplicó ninguna migración
    (solo se leyó el esquema).
-9. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
-10. Repaso de completitud del **home** (p. ej. `cargarEventosProximos` para el aviso
-    de agenda en el home, que quedó pendiente).
-11. Resolver los **bugs UTC parqueados** (raros / cápsula / tareas-menú).
+9. ✅ ~~Repaso de completitud del **home**~~ (hecho 2026-06-22). Única pieza que
+   faltaba: `cargarEventosProximos` + su parte en `renderAvisoFecha` (el aviso del
+   home también considera eventos de agenda dentro de 14 días, no solo fechas
+   importantes). Portado 1:1: nuevo `lib/agenda.ts` (AGENDA_CATS / agendaCatById /
+   diasParaEvento, compartido con la pantalla de agenda), el home carga eventos
+   próximos (con el patrón UTC del original — bug parqueado, ver abajo) y los mezcla
+   en el aviso (ícono de categoría + click a /agenda cuando gana un evento), con
+   realtime de `agenda`. El resto del home (notitas, campanita, pregunta de la
+   semana, hero, fecha-aviso de fechas, mini-cards) ya estaba portado; `card-gastos-meta`
+   es estático también en el HTML (no se actualiza por JS).
+10. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
+11. Resolver los **bugs UTC parqueados** (raros / cápsula / tareas-menú / eventos del
+    home) — **inventario entregado 2026-06-22, pendiente de aplicar tras revisión**.
 
 ### Tareas técnicas pendientes (aparte)
 - 🅿️ **Bugs de fecha en UTC (parqueados, NO tocados — son parte del 1:1):**
-  - **raros / semáforo**: `new Date().toISOString().slice(0,10)` usa UTC → en
-    UTC-6 de noche el "hoy" salta al día siguiente.
-  - **cápsula / rotación**: `rotarPreguntaSiToca` calcula `lunesStr` con
-    `toISOString()` (UTC); `activarPregunta` guarda `semana = new Date().toISOString()`
-    (UTC, "ahora") — mismo patrón que el semáforo, susceptible al desfase nocturno.
-  - **tareas/menú**: el lunes de la semana (`inicioSemana().toISOString()` /
-    `lunesISO`) se formatea en UTC (estable para UTC-6 por anclar a medianoche local,
-    pero mismo patrón). `cargarEventosProximos` de agenda (aviso del home, aún sin
-    portar) usa `new Date().toISOString()` = UTC "ahora".
-  - Arreglar todos juntos cuando se decida (usar fecha local consistente).
+  Inventario completo + propuesta de fix: **`FECHAS_UTC_INVENTARIO.md`** (entregado
+  2026-06-22, pendiente de aplicar tras revisión). Resumen:
+  - 🔴 **BUG — raros / semáforo** (`raros/page.tsx` `cargar`): toma "ahora" y lo
+    pasa a fecha UTC (`new Date().toISOString().slice(0,10)`) → de noche en UTC-6
+    "hoy" salta al día siguiente.
+  - 🔴 **BUG — cápsula / activar** (`capsula/page.tsx` `activar`): guarda
+    `semana = new Date().toISOString().slice(0,10)` ("ahora" en UTC). Impacto menor
+    (es una etiqueta), mismo patrón.
+  - 🔴 **BUG — home / eventos próximos** (`page.tsx` `cargarEventos`, portado
+    2026-06-22): `new Date().toISOString().slice(0,10)` para "hoy" y "+15 días" → la
+    ventana se corre un día de noche. Portado a propósito con el bug.
+  - 🟢 **CORRECTO (no es bug, confirmado) — cápsula / rotación** (`capsula.ts`
+    `lunesStr`) y **tareas/menú** (`tareas.ts` `lunesISO`/`inicioSemana`): anclan a la
+    **medianoche local** del lunes antes de `toISOString()`, así que en UTC-6 dan el
+    día correcto. (Corrige el diagnóstico previo que listaba la rotación como
+    sospechosa.)
+  - Arreglar los 🔴 juntos cuando se decida (util `hoyEnMexico()` con
+    `Intl`/`America/Mexico_City`; ver inventario).
 - ✅ ~~**Fix del quirk de settlements**~~ (hecho): balance acumulado (opción A),
   consistente en cualquier mes.
 - ✅ ~~**`expenses_tipo_check` no permite `tipo='ahorro'`**~~ (resuelto 2026-06-22,
