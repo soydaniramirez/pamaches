@@ -123,10 +123,10 @@ next-app/
 | futuro | `/nosotros/futuro` | ✅ Portada (timeline de hitos, metas, abonos, historial mixto) |
 | nonego | `/nosotros/nonego` | ✅ Portada (3 tabs por autor, crear/borrar) |
 | capsulatiempo | `/nosotros/capsulatiempo` | ✅ Portada (sellar/abrir con gating, borrar) |
-| mas | `/mas` | ⬜ Stub |
-| tareas | `/tareas` | ⬜ Stub |
-| agenda | `/agenda` | ⬜ Stub |
-| spicy | `/spicy` | ⬜ Pendiente |
+| mas | `/mas` | ✅ Hub (4 tarjetas) |
+| tareas | `/tareas` | ✅ Portada (tareas + menú + súper, recurrentes) |
+| agenda | `/agenda` | ✅ Portada (eventos, próximos/pasados, CRUD) |
+| spicy | `/spicy` | ⬜ Placeholder (pendiente) |
 | spicy-ruleta | `/spicy/ruleta` | ⬜ Pendiente |
 | spicy-deseos | `/spicy/deseos` | ⬜ Pendiente |
 | spicy-termometro | `/spicy/termometro` | ⬜ Pendiente |
@@ -153,10 +153,10 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Raros (semáforo)** | `moods` (+ ejercicios estáticos) | cargarRaros ✅, ponerSemaforo ✅ (siempre insert), biblioteca + timer ✅ |
 | **No-negociables** | `nonnegotiables` | cargarNonego ✅, saveNn ✅, borrarNn ✅ (autor es text: los_dos/dani/alfredo; `tipo` sin usar) |
 | **Cápsula del tiempo** | `timecapsule` | cargarCapsulaTiempo ✅, saveCt ✅, abrirCapsula ✅ (gating fecha/evento), borrarCapsula ✅ |
-| **Tareas/hogar** | `tasks`, `meals`, `super` | cargarTareas, renderMenu, renderSuper |
+| **Tareas/hogar** | `tasks`, `meals`, `super` | cargarTareas ✅, recurrentes ✅, renderMenu ✅, renderSuper ✅ |
 | **Fechas importantes** | `fechas` | cargarFechas ✅, renderAvisoFecha (parcial ✅) |
-| **Agenda** | `agenda` | cargarAgenda, cargarEventosProximos |
-| **Spicy** | `spicy_deseos`, `spicy_cartas`, `spicy_termometro`, `spicy_retos` | cargarDeseos, cargarCartasSpicy, cargarTermometro |
+| **Agenda** | `agenda` | cargarAgenda ✅, CRUD ✅ (cargarEventosProximos para aviso del home: pendiente) |
+| **Spicy** | `spicy_deseos`, `spicy_cartas`, `spicy_termometro`, `spicy_retos` | cargarDeseos, cargarCartasSpicy, cargarTermometro (pendiente) |
 
 ---
 
@@ -242,6 +242,10 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   con insert, ver el del otro de hoy, novedad en amarillo/rojo) + biblioteca de
   ejercicios (`EJERCICIOS_CATS` verbatim, acordeón) + timer de 20 min. anon = 0
   filas; autenticado solo su pareja.
+- ✅ **Más — tareas + agenda**: hub `/mas` (4 tarjetas); **tareas** (3 sub-tabs:
+  tareas con recurrentes/rotación, menú por bloques y semana, súper) y **agenda**
+  (eventos próximos/pasados con archivo, CRUD, categorías). Placeholder `/spicy`.
+  anon = 0 filas; autenticado solo su pareja.
 - ✅ Stubs navegables para el resto de pantallas.
 - ✅ `npm run build` y `tsc --noEmit` pasan sin errores.
 
@@ -257,7 +261,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
    - ✅ ~~Grupo 3: **raros**~~ (hecho).
    - ✅ ~~Grupo 2: **futuro**~~ (hecho).
    - ✅ ~~Grupo 4: **cápsula de preguntas**~~ (hecho). **→ BLOQUE NOSOTROS COMPLETO.**
-7. Portar **tareas/agenda** (`tasks`, `meals`, `super`, `agenda`) y **spicy**.
+7. ✅ ~~Portar **tareas/agenda**~~ (hecho). Falta **spicy** (4 secciones — ver recon abajo).
 8. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
 9. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
 
@@ -268,6 +272,10 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   - **cápsula / rotación**: `rotarPreguntaSiToca` calcula `lunesStr` con
     `toISOString()` (UTC); `activarPregunta` guarda `semana = new Date().toISOString()`
     (UTC, "ahora") — mismo patrón que el semáforo, susceptible al desfase nocturno.
+  - **tareas/menú**: el lunes de la semana (`inicioSemana().toISOString()` /
+    `lunesISO`) se formatea en UTC (estable para UTC-6 por anclar a medianoche local,
+    pero mismo patrón). `cargarEventosProximos` de agenda (aviso del home, aún sin
+    portar) usa `new Date().toISOString()` = UTC "ahora".
   - Arreglar todos juntos cuando se decida (usar fecha local consistente).
 - ✅ ~~**Fix del quirk de settlements**~~ (hecho): balance acumulado (opción A),
   consistente en cualquier mes.

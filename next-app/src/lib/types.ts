@@ -124,6 +124,49 @@ export interface Settlement {
   creado: string;
 }
 
+export interface Task {
+  id: string;
+  couple_id: string;
+  titulo: string;
+  asignado: string | null;
+  hecha: boolean;
+  semana: string | null;
+  recurrente: boolean;
+  rota: boolean;
+  ultimo_turno: string | null;
+}
+
+export interface Meal {
+  id: string;
+  couple_id: string;
+  bloque: string | null;
+  platillo: string;
+  propuesto_por: string | null;
+  semana: string | null;
+}
+
+export interface SuperItem {
+  id: string;
+  couple_id: string;
+  texto: string;
+  comprado: boolean;
+  autor: string;
+}
+
+export interface AgendaEvent {
+  id: string;
+  couple_id: string;
+  titulo: string;
+  categoria: string;
+  fecha: string;
+  hora: string | null;
+  lugar: string | null;
+  boleto_info: string | null;
+  costo: number | string | null;
+  nota: string | null;
+  autor: string;
+}
+
 export interface Plan {
   id: string;
   couple_id: string;

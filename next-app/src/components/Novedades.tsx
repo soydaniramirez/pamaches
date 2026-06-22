@@ -47,6 +47,12 @@ function destinoToRoute(destino: string | null): string {
       return '/nosotros/capsulatiempo';
     case 'planes':
       return '/planes';
+    case 'spicy':
+    case 'spicy-termometro':
+    case 'spicy-cartas':
+    case 'spicy-ruleta':
+    case 'spicy-deseos':
+      return '/spicy';
     default:
       return '/';
   }
