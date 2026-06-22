@@ -46,17 +46,63 @@ export function esViajeActivo(p: Proyecto, hoy: string = hoyEnMexico()): boolean
 }
 
 /**
- * El viaje activo "principal": si hay varios activos a la vez, el que termina
- * más pronto (fecha_fin asc; desempate por fecha_inicio asc). null si ninguno.
+ * ¿El viaje debe mostrarse en "modo viaje" (tarjeta en el inicio + realce)?
+ * = no archivado Y (destacado manual O activo por fechas). El destacado es un
+ * override para que aparezca aunque aún no empiece (gastos de reservas antes).
+ */
+export function enModoViaje(p: Proyecto, hoy: string = hoyEnMexico()): boolean {
+  if (p.archivado) return false;
+  return p.destacado || esViajeActivo(p, hoy);
+}
+
+/**
+ * Estado del viaje según el momento (en hora de México):
+ * - 'sinfechas': sin fecha_inicio/fecha_fin → solo nombre + gastado/presupuesto.
+ * - 'antes': hoy < fecha_inicio → cuenta regresiva (faltan N días).
+ * - 'durante': fecha_inicio ≤ hoy ≤ fecha_fin → día X de Y.
+ * - 'despues': hoy > fecha_fin → viaje terminado.
+ */
+export type EstadoViaje =
+  | { fase: 'sinfechas' }
+  | { fase: 'antes'; faltan: number }
+  | { fase: 'durante'; x: number; y: number }
+  | { fase: 'despues' };
+
+export function estadoViaje(p: Proyecto, hoy: string = hoyEnMexico()): EstadoViaje {
+  if (!p.fecha_inicio || !p.fecha_fin) return { fase: 'sinfechas' };
+  if (hoy < p.fecha_inicio) return { fase: 'antes', faltan: diasEntreFechas(hoy, p.fecha_inicio) };
+  if (hoy > p.fecha_fin) return { fase: 'despues' };
+  const y = diasEntreFechas(p.fecha_inicio, p.fecha_fin) + 1;
+  let x = diasEntreFechas(p.fecha_inicio, hoy) + 1;
+  if (x < 1) x = 1;
+  if (x > y) x = y;
+  return { fase: 'durante', x, y };
+}
+
+/**
+ * El viaje a mostrar en el inicio si varios califican (destacados o activos).
+ * Orden: por fase (durante > antes > sin fechas > después) y dentro de cada fase:
+ * durante = el que termina más pronto; antes = el que empieza más pronto; después =
+ * el que terminó más reciente; sin fechas = el más nuevo. null si ninguno califica.
  */
 export function viajeActivo(proyectos: Proyecto[], hoy: string = hoyEnMexico()): Proyecto | null {
-  const activos = proyectos.filter((p) => esViajeActivo(p, hoy));
-  if (activos.length === 0) return null;
-  activos.sort((a, b) => {
-    if (a.fecha_fin !== b.fecha_fin) return a.fecha_fin! < b.fecha_fin! ? -1 : 1;
-    return (a.fecha_inicio ?? '') < (b.fecha_inicio ?? '') ? -1 : 1;
+  const candidatos = proyectos.filter((p) => enModoViaje(p, hoy));
+  if (candidatos.length === 0) return null;
+  const rankFase = (p: Proyecto): number => {
+    const e = estadoViaje(p, hoy);
+    return e.fase === 'durante' ? 0 : e.fase === 'antes' ? 1 : e.fase === 'sinfechas' ? 2 : 3;
+  };
+  candidatos.sort((a, b) => {
+    const ra = rankFase(a);
+    const rb = rankFase(b);
+    if (ra !== rb) return ra - rb;
+    const ea = estadoViaje(a, hoy);
+    if (ea.fase === 'durante') return (a.fecha_fin! < b.fecha_fin! ? -1 : a.fecha_fin! > b.fecha_fin! ? 1 : 0); // termina antes
+    if (ea.fase === 'antes') return (a.fecha_inicio! < b.fecha_inicio! ? -1 : a.fecha_inicio! > b.fecha_inicio! ? 1 : 0); // empieza antes
+    if (ea.fase === 'despues') return (a.fecha_fin! > b.fecha_fin! ? -1 : a.fecha_fin! < b.fecha_fin! ? 1 : 0); // terminó más reciente
+    return (b.creado ?? '') < (a.creado ?? '') ? -1 : 1; // sin fechas: más nuevo
   });
-  return activos[0];
+  return candidatos[0];
 }
 
 /**

@@ -13,8 +13,8 @@ import {
   EMOJIS_VIAJE,
   emojiProyecto,
   colorProyecto,
-  esViajeActivo,
-  diaXdeY,
+  enModoViaje,
+  estadoViaje,
 } from '@/lib/proyectos';
 import GastoModal from '@/components/gastos/GastoModal';
 import type {
@@ -335,6 +335,7 @@ function GastosInner() {
       fecha_fin: string | null;
       emoji: string | null;
       color: string | null;
+      destacado: boolean;
     },
     editingId: string | null,
   ) {
@@ -365,6 +366,21 @@ function GastosInner() {
     }
     await cargar();
     toast(p.archivado ? 'proyecto reactivado' : 'proyecto archivado');
+  }
+
+  // destacar/quitar destacado: solo presentación (lo muestra en grande aunque el
+  // viaje no haya empezado). No toca cálculos.
+  async function toggleDestacado(p: Proyecto) {
+    const { error } = await supabase
+      .from('proyectos')
+      .update({ destacado: !p.destacado })
+      .eq('id', p.id);
+    if (error) {
+      toast('no se pudo');
+      return;
+    }
+    await cargar();
+    toast(p.destacado ? 'ya no está destacado' : 'viaje destacado ✨');
   }
 
   async function borrarProyecto(p: Proyecto) {
@@ -597,10 +613,11 @@ function GastosInner() {
                   key={p.id}
                   proyecto={p}
                   total={totalProyecto(p.id)}
-                  activo={esViajeActivo(p)}
+                  activo={enModoViaje(p)}
                   onOpen={() => setProyectoSel(p)}
                   onEdit={() => setProyectoModal({ open: true, editing: p })}
                   onArchive={() => archivarProyecto(p)}
+                  onToggleDestacado={() => toggleDestacado(p)}
                   onDelete={() => borrarProyecto(p)}
                 />
               ))}
@@ -626,6 +643,7 @@ function GastosInner() {
                         onOpen={() => setProyectoSel(p)}
                         onEdit={() => setProyectoModal({ open: true, editing: p })}
                         onArchive={() => archivarProyecto(p)}
+                        onToggleDestacado={() => toggleDestacado(p)}
                         onDelete={() => borrarProyecto(p)}
                       />
                     ))}
@@ -643,29 +661,39 @@ function GastosInner() {
             const p = proyectos.find((x) => x.id === proyectoSel.id) ?? proyectoSel;
             const total = totalProyecto(p.id);
             const presup = p.presupuesto != null ? num(p.presupuesto) : 0;
-            const activo = esViajeActivo(p);
-            const dxy = activo ? diaXdeY(p) : null;
-            const restantes = dxy ? dxy.y - dxy.x : 0;
+            const enModo = enModoViaje(p);
+            const est = estadoViaje(p);
+            const contador =
+              est.fase === 'durante'
+                ? `día ${est.x} de ${est.y}${est.y - est.x > 0 ? ` · quedan ${est.y - est.x} días` : ' · último día'}`
+                : est.fase === 'antes'
+                  ? est.faltan === 0
+                    ? 'empieza hoy'
+                    : est.faltan === 1
+                      ? 'falta 1 día'
+                      : `faltan ${est.faltan} días`
+                  : est.fase === 'despues'
+                    ? 'viaje terminado'
+                    : null;
             return (
               <div>
                 <button className="back-btn" onClick={() => setProyectoSel(null)}>
                   ‹ proyectos
                 </button>
                 <div
-                  className={`cm-card${activo ? ' activo' : ''}`}
+                  className={`cm-card${enModo ? ' activo' : ''}`}
                   style={{ marginTop: 8, ...(p.color ? { background: colorProyecto(p) } : {}) }}
                 >
                   <div className="cm-top">
                     <div className="cm-concepto">
                       {emojiProyecto(p)} {p.nombre}
-                      {activo && <span className="viaje-activo-chip">modo viaje</span>}
+                      {enModo && <span className="viaje-activo-chip">modo viaje</span>}
                     </div>
                     <div className="cm-monto">{fmtDinero(total)}</div>
                   </div>
-                  {activo && dxy && (
+                  {enModo && contador && (
                     <div className="viaje-activo-dia" style={{ marginTop: 4 }}>
-                      día {dxy.x} de {dxy.y}
-                      {restantes > 0 ? ` · quedan ${restantes} días` : ' · último día'}
+                      {contador}
                     </div>
                   )}
                   {presup > 0 && (
@@ -681,6 +709,13 @@ function GastosInner() {
                       </div>
                     </>
                   )}
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ marginTop: 10, width: '100%' }}
+                    onClick={() => toggleDestacado(p)}
+                  >
+                    {p.destacado ? '✨ quitar de destacados' : '✨ destacar este viaje'}
+                  </button>
                 </div>
 
                 <div className="mov-list">
@@ -1011,6 +1046,7 @@ function ProyectoCard({
   onOpen,
   onEdit,
   onArchive,
+  onToggleDestacado,
   onDelete,
 }: {
   proyecto: Proyecto;
@@ -1019,12 +1055,26 @@ function ProyectoCard({
   onOpen: () => void;
   onEdit: () => void;
   onArchive: () => void;
+  onToggleDestacado: () => void;
   onDelete: () => void;
 }) {
   const presup = proyecto.presupuesto != null ? num(proyecto.presupuesto) : 0;
   const pct = presup > 0 ? Math.min(100, (total / presup) * 100) : 0;
   const stop = (e: React.MouseEvent) => e.stopPropagation();
-  const dxy = activo ? diaXdeY(proyecto) : null;
+  const est = estadoViaje(proyecto);
+  const metaContador = !activo
+    ? ''
+    : est.fase === 'durante'
+      ? ` · día ${est.x} de ${est.y}`
+      : est.fase === 'antes'
+        ? est.faltan === 0
+          ? ' · empieza hoy'
+          : est.faltan === 1
+            ? ' · falta 1 día'
+            : ` · faltan ${est.faltan} días`
+        : est.fase === 'despues'
+          ? ' · viaje terminado'
+          : '';
   return (
     <div
       className={`cm-card${activo ? ' activo' : ''}`}
@@ -1038,13 +1088,14 @@ function ProyectoCard({
       <div className="cm-top">
         <div className="cm-concepto">
           {emojiProyecto(proyecto)} {proyecto.nombre}
-          {activo && <span className="viaje-activo-chip">en curso</span>}
+          {activo && <span className="viaje-activo-chip">modo viaje</span>}
         </div>
         <div className="cm-monto">{fmtDinero(total)}</div>
       </div>
       <div className="cm-meta">
         <span className="cm-pill">{proyecto.tipo === 'viaje' ? 'viaje' : 'proyecto'}</span>
-        {activo && dxy ? ` · día ${dxy.x} de ${dxy.y}` : ''}
+        {proyecto.destacado ? ' · ✨ destacado' : ''}
+        {metaContador}
         {proyecto.archivado ? ' · archivado' : ''}
       </div>
       {presup > 0 && (
@@ -1057,6 +1108,13 @@ function ProyectoCard({
             {total >= presup ? ' · presupuesto alcanzado' : ` · quedan ${fmtDinero(presup - total)}`}
           </div>
         </>
+      )}
+      {!proyecto.archivado && (
+        <div className="balance-actions" style={{ marginTop: 10 }} onClick={stop}>
+          <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={onToggleDestacado}>
+            {proyecto.destacado ? '✨ quitar destacado' : '✨ destacar'}
+          </button>
+        </div>
       )}
       <div className="balance-actions" style={{ marginTop: 10 }} onClick={stop}>
         <button className="btn btn-ghost btn-sm" style={{ flex: 1 }} onClick={onEdit}>
@@ -1089,6 +1147,7 @@ function ProyectoModal({
       fecha_fin: string | null;
       emoji: string | null;
       color: string | null;
+      destacado: boolean;
     },
     editingId: string | null,
   ) => void;
@@ -1102,6 +1161,7 @@ function ProyectoModal({
   const [fechaFin, setFechaFin] = useState(editing?.fecha_fin ?? '');
   const [emoji, setEmoji] = useState(editing?.emoji ?? '');
   const [color, setColor] = useState(editing?.color ?? '');
+  const [destacado, setDestacado] = useState(editing?.destacado ?? false);
 
   function submit() {
     if (!nombre.trim()) return;
@@ -1115,6 +1175,7 @@ function ProyectoModal({
         fecha_fin: fechaFin || null,
         emoji: emoji.trim() || null,
         color: color || null,
+        destacado,
       },
       editing?.id ?? null,
     );
@@ -1220,6 +1281,20 @@ function ProyectoModal({
             value={fechaFin}
             onChange={(e) => setFechaFin(e.target.value)}
           />
+        </div>
+        <div className="mfield">
+          <button
+            type="button"
+            className={`chip${destacado ? ' selected' : ''}`}
+            style={{ width: '100%' }}
+            onClick={() => setDestacado((v) => !v)}
+          >
+            {destacado ? '✨ destacado en el inicio' : '✨ destacar este viaje'}
+          </button>
+          <div className="hint" style={{ marginTop: 6 }}>
+            aparece en grande en el inicio aunque el viaje no haya empezado (útil para
+            las reservas de antes).
+          </div>
         </div>
         <div className="modal-actions">
           <button className="btn btn-ghost" onClick={onClose}>

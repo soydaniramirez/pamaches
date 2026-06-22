@@ -8,7 +8,6 @@ import { fechaCorta } from '@/lib/helpers';
 import { crearNovedad } from '@/lib/social';
 import { rotarPreguntaSiToca, NIVELES_CONEXION, CATEGORIAS_PREGUNTA, type Nivel } from '@/lib/capsula';
 import { hoyEnMexico } from '@/lib/fechas';
-import type { Profile } from '@/lib/types';
 
 interface Question {
   id: string;
@@ -19,16 +18,14 @@ interface Question {
   es_actual: boolean | null;
   abierta: boolean | null;
 }
-interface Answer {
-  id: string;
-  question_id: string;
-  autor: string;
-  texto: string;
-  tarde: boolean | null;
-}
 interface ArchivoItem {
   q: Question;
-  answers: { autor: string; texto: string; tarde: boolean | null }[];
+  yoRespondi: boolean;
+  miTexto: string | null;
+  miTarde: boolean;
+  otroRespondio: boolean;
+  otroTexto: string | null; // SOLO presente si yoRespondi (gating del archivo)
+  otroTarde: boolean;
 }
 
 interface NivelInfo {
@@ -65,6 +62,10 @@ export default function CapsulaPage() {
 
   const [respInput, setRespInput] = useState('');
   const [guardando, setGuardando] = useState(false);
+  // "responder tarde" desde el archivo
+  const [tardeQ, setTardeQ] = useState<string | null>(null);
+  const [tardeInput, setTardeInput] = useState('');
+  const [tardeSaving, setTardeSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [catForm, setCatForm] = useState<string | null>(null);
   const [preguntaTexto, setPreguntaTexto] = useState('');
@@ -210,27 +211,68 @@ export default function CapsulaPage() {
       setOtroTarde(false);
     }
 
-    // ---- archivo: preguntas usadas (excluye la actual del fetch de textos) ----
+    // ---- archivo (con MISMO gating que la pregunta viva, por pregunta) ----
+    // preguntas usadas (la actual se salta abajo)
     const { data: respondidas } = await supabase
       .from('questions')
       .select('*')
       .eq('usada', true)
       .order('semana', { ascending: false });
-    let archQ = supabase.from('answers').select('*');
-    if (q) archQ = archQ.neq('question_id', q.id); // no traer respuestas de la pregunta viva (gating)
-    const { data: archAns } = await archQ;
-    const respByQ: Record<string, Answer[]> = {};
-    (archAns ?? []).forEach((r) => {
-      const row = r as unknown as Answer;
-      (respByQ[row.question_id] ??= []).push(row);
+
+    // presencia: quién respondió cada pregunta, SIN texto (seguro, igual que "autores")
+    const { data: presenciaRows } = await supabase.from('answers').select('question_id, autor');
+    const autoresPorQ: Record<string, Set<string>> = {};
+    (presenciaRows ?? []).forEach((r) => {
+      const row = r as { question_id: string; autor: string };
+      (autoresPorQ[row.question_id] ??= new Set()).add(row.autor);
     });
+
+    // mis respuestas (mías, con texto) en todo el archivo
+    const { data: misRows } = await supabase
+      .from('answers')
+      .select('question_id, texto, tarde')
+      .eq('autor', me.id);
+    const miAnsPorQ: Record<string, { texto: string; tarde: boolean | null }> = {};
+    (misRows ?? []).forEach((r) => {
+      const row = r as { question_id: string; texto: string; tarde: boolean | null };
+      miAnsPorQ[row.question_id] = { texto: row.texto, tarde: row.tarde };
+    });
+
+    // el texto del OTRO SOLO para las preguntas (archivadas) que YO respondí.
+    // si no respondí una pregunta, su texto NUNCA se trae al cliente.
+    const misQidsArchivo = Object.keys(miAnsPorQ).filter((qid) => !q || qid !== q.id);
+    const otroAnsPorQ: Record<string, { texto: string; tarde: boolean | null }> = {};
+    if (oId && misQidsArchivo.length > 0) {
+      const { data: otroRows } = await supabase
+        .from('answers')
+        .select('question_id, texto, tarde')
+        .eq('autor', oId)
+        .in('question_id', misQidsArchivo);
+      (otroRows ?? []).forEach((r) => {
+        const row = r as { question_id: string; texto: string; tarde: boolean | null };
+        otroAnsPorQ[row.question_id] = { texto: row.texto, tarde: row.tarde };
+      });
+    }
+
     const items: ArchivoItem[] = [];
     (respondidas ?? []).forEach((qq) => {
       const quest = qq as unknown as Question;
-      if (q && quest.id === q.id) return; // saltar la actual
-      const ans = respByQ[quest.id] ?? [];
-      if (ans.length === 0) return;
-      items.push({ q: quest, answers: ans.map((a) => ({ autor: a.autor, texto: a.texto, tarde: a.tarde })) });
+      if (q && quest.id === q.id) return; // saltar la actual (la viva ya tiene su propio gating)
+      const autores = autoresPorQ[quest.id] ?? new Set<string>();
+      if (autores.size === 0) return; // nadie respondió → no va al archivo
+      const mia = miAnsPorQ[quest.id] ?? null;
+      const yoRespondi = !!mia;
+      const otroRespondio = !!oId && autores.has(oId);
+      const otra = yoRespondi ? otroAnsPorQ[quest.id] ?? null : null; // gating: solo si yo respondí
+      items.push({
+        q: quest,
+        yoRespondi,
+        miTexto: mia?.texto ?? null,
+        miTarde: mia?.tarde === true,
+        otroRespondio,
+        otroTexto: otra?.texto ?? null,
+        otroTarde: otra?.tarde === true,
+      });
     });
     setArchivo(items);
     setCargado(true);
@@ -308,6 +350,42 @@ export default function CapsulaPage() {
       para: otroId(),
       tipo: 'respuesta',
       texto: `${me.nombre} abrió la pregunta de la semana · aún puedes responder`,
+      destino: 'capsula',
+    });
+    await cargar();
+  }
+
+  // responder tarde una pregunta del archivo que no contesté: se guarda tarde=true
+  // y al recargar se desbloquea la del otro (mismo gating: ahora SÍ respondí).
+  async function responderTardeArchivo() {
+    if (!me || !tardeQ) return;
+    const texto = tardeInput.trim();
+    if (!texto) {
+      toast('escribe tu respuesta');
+      return;
+    }
+    setTardeSaving(true);
+    const { error } = await supabase.from('answers').insert({
+      question_id: tardeQ,
+      couple_id: me.couple_id,
+      autor: me.id,
+      texto,
+      tarde: true,
+    });
+    setTardeSaving(false);
+    if (error) {
+      toast('no se pudo guardar');
+      return;
+    }
+    setTardeQ(null);
+    setTardeInput('');
+    toast('respuesta guardada 💕');
+    await crearNovedad(supabase, {
+      coupleId: me.couple_id,
+      autor: me.id,
+      para: otroId(),
+      tipo: 'respuesta',
+      texto: `${me.nombre} respondió tarde una pregunta del archivo`,
       destino: 'capsula',
     });
     await cargar();
@@ -475,22 +553,73 @@ export default function CapsulaPage() {
                   {it.q.semana ? ' · ' + fechaCorta(it.q.semana) : ''}
                 </div>
                 <div className="archivo-answers">
-                  {it.answers.map((a, i) => (
-                    <div className="archivo-ans" key={i}>
-                      <b>{(profiles as Record<string, Profile>)[a.autor]?.nombre ?? 'alguien'}:</b> &quot;{a.texto}
-                      &quot;
-                      {a.tarde && <span className="answer-tarde"> · tarde</span>}
-                    </div>
-                  ))}
-                  {/* si se abrió de todos modos y a alguien le faltó responder */}
-                  {it.q.abierta &&
-                    Object.values(profiles as Record<string, Profile>)
-                      .filter((p) => !it.answers.some((a) => a.autor === p.id))
-                      .map((p) => (
-                        <div className="archivo-ans" key={`falta-${p.id}`}>
-                          <b>{p.nombre}:</b> <span className="answer-tarde">no respondió</span>
+                  {it.yoRespondi ? (
+                    <>
+                      {/* mi respuesta (siempre puedo verla) */}
+                      <div className="archivo-ans">
+                        <b>tú{it.miTarde ? ' (tarde)' : ''}:</b> &quot;{it.miTexto}&quot;
+                      </div>
+                      {/* la del otro: solo se trajo porque YO respondí esta pregunta */}
+                      {it.otroRespondio ? (
+                        <div className="archivo-ans">
+                          <b>{nombreOtro}{it.otroTarde ? ' (tarde)' : ''}:</b> &quot;{it.otroTexto}&quot;
                         </div>
-                      ))}
+                      ) : (
+                        <div className="archivo-ans">
+                          <b>{nombreOtro}:</b> <span className="answer-tarde">no respondió</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* NO respondí esta → la del otro NI se trae NI se muestra */}
+                      <div className="archivo-ans">
+                        <span className="answer-tarde">
+                          no respondiste esta · respóndela para ver la de {nombreOtro}
+                        </span>
+                      </div>
+                      {tardeQ === it.q.id ? (
+                        <div className="answer-mine-box">
+                          <textarea
+                            placeholder="escribe tu respuesta..."
+                            value={tardeInput}
+                            onChange={(e) => setTardeInput(e.target.value)}
+                          />
+                          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                            <button
+                              className="btn btn-ghost btn-sm"
+                              style={{ flex: 1 }}
+                              onClick={() => {
+                                setTardeQ(null);
+                                setTardeInput('');
+                              }}
+                            >
+                              cancelar
+                            </button>
+                            <button
+                              className="btn btn-sm"
+                              style={{ flex: 1 }}
+                              onClick={responderTardeArchivo}
+                              disabled={tardeSaving}
+                            >
+                              {tardeSaving ? <span className="spinner" /> : 'guardar'}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          style={{ marginTop: 6 }}
+                          onClick={() => {
+                            setTardeQ(it.q.id);
+                            setTardeInput('');
+                          }}
+                        >
+                          responder tarde
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             ))

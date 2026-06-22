@@ -664,12 +664,16 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
 .idea-result-actions .btn { margin-top:0; }
 
 .sub-tabs {
-  display:flex; gap:6px; margin-bottom:16px; padding:4px;
+  display:flex; gap:5px; margin-bottom:16px; padding:4px;
   background:var(--crema); border-radius:14px; border:1.5px solid var(--tinta);
+  /* 5 pestañas: si caben llenan la fila; si no, la fila se desliza para alcanzar "viajes" */
+  overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
 }
+.sub-tabs::-webkit-scrollbar { display:none; }
 .sub-tab {
-  flex:1; padding:9px 8px; text-align:center; border-radius:10px;
-  font-family:'Caveat',cursive; font-size:1.05rem; color:var(--tinta-soft);
+  flex:1 0 auto; white-space:nowrap;
+  padding:9px 7px; text-align:center; border-radius:10px;
+  font-family:'Caveat',cursive; font-size:1rem; color:var(--tinta-soft);
   cursor:pointer; border:none; background:none;
 }
 .sub-tab.active { background:var(--vino); color:var(--crema); }

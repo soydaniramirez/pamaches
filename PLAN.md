@@ -146,7 +146,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Novedades** | `novedades` | crearNovedad ✅, revisarNovedades ✅, openNovedades ✅, limpiarNovedades ✅, setAppBadge ✅ |
 | **Gastos** | `expenses`, `categorias`, `subcategorias`, `settlements`, `aporte_config` | cargarGastos ✅, calcularYrenderGastos ✅, cargarSettlements ✅, saveSaldar ✅, saveGasto ✅, resumen ✅ |
 | **Mensualidades** | `compras_meses` (+ cuotas en `expenses`) | cargarComprasMeses ✅, renderMeses ✅, calcularFechaCuota ✅ |
-| **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅, **modo viaje** ✅ (emoji/color, viaje activo, día X de Y, tarjeta en inicio) |
+| **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅, **modo viaje** ✅ (emoji/color, viaje activo, día X de Y, tarjeta en inicio), **destacar manual** ✅ (override + etiqueta adaptativa antes/durante/después) |
 | **Metas/futuro** | `future`, `meta_abonos` (+ lee `expenses` ahorro) | cargarFuturo ✅, ahorradoDe ✅, saveFuturo ✅, saveAbono ✅, historial mixto ✅ |
 | **Planes/citas** | `plans` (los "moods" son const, no tabla) | cargarPlanes ✅, generarIdea ✅, guardarIdeaComoPlan ✅, savePlan ✅, togglePlan ✅ |
 | **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula ✅, rotarPreguntaSiToca ✅ (compartida home+cápsula), guardarRespuesta ✅, gating ✅, nivel ✅, archivo ✅, **"abrir de todos modos"** ✅ (abierta/tarde, sin romper el gate) |
@@ -250,6 +250,16 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
     quien respondió. Demostrado con simulación revertida: con `abierta=true` y alfredo
     sin responder, el gate de su cliente NO trae el texto de dani; cuando alfredo
     responde tarde, ambos ven ambas y la tardía queda marcada. anon = 0.
+  - ✅ **Fix de fuga en el ARCHIVO** (2026-06-22, sin migración): el archivo traía
+    TODAS las respuestas (`answers.select('*')`), así que una pregunta archivada con
+    solo una persona respondida mostraba su texto a la otra (que no respondió). Ahora
+    el archivo aplica el MISMO gating por pregunta: la presencia se consulta sin texto
+    (`question_id, autor`); el texto del OTRO se trae SOLO para los `question_id` que
+    el usuario actual respondió (`.eq('autor', otro).in('question_id', misQids)`); la
+    propia siempre se muestra. Pregunta no respondida → "no respondiste esta ·
+    responder tarde" (al contestar con tarde=true se desbloquea la del otro).
+    Demostrado con simulación revertida: archivada con solo dani → el cliente de
+    alfredo NO trae el texto de dani; tras responder tarde, lo ve y queda tarde=true.
 - ✅ **Nosotros — Grupo 2 (futuro)**: timeline de hitos (`future`: crear/editar/
   logrado/borrar) + metas con barra `ahorrado/meta` donde `ahorrado = Σ meta_abonos
   + Σ expenses(ahorro, meta_id)` + abonos (insert `meta_abonos`, historial mixto,
