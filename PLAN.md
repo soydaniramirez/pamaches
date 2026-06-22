@@ -118,7 +118,7 @@ next-app/
 | perfil | `/perfil` | ✅ Portada (categorías, subcategorías, fechas, cupo) |
 | notitas | `/notitas` | ✅ Portada (buzón + archivadas, reacciones, archivar/borrar, campanita de novedades) |
 | nosotros | `/nosotros` | ✅ Hub (5 tarjetas) |
-| capsula | `/nosotros/capsula` | ⬜ Stub (pendiente — Grupo 4) |
+| capsula | `/nosotros/capsula` | ✅ Portada (pregunta de la semana, gating, nivel de conexión, archivo) |
 | raros | `/nosotros/raros` | ✅ Portada (semáforo diario + biblioteca de ejercicios + timer) |
 | futuro | `/nosotros/futuro` | ✅ Portada (timeline de hitos, metas, abonos, historial mixto) |
 | nonego | `/nosotros/nonego` | ✅ Portada (3 tabs por autor, crear/borrar) |
@@ -149,7 +149,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅ |
 | **Metas/futuro** | `future`, `meta_abonos` (+ lee `expenses` ahorro) | cargarFuturo ✅, ahorradoDe ✅, saveFuturo ✅, saveAbono ✅, historial mixto ✅ |
 | **Planes/citas** | `plans` (los "moods" son const, no tabla) | cargarPlanes ✅, generarIdea ✅, guardarIdeaComoPlan ✅, savePlan ✅, togglePlan ✅ |
-| **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula, rotarPreguntaSiToca, guardarRespuesta |
+| **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula ✅, rotarPreguntaSiToca ✅ (compartida home+cápsula), guardarRespuesta ✅, gating ✅, nivel ✅, archivo ✅ |
 | **Raros (semáforo)** | `moods` (+ ejercicios estáticos) | cargarRaros ✅, ponerSemaforo ✅ (siempre insert), biblioteca + timer ✅ |
 | **No-negociables** | `nonnegotiables` | cargarNonego ✅, saveNn ✅, borrarNn ✅ (autor es text: los_dos/dani/alfredo; `tipo` sin usar) |
 | **Cápsula del tiempo** | `timecapsule` | cargarCapsulaTiempo ✅, saveCt ✅, abrirCapsula ✅ (gating fecha/evento), borrarCapsula ✅ |
@@ -224,6 +224,13 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   (3 tabs por autor, crear/borrar) + **cápsula del tiempo** (sellar/abrir con
   gating fecha-o-evento, borrar). Rutas placeholder para raros/futuro/capsula.
   anon = 0 filas; autenticado solo su pareja.
+- ✅ **Nosotros — Grupo 4 (cápsula de preguntas) → BLOQUE NOSOTROS COMPLETO**:
+  pregunta de la semana con rotación semanal (función `rotarPreguntaSiToca`
+  compartida en `lib/capsula.ts`, reutilizada por home y cápsula — una sola copia);
+  responder con **gating** (la respuesta del otro NO se trae al cliente hasta que
+  ambos respondieron — verificado a nivel de query); nueva pregunta al azar; crear
+  pregunta propia + activarla; archivo con ambas respuestas; nivel de conexión
+  (`NIVELES_CONEXION` verbatim). anon = 0; autenticado solo su pareja.
 - ✅ **Nosotros — Grupo 2 (futuro)**: timeline de hitos (`future`: crear/editar/
   logrado/borrar) + metas con barra `ahorrado/meta` donde `ahorrado = Σ meta_abonos
   + Σ expenses(ahorro, meta_id)` + abonos (insert `meta_abonos`, historial mixto,
@@ -249,13 +256,19 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
    - ✅ ~~Grupo 1: hub + no-negociables + cápsula del tiempo~~ (hecho).
    - ✅ ~~Grupo 3: **raros**~~ (hecho).
    - ✅ ~~Grupo 2: **futuro**~~ (hecho).
-   - **Último de Nosotros → Grupo 4: cápsula de preguntas** (`questions`, `answers`;
-     rotación, reveal, nivel de conexión, archivo — la más compleja).
+   - ✅ ~~Grupo 4: **cápsula de preguntas**~~ (hecho). **→ BLOQUE NOSOTROS COMPLETO.**
 7. Portar **tareas/agenda** (`tasks`, `meals`, `super`, `agenda`) y **spicy**.
 8. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
 9. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
 
 ### Tareas técnicas pendientes (aparte)
+- 🅿️ **Bugs de fecha en UTC (parqueados, NO tocados — son parte del 1:1):**
+  - **raros / semáforo**: `new Date().toISOString().slice(0,10)` usa UTC → en
+    UTC-6 de noche el "hoy" salta al día siguiente.
+  - **cápsula / rotación**: `rotarPreguntaSiToca` calcula `lunesStr` con
+    `toISOString()` (UTC); `activarPregunta` guarda `semana = new Date().toISOString()`
+    (UTC, "ahora") — mismo patrón que el semáforo, susceptible al desfase nocturno.
+  - Arreglar todos juntos cuando se decida (usar fecha local consistente).
 - ✅ ~~**Fix del quirk de settlements**~~ (hecho): balance acumulado (opción A),
   consistente en cualquier mes.
 - ✅ ~~**`expenses_tipo_check` no permite `tipo='ahorro'`**~~ (resuelto 2026-06-22,

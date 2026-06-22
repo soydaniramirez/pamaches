@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAppData } from '@/context/AppData';
 import { fmtFecha, tiempoJuntos, diasParaFecha } from '@/lib/helpers';
+import { rotarPreguntaSiToca } from '@/lib/capsula';
 import NotitasSection from '@/components/NotitasSection';
 import Novedades from '@/components/Novedades';
 
@@ -17,6 +18,8 @@ export default function HomePage() {
   const [pregunta, setPregunta] = useState('cargando...');
 
   const cargarPregunta = useCallback(async () => {
+    // antes de mostrar, revisar si toca rotar (misma función compartida que la cápsula)
+    await rotarPreguntaSiToca(supabase);
     const { data } = await supabase
       .from('questions')
       .select('texto')
