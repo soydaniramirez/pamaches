@@ -4,6 +4,9 @@
 [build]
   base = "next-app"
   command = "next build"
+  # El publish DEBE ser distinto del base (si no, el plugin de Next falla).
+  # Relativo al base → next-app/.next (la salida de next build).
+  publish = ".next"
 
 # El plugin oficial de Next.js compila SSR/middleware y maneja el publish dir.
 [[plugins]]
