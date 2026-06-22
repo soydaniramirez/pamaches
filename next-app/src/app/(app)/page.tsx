@@ -9,6 +9,7 @@ import { useAppData } from '@/context/AppData';
 import { fmtFecha, tiempoJuntos, diasParaFecha } from '@/lib/helpers';
 import { rotarPreguntaSiToca } from '@/lib/capsula';
 import { agendaCatById, diasParaEvento } from '@/lib/agenda';
+import { hoyEnMexico, diaEnMexico } from '@/lib/fechas';
 import type { AgendaEvent } from '@/lib/types';
 import NotitasSection from '@/components/NotitasSection';
 import Novedades from '@/components/Novedades';
@@ -32,13 +33,11 @@ export default function HomePage() {
   }, [supabase]);
 
   // eventos próximos para el aviso del home (porta cargarEventosProximos).
-  // NOTA: usa toISOString() (UTC) para "hoy"/"+15 días", igual que el index.html
-  //   → bug UTC parqueado (ver PLAN.md, inventario de fechas). Portado 1:1 a propósito.
+  // "hoy" y "+15 días" se interpretan en la zona de la pareja (México), no en UTC
+  //   ni en la del dispositivo (ver lib/fechas.ts e inventario UTC).
   const cargarEventos = useCallback(async () => {
-    const hoy = new Date().toISOString().slice(0, 10);
-    const en15 = new Date();
-    en15.setDate(en15.getDate() + 15);
-    const en15Str = en15.toISOString().slice(0, 10);
+    const hoy = hoyEnMexico();
+    const en15Str = diaEnMexico(15);
     const { data } = await supabase
       .from('agenda')
       .select('*')

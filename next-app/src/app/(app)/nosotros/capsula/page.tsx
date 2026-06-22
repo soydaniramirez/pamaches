@@ -7,6 +7,7 @@ import { useAppData } from '@/context/AppData';
 import { fechaCorta } from '@/lib/helpers';
 import { crearNovedad } from '@/lib/social';
 import { rotarPreguntaSiToca, NIVELES_CONEXION, CATEGORIAS_PREGUNTA, type Nivel } from '@/lib/capsula';
+import { hoyEnMexico } from '@/lib/fechas';
 import type { Profile } from '@/lib/types';
 
 interface Question {
@@ -83,7 +84,7 @@ export default function CapsulaPage() {
       }
       await supabase
         .from('questions')
-        .update({ es_actual: true, usada: true, semana: new Date().toISOString().slice(0, 10) })
+        .update({ es_actual: true, usada: true, semana: hoyEnMexico() })
         .eq('id', qId);
     },
     [supabase],

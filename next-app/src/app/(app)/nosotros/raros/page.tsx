@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAppData } from '@/context/AppData';
 import { crearNovedad } from '@/lib/social';
 import { EJERCICIOS_CATS } from '@/lib/raros';
+import { hoyEnMexico } from '@/lib/fechas';
 
 type Estado = 'verde' | 'amarillo' | 'rojo';
 
@@ -94,7 +95,7 @@ export default function RarosPage() {
   const [openEj, setOpenEj] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
-    const hoy = new Date().toISOString().slice(0, 10);
+    const hoy = hoyEnMexico();
     const { data } = await supabase
       .from('moods')
       .select('*')

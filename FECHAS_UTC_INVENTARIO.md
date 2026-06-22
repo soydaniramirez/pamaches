@@ -1,6 +1,8 @@
 # Inventario de fechas sensibles a zona horaria (bug UTC)
 
-> Estado: **inventario entregado, fix NO aplicado** (esperando revisión).
+> Estado: **fix APLICADO 2026-06-22** (los 3 bugs 🔴) vía `lib/fechas.ts`
+> (`hoyEnMexico()` / `diaEnMexico(n)`, zona `America/Mexico_City`). Los 🟢 se
+> dejaron idénticos. Ver PLAN.md.
 > Usuario en **México, UTC-6** (sin horario de verano en la mayor parte del país
 > desde 2022). Fecha de este inventario: 2026-06-22.
 

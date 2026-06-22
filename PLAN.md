@@ -293,25 +293,21 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
     home) — **inventario entregado 2026-06-22, pendiente de aplicar tras revisión**.
 
 ### Tareas técnicas pendientes (aparte)
-- 🅿️ **Bugs de fecha en UTC (parqueados, NO tocados — son parte del 1:1):**
-  Inventario completo + propuesta de fix: **`FECHAS_UTC_INVENTARIO.md`** (entregado
-  2026-06-22, pendiente de aplicar tras revisión). Resumen:
-  - 🔴 **BUG — raros / semáforo** (`raros/page.tsx` `cargar`): toma "ahora" y lo
-    pasa a fecha UTC (`new Date().toISOString().slice(0,10)`) → de noche en UTC-6
-    "hoy" salta al día siguiente.
-  - 🔴 **BUG — cápsula / activar** (`capsula/page.tsx` `activar`): guarda
-    `semana = new Date().toISOString().slice(0,10)` ("ahora" en UTC). Impacto menor
-    (es una etiqueta), mismo patrón.
-  - 🔴 **BUG — home / eventos próximos** (`page.tsx` `cargarEventos`, portado
-    2026-06-22): `new Date().toISOString().slice(0,10)` para "hoy" y "+15 días" → la
-    ventana se corre un día de noche. Portado a propósito con el bug.
-  - 🟢 **CORRECTO (no es bug, confirmado) — cápsula / rotación** (`capsula.ts`
-    `lunesStr`) y **tareas/menú** (`tareas.ts` `lunesISO`/`inicioSemana`): anclan a la
-    **medianoche local** del lunes antes de `toISOString()`, así que en UTC-6 dan el
-    día correcto. (Corrige el diagnóstico previo que listaba la rotación como
-    sospechosa.)
-  - Arreglar los 🔴 juntos cuando se decida (util `hoyEnMexico()` con
-    `Intl`/`America/Mexico_City`; ver inventario).
+- ✅ ~~**Bugs de fecha en UTC**~~ (resuelto 2026-06-22). Util `lib/fechas.ts`
+  (`hoyEnMexico()` / `diaEnMexico(n)`) que interpreta "hoy/ahora" en la zona de la
+  **pareja** (`Intl.DateTimeFormat` + `America/Mexico_City`, NO la del dispositivo).
+  Aplicado SOLO en los 3 sitios del inventario:
+  - 🔴→✅ **raros / semáforo** (`raros/page.tsx` `cargar`): `hoy = hoyEnMexico()`.
+  - 🔴→✅ **cápsula / activar** (`capsula/page.tsx` `activar`): `semana = hoyEnMexico()`.
+  - 🔴→✅ **home / eventos próximos** (`page.tsx` `cargarEventos`): `hoy = hoyEnMexico()`,
+    `+15d = diaEnMexico(15)` (se respetó la inclusividad `.gte`/`.lte`).
+  Los sitios 🟢 (rotación de cápsula `lunesStr`, `lunesISO`/`inicioSemana` de tareas,
+  `calcularFechaCuota`/cuotas de gastos, `diasParaFecha`/`diasParaEvento`,
+  `GastoModal.hoyISO`, termómetro `Date.now()−12h`) se dejaron **idénticos** (anclan a
+  medianoche local o usan instante absoluto → ya correctos en UTC-6). Demostrado el
+  caso nocturno (23:30 MX = 05:30 UTC → la util da el día de México, no el de UTC) y
+  que de día el resultado no cambia. Inventario: `FECHAS_UTC_INVENTARIO.md`.
+  tsc + build OK; RLS de `moods`/`agenda`: anon = 0, autenticado solo su pareja.
 - ✅ ~~**Fix del quirk de settlements**~~ (hecho): balance acumulado (opción A),
   consistente en cualquier mes.
 - ✅ ~~**`expenses_tipo_check` no permite `tipo='ahorro'`**~~ (resuelto 2026-06-22,
