@@ -1,0 +1,10 @@
+# Configuración de build/deploy de Netlify.
+# La app Next.js vive en la subcarpeta next-app/. Sin esto, Netlify publicaba la
+# raíz del repo (servía el index.html original) y nunca compilaba la app.
+[build]
+  base = "next-app"
+  command = "next build"
+
+# El plugin oficial de Next.js compila SSR/middleware y maneja el publish dir.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
