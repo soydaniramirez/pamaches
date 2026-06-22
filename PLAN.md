@@ -126,11 +126,11 @@ next-app/
 | mas | `/mas` | ✅ Hub (4 tarjetas) |
 | tareas | `/tareas` | ✅ Portada (tareas + menú + súper, recurrentes) |
 | agenda | `/agenda` | ✅ Portada (eventos, próximos/pasados, CRUD) |
-| spicy | `/spicy` | ⬜ Placeholder (pendiente) |
-| spicy-ruleta | `/spicy/ruleta` | ⬜ Pendiente |
-| spicy-deseos | `/spicy/deseos` | ⬜ Pendiente |
-| spicy-termometro | `/spicy/termometro` | ⬜ Pendiente |
-| spicy-cartas | `/spicy/cartas` | ⬜ Pendiente |
+| spicy | `/spicy` | ✅ Hub (4 tarjetas) |
+| spicy-ruleta | `/spicy/ruleta` | ✅ Portada (lista compartida + giro al azar) |
+| spicy-deseos | `/spicy/deseos` | ⬜ Placeholder (pendiente — gating a ciegas) |
+| spicy-termometro | `/spicy/termometro` | ✅ Portada (ventana 12h + aviso) |
+| spicy-cartas | `/spicy/cartas` | ✅ Portada (molde de notitas) |
 
 ---
 
@@ -156,7 +156,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Tareas/hogar** | `tasks`, `meals`, `super` | cargarTareas ✅, recurrentes ✅, renderMenu ✅, renderSuper ✅ |
 | **Fechas importantes** | `fechas` | cargarFechas ✅, renderAvisoFecha (parcial ✅) |
 | **Agenda** | `agenda` | cargarAgenda ✅, CRUD ✅ (cargarEventosProximos para aviso del home: pendiente) |
-| **Spicy** | `spicy_deseos`, `spicy_cartas`, `spicy_termometro`, `spicy_retos` | cargarDeseos, cargarCartasSpicy, cargarTermometro (pendiente) |
+| **Spicy** | `spicy_cartas`, `spicy_retos`, `spicy_termometro` ✅ · `spicy_deseos` (pendiente) | cartas ✅, ruleta ✅, termómetro ✅; deseos (gating) pendiente |
 
 ---
 
@@ -246,6 +246,10 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   tareas con recurrentes/rotación, menú por bloques y semana, súper) y **agenda**
   (eventos próximos/pasados con archivo, CRUD, categorías). Placeholder `/spicy`.
   anon = 0 filas; autenticado solo su pareja.
+- ✅ **Spicy — hub + cartas + ruleta + termómetro**: hub `/spicy` (4 tarjetas);
+  cartas (molde de notitas), ruleta de retos (lista compartida + giro al azar),
+  termómetro de ganas (ventana 12h absoluta + novedad). Placeholder `/spicy/deseos`.
+  anon = 0 filas; autenticado solo su pareja.
 - ✅ Stubs navegables para el resto de pantallas.
 - ✅ `npm run build` y `tsc --noEmit` pasan sin errores.
 
@@ -261,7 +265,8 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
    - ✅ ~~Grupo 3: **raros**~~ (hecho).
    - ✅ ~~Grupo 2: **futuro**~~ (hecho).
    - ✅ ~~Grupo 4: **cápsula de preguntas**~~ (hecho). **→ BLOQUE NOSOTROS COMPLETO.**
-7. ✅ ~~Portar **tareas/agenda**~~ (hecho). Falta **spicy** (4 secciones — ver recon abajo).
+7. ✅ ~~Portar **tareas/agenda**~~ (hecho). **Spicy**: hub + cartas + ruleta +
+   termómetro ✅; falta **deseos** (aparte, por su gating a ciegas).
 8. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
 9. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
 

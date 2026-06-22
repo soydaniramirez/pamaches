@@ -48,11 +48,15 @@ function destinoToRoute(destino: string | null): string {
     case 'planes':
       return '/planes';
     case 'spicy':
-    case 'spicy-termometro':
-    case 'spicy-cartas':
-    case 'spicy-ruleta':
-    case 'spicy-deseos':
       return '/spicy';
+    case 'spicy-termometro':
+      return '/spicy/termometro';
+    case 'spicy-cartas':
+      return '/spicy/cartas';
+    case 'spicy-ruleta':
+      return '/spicy/ruleta';
+    case 'spicy-deseos':
+      return '/spicy/deseos';
     default:
       return '/';
   }
