@@ -149,7 +149,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅, **modo viaje** ✅ (emoji/color, viaje activo, día X de Y, tarjeta en inicio) |
 | **Metas/futuro** | `future`, `meta_abonos` (+ lee `expenses` ahorro) | cargarFuturo ✅, ahorradoDe ✅, saveFuturo ✅, saveAbono ✅, historial mixto ✅ |
 | **Planes/citas** | `plans` (los "moods" son const, no tabla) | cargarPlanes ✅, generarIdea ✅, guardarIdeaComoPlan ✅, savePlan ✅, togglePlan ✅ |
-| **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula ✅, rotarPreguntaSiToca ✅ (compartida home+cápsula), guardarRespuesta ✅, gating ✅, nivel ✅, archivo ✅ |
+| **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula ✅, rotarPreguntaSiToca ✅ (compartida home+cápsula), guardarRespuesta ✅, gating ✅, nivel ✅, archivo ✅, **"abrir de todos modos"** ✅ (abierta/tarde, sin romper el gate) |
 | **Raros (semáforo)** | `moods` (+ ejercicios estáticos) | cargarRaros ✅, ponerSemaforo ✅ (siempre insert), biblioteca + timer ✅ |
 | **No-negociables** | `nonnegotiables` | cargarNonego ✅, saveNn ✅, borrarNn ✅ (autor es text: los_dos/dani/alfredo; `tipo` sin usar) |
 | **Cápsula del tiempo** | `timecapsule` | cargarCapsulaTiempo ✅, saveCt ✅, abrirCapsula ✅ (gating fecha/evento), borrarCapsula ✅ |
@@ -240,6 +240,16 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   ambos respondieron — verificado a nivel de query); nueva pregunta al azar; crear
   pregunta propia + activarla; archivo con ambas respuestas; nivel de conexión
   (`NIVELES_CONEXION` verbatim). anon = 0; autenticado solo su pareja.
+  - ✅ **"abrir de todos modos"** (mejora 2026-06-22): migración
+    `capsula_abrir_de_todos_modos` (`questions.abierta`, `answers.tarde`, ambas con
+    default false). Quien YA respondió puede abrir la pregunta aunque el otro no haya
+    respondido: en SU vista se revela su respuesta + "el otro no alcanzó a responder",
+    y si el otro responde después queda etiquetado "tarde". **La privacidad NO se
+    toca:** el texto del otro solo se consulta si el usuario actual ya respondió
+    (`miTexto && otroResp`); `abierta` NUNCA es un atajo. El botón solo aparece para
+    quien respondió. Demostrado con simulación revertida: con `abierta=true` y alfredo
+    sin responder, el gate de su cliente NO trae el texto de dani; cuando alfredo
+    responde tarde, ambos ven ambas y la tardía queda marcada. anon = 0.
 - ✅ **Nosotros — Grupo 2 (futuro)**: timeline de hitos (`future`: crear/editar/
   logrado/borrar) + metas con barra `ahorrado/meta` donde `ahorrado = Σ meta_abonos
   + Σ expenses(ahorro, meta_id)` + abonos (insert `meta_abonos`, historial mixto,

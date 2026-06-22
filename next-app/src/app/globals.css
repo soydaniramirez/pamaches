@@ -1223,6 +1223,9 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
 .resumen-sub { font-size: 0.85rem; color: var(--tinta-soft); margin-top: 2px; }
 .hint { font-size: 0.85rem; color: var(--tinta-soft); line-height: 1.4; }
 
+/* etiqueta "tarde" / "no respondió" en la cápsula */
+.answer-tarde { font-family: 'Manrope', sans-serif; font-size: 0.72rem; font-style: italic; color: var(--tinta-soft); }
+
 /* ============ MODO VIAJE ============ */
 /* tarjeta de viaje activo en el inicio (color de fondo = color del viaje) */
 .viaje-activo-card {
