@@ -1222,3 +1222,50 @@ input[type="date"].input::-webkit-calendar-picker-indicator {
 .resumen-monto { font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 2rem; color: var(--vino); line-height: 1.1; }
 .resumen-sub { font-size: 0.85rem; color: var(--tinta-soft); margin-top: 2px; }
 .hint { font-size: 0.85rem; color: var(--tinta-soft); line-height: 1.4; }
+
+/* etiqueta "tarde" / "no respondió" en la cápsula */
+.answer-tarde { font-family: 'Manrope', sans-serif; font-size: 0.72rem; font-style: italic; color: var(--tinta-soft); }
+
+/* ============ MODO VIAJE ============ */
+/* tarjeta de viaje activo en el inicio (color de fondo = color del viaje) */
+.viaje-activo-card {
+  margin: 8px 0 18px; border: 2px solid var(--tinta); border-radius: 22px;
+  padding: 16px 18px; box-shadow: 3px 4px 0 var(--tinta); cursor: pointer;
+  transform: rotate(-0.4deg);
+}
+.viaje-activo-top { display: flex; align-items: center; gap: 14px; }
+.viaje-activo-emoji { font-size: 2.4rem; line-height: 1; flex-shrink: 0; }
+.viaje-activo-info { flex: 1; min-width: 0; }
+.viaje-activo-label {
+  font-family: 'Caveat', cursive; font-size: 1.05rem; color: var(--tinta-soft);
+  text-transform: lowercase;
+}
+.viaje-activo-nombre {
+  font-family: 'Fraunces', serif; font-style: italic; font-weight: 600;
+  font-size: 1.45rem; color: var(--tinta); line-height: 1.1;
+}
+.viaje-activo-dia {
+  font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 0.85rem;
+  color: var(--vino); margin-top: 2px;
+}
+
+/* personalización de emoji/color en el modal de proyecto */
+.emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; }
+.emoji-cell {
+  font-size: 1.3rem; padding: 6px 0; border: 1.5px solid transparent; border-radius: 10px;
+  background: var(--crema-deep); cursor: pointer; line-height: 1;
+}
+.emoji-cell.selected { border-color: var(--tinta); background: var(--rosa-soft); }
+.color-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.color-dot {
+  width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--tinta);
+  cursor: pointer; padding: 0;
+}
+.color-dot.selected { box-shadow: 0 0 0 3px var(--crema), 0 0 0 5px var(--tinta); }
+/* realce del proyecto activo en la lista de viajes */
+.cm-card.activo { border-color: var(--vino); box-shadow: 3px 4px 0 var(--vino); }
+.viaje-activo-chip {
+  display: inline-block; font-family: 'Manrope', sans-serif; font-weight: 600;
+  font-size: 0.7rem; color: var(--crema); background: var(--vino);
+  border-radius: 8px; padding: 2px 8px; margin-left: 6px;
+}

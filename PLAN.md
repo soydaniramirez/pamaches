@@ -146,10 +146,10 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Novedades** | `novedades` | crearNovedad ✅, revisarNovedades ✅, openNovedades ✅, limpiarNovedades ✅, setAppBadge ✅ |
 | **Gastos** | `expenses`, `categorias`, `subcategorias`, `settlements`, `aporte_config` | cargarGastos ✅, calcularYrenderGastos ✅, cargarSettlements ✅, saveSaldar ✅, saveGasto ✅, resumen ✅ |
 | **Mensualidades** | `compras_meses` (+ cuotas en `expenses`) | cargarComprasMeses ✅, renderMeses ✅, calcularFechaCuota ✅ |
-| **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅ |
+| **Viajes/proyectos** (pasada 2, nuevo) | `proyectos` (+ `expenses.proyecto_id`) | CRUD proyectos ✅, total por proyecto ✅, selector en modal ✅, **modo viaje** ✅ (emoji/color, viaje activo, día X de Y, tarjeta en inicio) |
 | **Metas/futuro** | `future`, `meta_abonos` (+ lee `expenses` ahorro) | cargarFuturo ✅, ahorradoDe ✅, saveFuturo ✅, saveAbono ✅, historial mixto ✅ |
 | **Planes/citas** | `plans` (los "moods" son const, no tabla) | cargarPlanes ✅, generarIdea ✅, guardarIdeaComoPlan ✅, savePlan ✅, togglePlan ✅ |
-| **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula ✅, rotarPreguntaSiToca ✅ (compartida home+cápsula), guardarRespuesta ✅, gating ✅, nivel ✅, archivo ✅ |
+| **Cápsula (preguntas)** | `questions`, `answers` | cargarCapsula ✅, rotarPreguntaSiToca ✅ (compartida home+cápsula), guardarRespuesta ✅, gating ✅, nivel ✅, archivo ✅, **"abrir de todos modos"** ✅ (abierta/tarde, sin romper el gate) |
 | **Raros (semáforo)** | `moods` (+ ejercicios estáticos) | cargarRaros ✅, ponerSemaforo ✅ (siempre insert), biblioteca + timer ✅ |
 | **No-negociables** | `nonnegotiables` | cargarNonego ✅, saveNn ✅, borrarNn ✅ (autor es text: los_dos/dani/alfredo; `tipo` sin usar) |
 | **Cápsula del tiempo** | `timecapsule` | cargarCapsulaTiempo ✅, saveCt ✅, abrirCapsula ✅ (gating fecha/evento), borrarCapsula ✅ |
@@ -201,6 +201,15 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
     (no en "a meses"). RLS de `proyectos` couple-scoped (FOR ALL TO authenticated).
   - Verificado: anon = 0 filas, autenticado solo ve su pareja; paridad intacta
     (proyecto_id null en todos los gastos → totales/balance/meses sin cambios).
+  - ✅ **Modo viaje** (mejora 2026-06-22, aditiva/cosmética): migración
+    `add_proyectos_emoji_color` (emoji/color nullable). Util `lib/proyectos.ts`
+    (viaje activo, día X de Y, presets emoji/color) usando `hoyEnMexico()` (NO UTC).
+    Tarjeta de viaje activo en el inicio (emoji/color, día X de Y, gastado vs
+    presupuesto, tap → detalle vía `/gastos?proyecto=<id>`), realce "modo viaje" en
+    el detalle, emoji/color en lista y selector del modal, pickers en el modal de
+    proyecto. Si hay varios activos, gana el que termina más pronto. **Paridad
+    financiera intacta** (aporte 14 544/falta 456, compartido 7 287, saldo +1 190,
+    re-verificada contra la BD). advisor sin warnings nuevos.
   - ✅ Fix del *quirk* de settlements: el balance pasó a **acumulado** (toda la
     historia de compartidos − todos los settlements), mostrado igual en cualquier
     mes; el selector de mes solo filtra la lista de movimientos. Adiós saldo fantasma.
@@ -231,6 +240,16 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   ambos respondieron — verificado a nivel de query); nueva pregunta al azar; crear
   pregunta propia + activarla; archivo con ambas respuestas; nivel de conexión
   (`NIVELES_CONEXION` verbatim). anon = 0; autenticado solo su pareja.
+  - ✅ **"abrir de todos modos"** (mejora 2026-06-22): migración
+    `capsula_abrir_de_todos_modos` (`questions.abierta`, `answers.tarde`, ambas con
+    default false). Quien YA respondió puede abrir la pregunta aunque el otro no haya
+    respondido: en SU vista se revela su respuesta + "el otro no alcanzó a responder",
+    y si el otro responde después queda etiquetado "tarde". **La privacidad NO se
+    toca:** el texto del otro solo se consulta si el usuario actual ya respondió
+    (`miTexto && otroResp`); `abierta` NUNCA es un atajo. El botón solo aparece para
+    quien respondió. Demostrado con simulación revertida: con `abierta=true` y alfredo
+    sin responder, el gate de su cliente NO trae el texto de dani; cuando alfredo
+    responde tarde, ambos ven ambas y la tardía queda marcada. anon = 0.
 - ✅ **Nosotros — Grupo 2 (futuro)**: timeline de hitos (`future`: crear/editar/
   logrado/borrar) + metas con barra `ahorrado/meta` donde `ahorrado = Σ meta_abonos
   + Σ expenses(ahorro, meta_id)` + abonos (insert `meta_abonos`, historial mixto,

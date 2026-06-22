@@ -17,16 +17,18 @@ interface Question {
   semana: string | null;
   usada: boolean | null;
   es_actual: boolean | null;
+  abierta: boolean | null;
 }
 interface Answer {
   id: string;
   question_id: string;
   autor: string;
   texto: string;
+  tarde: boolean | null;
 }
 interface ArchivoItem {
   q: Question;
-  answers: { autor: string; texto: string }[];
+  answers: { autor: string; texto: string; tarde: boolean | null }[];
 }
 
 interface NivelInfo {
@@ -54,8 +56,10 @@ export default function CapsulaPage() {
   const [nivel, setNivel] = useState<NivelInfo | null>(null);
   const [pregunta, setPregunta] = useState<Question | null>(null);
   const [miRespuesta, setMiRespuesta] = useState<string | null>(null);
+  const [miTarde, setMiTarde] = useState(false);
   const [otroRespondio, setOtroRespondio] = useState(false);
-  const [otroTexto, setOtroTexto] = useState<string | null>(null); // solo si ambos respondieron
+  const [otroTexto, setOtroTexto] = useState<string | null>(null); // solo si YO ya respondí
+  const [otroTarde, setOtroTarde] = useState(false);
   const [archivo, setArchivo] = useState<ArchivoItem[]>([]);
   const [cargado, setCargado] = useState(false);
 
@@ -166,37 +170,44 @@ export default function CapsulaPage() {
     setPregunta(q);
 
     if (q) {
-      // mi respuesta (mía, sí la traigo)
+      // mi respuesta (mía, sí la traigo) — con su flag "tarde"
       const { data: mia } = await supabase
         .from('answers')
-        .select('texto')
+        .select('texto, tarde')
         .eq('question_id', q.id)
         .eq('autor', me.id)
         .maybeSingle();
       const miTexto = mia ? (mia as { texto: string }).texto : null;
       setMiRespuesta(miTexto);
+      setMiTarde(!!mia && (mia as { tarde: boolean | null }).tarde === true);
 
       // ¿quién respondió? solo autores, SIN texto
       const { data: autores } = await supabase.from('answers').select('autor').eq('question_id', q.id);
       const otroResp = !!oId && (autores ?? []).some((a) => (a as { autor: string }).autor === oId);
       setOtroRespondio(otroResp);
 
-      // texto del otro: SOLO si ambos respondieron
+      // texto del otro: SOLO si YO ya respondí (y el otro respondió). El flag
+      // `abierta` NO entra aquí: nunca es un atajo para ver el texto del otro.
+      // Si no respondí, este fetch no ocurre y su texto jamás llega al cliente.
       if (miTexto && otroResp && oId) {
         const { data: otra } = await supabase
           .from('answers')
-          .select('texto')
+          .select('texto, tarde')
           .eq('question_id', q.id)
           .eq('autor', oId)
           .maybeSingle();
         setOtroTexto(otra ? (otra as { texto: string }).texto : null);
+        setOtroTarde(!!otra && (otra as { tarde: boolean | null }).tarde === true);
       } else {
         setOtroTexto(null);
+        setOtroTarde(false);
       }
     } else {
       setMiRespuesta(null);
+      setMiTarde(false);
       setOtroRespondio(false);
       setOtroTexto(null);
+      setOtroTarde(false);
     }
 
     // ---- archivo: preguntas usadas (excluye la actual del fetch de textos) ----
@@ -219,7 +230,7 @@ export default function CapsulaPage() {
       if (q && quest.id === q.id) return; // saltar la actual
       const ans = respByQ[quest.id] ?? [];
       if (ans.length === 0) return;
-      items.push({ q: quest, answers: ans.map((a) => ({ autor: a.autor, texto: a.texto })) });
+      items.push({ q: quest, answers: ans.map((a) => ({ autor: a.autor, texto: a.texto, tarde: a.tarde })) });
     });
     setArchivo(items);
     setCargado(true);
@@ -245,11 +256,13 @@ export default function CapsulaPage() {
       return;
     }
     setGuardando(true);
+    // si la pregunta YA estaba abierta de todos modos, esta respuesta es tardía.
     const { error } = await supabase.from('answers').insert({
       question_id: pregunta.id,
       couple_id: me.couple_id,
       autor: me.id,
       texto,
+      tarde: pregunta.abierta === true,
     });
     setGuardando(false);
     if (error) {
@@ -272,6 +285,32 @@ export default function CapsulaPage() {
   async function otraPregunta() {
     const ok = await activarRandomNoUsada(false);
     if (ok) await cargar();
+  }
+
+  // "abrir de todos modos": solo para quien YA respondió. Marca la pregunta como
+  // abierta=true (lo que revela, EN MI vista, que el otro no alcanzó a responder, y
+  // etiqueta como "tarde" su respuesta si llega después). NO trae el texto del otro
+  // ni cambia nada para quien no ha respondido: su candado sigue cerrado.
+  async function abrirDeTodosModos() {
+    if (!me || !pregunta || !miRespuesta) return; // guardia: solo quien respondió
+    const { error } = await supabase
+      .from('questions')
+      .update({ abierta: true })
+      .eq('id', pregunta.id);
+    if (error) {
+      toast('no se pudo abrir');
+      return;
+    }
+    toast('pregunta abierta · ya puedes ver el resultado');
+    await crearNovedad(supabase, {
+      coupleId: me.couple_id,
+      autor: me.id,
+      para: otroId(),
+      tipo: 'respuesta',
+      texto: `${me.nombre} abrió la pregunta de la semana · aún puedes responder`,
+      destino: 'capsula',
+    });
+    await cargar();
   }
 
   async function savePregunta() {
@@ -351,7 +390,7 @@ export default function CapsulaPage() {
                 {/* mi respuesta */}
                 {miRespuesta ? (
                   <div className="answer-block">
-                    <div className="answer-author">tú respondiste:</div>
+                    <div className="answer-author">tú respondiste{miTarde ? ' (tarde)' : ''}:</div>
                     <div className="answer-text">&quot;{miRespuesta}&quot;</div>
                   </div>
                 ) : (
@@ -374,19 +413,39 @@ export default function CapsulaPage() {
                     </div>
                   </div>
                 )}
-                {/* respuesta del otro (con gating) */}
+                {/* respuesta del otro (con gating: el texto SOLO llega si yo respondí) */}
                 <div className="answer-block">
                   <div className="answer-author">{nombreOtro}:</div>
                   {otroRespondio ? (
                     miRespuesta ? (
-                      <div className="answer-text">&quot;{otroTexto}&quot;</div>
+                      <div className="answer-text">
+                        &quot;{otroTexto}&quot;
+                        {otroTarde && <span className="answer-tarde"> · respondió tarde</span>}
+                      </div>
+                    ) : pregunta.abierta ? (
+                      <div className="answer-hidden">
+                        {nombreOtro} ya respondió y abrió la pregunta · responde tú para revelarla
+                      </div>
                     ) : (
                       <div className="answer-hidden">{nombreOtro} ya respondió · responde tú para revelar</div>
                     )
+                  ) : miRespuesta && pregunta.abierta ? (
+                    <div className="answer-hidden">{nombreOtro} no alcanzó a responder</div>
                   ) : (
                     <div className="answer-hidden">{nombreOtro} aún no responde</div>
                   )}
                 </div>
+
+                {/* abrir de todos modos: SOLO si yo respondí, el otro no, y no está abierta */}
+                {miRespuesta && !otroRespondio && !pregunta.abierta && (
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    style={{ marginTop: 10, width: '100%' }}
+                    onClick={abrirDeTodosModos}
+                  >
+                    abrir de todos modos
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -420,8 +479,18 @@ export default function CapsulaPage() {
                     <div className="archivo-ans" key={i}>
                       <b>{(profiles as Record<string, Profile>)[a.autor]?.nombre ?? 'alguien'}:</b> &quot;{a.texto}
                       &quot;
+                      {a.tarde && <span className="answer-tarde"> · tarde</span>}
                     </div>
                   ))}
+                  {/* si se abrió de todos modos y a alguien le faltó responder */}
+                  {it.q.abierta &&
+                    Object.values(profiles as Record<string, Profile>)
+                      .filter((p) => !it.answers.some((a) => a.autor === p.id))
+                      .map((p) => (
+                        <div className="archivo-ans" key={`falta-${p.id}`}>
+                          <b>{p.nombre}:</b> <span className="answer-tarde">no respondió</span>
+                        </div>
+                      ))}
                 </div>
               </div>
             ))

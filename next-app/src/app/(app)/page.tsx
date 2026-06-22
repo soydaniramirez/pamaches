@@ -6,11 +6,13 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAppData } from '@/context/AppData';
-import { fmtFecha, tiempoJuntos, diasParaFecha } from '@/lib/helpers';
+import { fmtFecha, tiempoJuntos, diasParaFecha, fmtDinero } from '@/lib/helpers';
+import { num } from '@/lib/gastos';
 import { rotarPreguntaSiToca } from '@/lib/capsula';
 import { agendaCatById, diasParaEvento } from '@/lib/agenda';
 import { hoyEnMexico, diaEnMexico } from '@/lib/fechas';
-import type { AgendaEvent } from '@/lib/types';
+import { viajeActivo, diaXdeY, emojiProyecto, colorProyecto } from '@/lib/proyectos';
+import type { AgendaEvent, Proyecto } from '@/lib/types';
 import NotitasSection from '@/components/NotitasSection';
 import Novedades from '@/components/Novedades';
 
@@ -20,6 +22,7 @@ export default function HomePage() {
   const { me, couple, fechas, loading, logout, reload, toast } = useAppData();
   const [pregunta, setPregunta] = useState('cargando...');
   const [eventos, setEventos] = useState<AgendaEvent[]>([]);
+  const [viaje, setViaje] = useState<{ proyecto: Proyecto; gastado: number } | null>(null);
 
   const cargarPregunta = useCallback(async () => {
     // antes de mostrar, revisar si toca rotar (misma función compartida que la cápsula)
@@ -47,10 +50,48 @@ export default function HomePage() {
     setEventos((data as unknown as AgendaEvent[]) ?? []);
   }, [supabase]);
 
+  // viaje activo: solo presentación/lectura. Detecta el viaje en curso (hoy en
+  // hora de México entre fecha_inicio y fecha_fin) y suma sus gastos para la
+  // tarjeta del inicio. NO toca ningún cálculo financiero (aporte/balance/totales).
+  const cargarViaje = useCallback(async () => {
+    const { data: ps } = await supabase
+      .from('proyectos')
+      .select('*')
+      .eq('archivado', false);
+    const activo = viajeActivo((ps as unknown as Proyecto[]) ?? []);
+    if (!activo) {
+      setViaje(null);
+      return;
+    }
+    const { data: gs } = await supabase
+      .from('expenses')
+      .select('monto')
+      .eq('proyecto_id', activo.id);
+    const gastado = (gs ?? []).reduce((s, g) => s + num((g as { monto: number | string }).monto), 0);
+    setViaje({ proyecto: activo, gastado });
+  }, [supabase]);
+
   useEffect(() => {
     void cargarPregunta();
     void cargarEventos();
-  }, [cargarPregunta, cargarEventos]);
+    void cargarViaje();
+  }, [cargarPregunta, cargarEventos, cargarViaje]);
+
+  // realtime: refrescar la tarjeta de viaje cuando cambien proyectos o gastos.
+  useEffect(() => {
+    const channel = supabase
+      .channel('home-viaje')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'proyectos' }, () => {
+        void cargarViaje();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => {
+        void cargarViaje();
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [supabase, cargarViaje]);
 
   // realtime: refrescar el aviso del home cuando cambie la agenda (igual que el
   // index.html, que recargaba EVENTOS_PROX + renderAvisoFecha al cambiar agenda).
@@ -145,6 +186,44 @@ export default function HomePage() {
             </button>
           </div>
         </div>
+
+        {viaje &&
+          (() => {
+            const p = viaje.proyecto;
+            const dxy = diaXdeY(p);
+            const presup = p.presupuesto != null ? num(p.presupuesto) : 0;
+            const pct = presup > 0 ? Math.min(100, (viaje.gastado / presup) * 100) : 0;
+            return (
+              <div
+                className="viaje-activo-card"
+                style={{ background: colorProyecto(p) }}
+                onClick={() => router.push(`/gastos?proyecto=${p.id}`)}
+              >
+                <div className="viaje-activo-top">
+                  <span className="viaje-activo-emoji">{emojiProyecto(p)}</span>
+                  <div className="viaje-activo-info">
+                    <div className="viaje-activo-label">viaje en curso</div>
+                    <div className="viaje-activo-nombre">{p.nombre}</div>
+                    {dxy && (
+                      <div className="viaje-activo-dia">
+                        día {dxy.x} de {dxy.y}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {presup > 0 && (
+                  <>
+                    <div className="cm-bar">
+                      <div className="cm-bar-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="cm-progreso">
+                      {fmtDinero(viaje.gastado)} de {fmtDinero(presup)} de presupuesto
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
 
         <div className="hero-pamache">
           <Image src="/pamache.png" alt="pamaches" width={160} height={160} />

@@ -94,6 +94,8 @@ export interface Proyecto {
   fecha_inicio: string | null;
   fecha_fin: string | null;
   archivado: boolean;
+  emoji: string | null;
+  color: string | null;
   creado?: string;
 }
 

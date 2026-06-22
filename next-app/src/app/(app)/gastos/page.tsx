@@ -1,12 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAppData } from '@/context/AppData';
 import { nombreMes, fmtDinero, fechaCorta, calcularFechaCuota } from '@/lib/helpers';
 import { num, calcAporte, calcSaldoBase, calcSaldadosTotal, sumaPorCat, totalObj } from '@/lib/gastos';
+import {
+  PALETA_PROYECTO,
+  EMOJIS_VIAJE,
+  emojiProyecto,
+  colorProyecto,
+  esViajeActivo,
+  diaXdeY,
+} from '@/lib/proyectos';
 import GastoModal from '@/components/gastos/GastoModal';
 import type {
   CompraMeses,
@@ -30,7 +39,16 @@ function rangoMes(mes: Date): { desde: string; hasta: string } {
 }
 
 export default function GastosPage() {
+  return (
+    <Suspense fallback={null}>
+      <GastosInner />
+    </Suspense>
+  );
+}
+
+function GastosInner() {
   const supabase = createClient();
+  const searchParams = useSearchParams();
   const { me, profiles, subcategorias, cupo, toast } = useAppData();
 
   const [mes, setMes] = useState(() => new Date());
@@ -110,6 +128,20 @@ export default function GastosPage() {
       void supabase.removeChannel(channel);
     };
   }, [supabase, cargar]);
+
+  // deep-link "modo viaje": /gastos?proyecto=<id> abre el detalle de ese proyecto.
+  const [paramHandled, setParamHandled] = useState(false);
+  useEffect(() => {
+    if (paramHandled) return;
+    const id = searchParams.get('proyecto');
+    if (!id || proyectos.length === 0) return;
+    const p = proyectos.find((x) => x.id === id);
+    if (p) {
+      setTab('viajes');
+      setProyectoSel(p);
+    }
+    setParamHandled(true);
+  }, [searchParams, proyectos, paramHandled]);
 
   const cambiarMes = (delta: number) => {
     const d = new Date(mes);
@@ -301,6 +333,8 @@ export default function GastosPage() {
       presupuesto: number | null;
       fecha_inicio: string | null;
       fecha_fin: string | null;
+      emoji: string | null;
+      color: string | null;
     },
     editingId: string | null,
   ) {
@@ -563,6 +597,7 @@ export default function GastosPage() {
                   key={p.id}
                   proyecto={p}
                   total={totalProyecto(p.id)}
+                  activo={esViajeActivo(p)}
                   onOpen={() => setProyectoSel(p)}
                   onEdit={() => setProyectoModal({ open: true, editing: p })}
                   onArchive={() => archivarProyecto(p)}
@@ -587,6 +622,7 @@ export default function GastosPage() {
                         key={p.id}
                         proyecto={p}
                         total={totalProyecto(p.id)}
+                        activo={false}
                         onOpen={() => setProyectoSel(p)}
                         onEdit={() => setProyectoModal({ open: true, editing: p })}
                         onArchive={() => archivarProyecto(p)}
@@ -598,51 +634,69 @@ export default function GastosPage() {
           </div>
         )}
 
-        {/* detalle de un proyecto: sus gastos (todos los meses) */}
-        {tab === 'viajes' && proyectoSel && (
-          <div>
-            <button className="back-btn" onClick={() => setProyectoSel(null)}>
-              ‹ proyectos
-            </button>
-            <div className="cm-card" style={{ marginTop: 8 }}>
-              <div className="cm-top">
-                <div className="cm-concepto">
-                  {proyectoSel.tipo === 'viaje' ? '✈️ ' : ''}
-                  {proyectoSel.nombre}
+        {/* detalle de un proyecto: sus gastos (todos los meses). "Modo viaje" =
+            realce extra solo cuando el proyecto está activo hoy. */}
+        {tab === 'viajes' &&
+          proyectoSel &&
+          (() => {
+            // usa la copia más fresca del proyecto (por si se editó emoji/color/fechas)
+            const p = proyectos.find((x) => x.id === proyectoSel.id) ?? proyectoSel;
+            const total = totalProyecto(p.id);
+            const presup = p.presupuesto != null ? num(p.presupuesto) : 0;
+            const activo = esViajeActivo(p);
+            const dxy = activo ? diaXdeY(p) : null;
+            const restantes = dxy ? dxy.y - dxy.x : 0;
+            return (
+              <div>
+                <button className="back-btn" onClick={() => setProyectoSel(null)}>
+                  ‹ proyectos
+                </button>
+                <div
+                  className={`cm-card${activo ? ' activo' : ''}`}
+                  style={{ marginTop: 8, ...(p.color ? { background: colorProyecto(p) } : {}) }}
+                >
+                  <div className="cm-top">
+                    <div className="cm-concepto">
+                      {emojiProyecto(p)} {p.nombre}
+                      {activo && <span className="viaje-activo-chip">modo viaje</span>}
+                    </div>
+                    <div className="cm-monto">{fmtDinero(total)}</div>
+                  </div>
+                  {activo && dxy && (
+                    <div className="viaje-activo-dia" style={{ marginTop: 4 }}>
+                      día {dxy.x} de {dxy.y}
+                      {restantes > 0 ? ` · quedan ${restantes} días` : ' · último día'}
+                    </div>
+                  )}
+                  {presup > 0 && (
+                    <>
+                      <div className="cm-bar">
+                        <div
+                          className="cm-bar-fill"
+                          style={{ width: `${Math.min(100, (total / presup) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="cm-progreso">
+                        {fmtDinero(total)} de {fmtDinero(presup)} de presupuesto
+                      </div>
+                    </>
+                  )}
                 </div>
-                <div className="cm-monto">{fmtDinero(totalProyecto(proyectoSel.id))}</div>
-              </div>
-              {proyectoSel.presupuesto != null && num(proyectoSel.presupuesto) > 0 && (
-                <>
-                  <div className="cm-bar">
-                    <div
-                      className="cm-bar-fill"
-                      style={{
-                        width: `${Math.min(100, (totalProyecto(proyectoSel.id) / num(proyectoSel.presupuesto)) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="cm-progreso">
-                    {fmtDinero(totalProyecto(proyectoSel.id))} de {fmtDinero(num(proyectoSel.presupuesto))} de
-                    presupuesto
-                  </div>
-                </>
-              )}
-            </div>
 
-            <div className="mov-list">
-              {gastosProyecto.filter((g) => g.proyecto_id === proyectoSel.id).length === 0 ? (
-                <div className="mov-empty">
-                  aún no hay gastos en este proyecto.
-                  <br />
-                  etiquétalos al registrar un gasto con el +
+                <div className="mov-list">
+                  {gastosProyecto.filter((g) => g.proyecto_id === p.id).length === 0 ? (
+                    <div className="mov-empty">
+                      aún no hay gastos en este proyecto.
+                      <br />
+                      etiquétalos al registrar un gasto con el +
+                    </div>
+                  ) : (
+                    listaPorFecha(gastosProyecto.filter((g) => g.proyecto_id === p.id))
+                  )}
                 </div>
-              ) : (
-                listaPorFecha(gastosProyecto.filter((g) => g.proyecto_id === proyectoSel.id))
-              )}
-            </div>
-          </div>
-        )}
+              </div>
+            );
+          })()}
 
         {/* ===== RESUMEN ===== */}
         {tab === 'resumen' && <Resumen gastos={gastos} gastosPrev={gastosPrev} />}
@@ -953,6 +1007,7 @@ function HistorialModal({
 function ProyectoCard({
   proyecto,
   total,
+  activo,
   onOpen,
   onEdit,
   onArchive,
@@ -960,6 +1015,7 @@ function ProyectoCard({
 }: {
   proyecto: Proyecto;
   total: number;
+  activo: boolean;
   onOpen: () => void;
   onEdit: () => void;
   onArchive: () => void;
@@ -968,17 +1024,27 @@ function ProyectoCard({
   const presup = proyecto.presupuesto != null ? num(proyecto.presupuesto) : 0;
   const pct = presup > 0 ? Math.min(100, (total / presup) * 100) : 0;
   const stop = (e: React.MouseEvent) => e.stopPropagation();
+  const dxy = activo ? diaXdeY(proyecto) : null;
   return (
-    <div className="cm-card" style={{ cursor: 'pointer', opacity: proyecto.archivado ? 0.6 : 1 }} onClick={onOpen}>
+    <div
+      className={`cm-card${activo ? ' activo' : ''}`}
+      style={{
+        cursor: 'pointer',
+        opacity: proyecto.archivado ? 0.6 : 1,
+        ...(proyecto.color ? { background: colorProyecto(proyecto) } : {}),
+      }}
+      onClick={onOpen}
+    >
       <div className="cm-top">
         <div className="cm-concepto">
-          {proyecto.tipo === 'viaje' ? '✈️ ' : ''}
-          {proyecto.nombre}
+          {emojiProyecto(proyecto)} {proyecto.nombre}
+          {activo && <span className="viaje-activo-chip">en curso</span>}
         </div>
         <div className="cm-monto">{fmtDinero(total)}</div>
       </div>
       <div className="cm-meta">
         <span className="cm-pill">{proyecto.tipo === 'viaje' ? 'viaje' : 'proyecto'}</span>
+        {activo && dxy ? ` · día ${dxy.x} de ${dxy.y}` : ''}
         {proyecto.archivado ? ' · archivado' : ''}
       </div>
       {presup > 0 && (
@@ -1021,6 +1087,8 @@ function ProyectoModal({
       presupuesto: number | null;
       fecha_inicio: string | null;
       fecha_fin: string | null;
+      emoji: string | null;
+      color: string | null;
     },
     editingId: string | null,
   ) => void;
@@ -1032,6 +1100,8 @@ function ProyectoModal({
   );
   const [fechaInicio, setFechaInicio] = useState(editing?.fecha_inicio ?? '');
   const [fechaFin, setFechaFin] = useState(editing?.fecha_fin ?? '');
+  const [emoji, setEmoji] = useState(editing?.emoji ?? '');
+  const [color, setColor] = useState(editing?.color ?? '');
 
   function submit() {
     if (!nombre.trim()) return;
@@ -1043,6 +1113,8 @@ function ProyectoModal({
         presupuesto: presNum > 0 ? presNum : null,
         fecha_inicio: fechaInicio || null,
         fecha_fin: fechaFin || null,
+        emoji: emoji.trim() || null,
+        color: color || null,
       },
       editing?.id ?? null,
     );
@@ -1079,6 +1151,45 @@ function ProyectoModal({
             >
               proyecto
             </button>
+          </div>
+        </div>
+        <div className="mfield">
+          <div className="mfield-label">emoji (opcional)</div>
+          <div className="emoji-grid">
+            {EMOJIS_VIAJE.map((em) => (
+              <button
+                key={em}
+                type="button"
+                className={`emoji-cell${emoji === em ? ' selected' : ''}`}
+                onClick={() => setEmoji((cur) => (cur === em ? '' : em))}
+              >
+                {em}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            className="input"
+            style={{ marginTop: 8 }}
+            placeholder="o escribe uno 🦝"
+            maxLength={4}
+            value={emoji}
+            onChange={(e) => setEmoji(e.target.value)}
+          />
+        </div>
+        <div className="mfield">
+          <div className="mfield-label">color (opcional)</div>
+          <div className="color-row">
+            {PALETA_PROYECTO.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`color-dot${color === c ? ' selected' : ''}`}
+                style={{ background: c }}
+                aria-label={`color ${c}`}
+                onClick={() => setColor((cur) => (cur === c ? '' : c))}
+              />
+            ))}
           </div>
         </div>
         <div className="mfield">

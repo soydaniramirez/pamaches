@@ -81,6 +81,7 @@ export type Database = {
           creado: string | null
           id: string
           question_id: string
+          tarde: boolean
           texto: string
         }
         Insert: {
@@ -89,6 +90,7 @@ export type Database = {
           creado?: string | null
           id?: string
           question_id: string
+          tarde?: boolean
           texto: string
         }
         Update: {
@@ -97,6 +99,7 @@ export type Database = {
           creado?: string | null
           id?: string
           question_id?: string
+          tarde?: boolean
           texto?: string
         }
         Relationships: [
@@ -877,8 +880,10 @@ export type Database = {
       proyectos: {
         Row: {
           archivado: boolean
+          color: string | null
           couple_id: string
           creado: string | null
+          emoji: string | null
           fecha_fin: string | null
           fecha_inicio: string | null
           id: string
@@ -888,8 +893,10 @@ export type Database = {
         }
         Insert: {
           archivado?: boolean
+          color?: string | null
           couple_id: string
           creado?: string | null
+          emoji?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
@@ -899,8 +906,10 @@ export type Database = {
         }
         Update: {
           archivado?: boolean
+          color?: string | null
           couple_id?: string
           creado?: string | null
+          emoji?: string | null
           fecha_fin?: string | null
           fecha_inicio?: string | null
           id?: string
@@ -920,6 +929,7 @@ export type Database = {
       }
       questions: {
         Row: {
+          abierta: boolean
           categoria: string | null
           couple_id: string
           creado: string | null
@@ -931,6 +941,7 @@ export type Database = {
           usada: boolean | null
         }
         Insert: {
+          abierta?: boolean
           categoria?: string | null
           couple_id: string
           creado?: string | null
@@ -942,6 +953,7 @@ export type Database = {
           usada?: boolean | null
         }
         Update: {
+          abierta?: boolean
           categoria?: string | null
           couple_id?: string
           creado?: string | null

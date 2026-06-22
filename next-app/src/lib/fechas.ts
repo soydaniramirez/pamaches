@@ -41,3 +41,14 @@ export function diaEnMexico(offsetDias: number): string {
   base.setUTCDate(base.getUTCDate() + offsetDias);
   return fmt.format(base);
 }
+
+/**
+ * Días enteros entre dos fechas 'YYYY-MM-DD' (hasta − desde). Es una diferencia
+ * de CALENDARIO pura: ambas se anclan a medianoche UTC solo para restar, así que
+ * no hay huso ni DST en juego (no es "ahora en UTC"). `diasEntreFechas(d,d)` = 0.
+ */
+export function diasEntreFechas(desde: string, hasta: string): number {
+  const [ay, am, ad] = desde.split('-').map(Number);
+  const [by, bm, bd] = hasta.split('-').map(Number);
+  return Math.round((Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)) / 86400000);
+}
