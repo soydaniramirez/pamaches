@@ -128,7 +128,7 @@ next-app/
 | agenda | `/agenda` | ✅ Portada (eventos, próximos/pasados, CRUD) |
 | spicy | `/spicy` | ✅ Hub (4 tarjetas) |
 | spicy-ruleta | `/spicy/ruleta` | ✅ Portada (lista compartida + giro al azar) |
-| spicy-deseos | `/spicy/deseos` | ⬜ Placeholder (pendiente — gating a ciegas) |
+| spicy-deseos | `/spicy/deseos` | ✅ Portada (gating a ciegas, seguro) |
 | spicy-termometro | `/spicy/termometro` | ✅ Portada (ventana 12h + aviso) |
 | spicy-cartas | `/spicy/cartas` | ✅ Portada (molde de notitas) |
 
@@ -156,7 +156,7 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
 | **Tareas/hogar** | `tasks`, `meals`, `super` | cargarTareas ✅, recurrentes ✅, renderMenu ✅, renderSuper ✅ |
 | **Fechas importantes** | `fechas` | cargarFechas ✅, renderAvisoFecha (parcial ✅) |
 | **Agenda** | `agenda` | cargarAgenda ✅, CRUD ✅ (cargarEventosProximos para aviso del home: pendiente) |
-| **Spicy** | `spicy_cartas`, `spicy_retos`, `spicy_termometro` ✅ · `spicy_deseos` (pendiente) | cartas ✅, ruleta ✅, termómetro ✅; deseos (gating) pendiente |
+| **Spicy** | `spicy_cartas`, `spicy_retos`, `spicy_termometro`, `spicy_deseos` | cartas ✅, ruleta ✅, termómetro ✅, deseos ✅ (gating seguro) |
 
 ---
 
@@ -246,10 +246,11 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
   tareas con recurrentes/rotación, menú por bloques y semana, súper) y **agenda**
   (eventos próximos/pasados con archivo, CRUD, categorías). Placeholder `/spicy`.
   anon = 0 filas; autenticado solo su pareja.
-- ✅ **Spicy — hub + cartas + ruleta + termómetro**: hub `/spicy` (4 tarjetas);
-  cartas (molde de notitas), ruleta de retos (lista compartida + giro al azar),
-  termómetro de ganas (ventana 12h absoluta + novedad). Placeholder `/spicy/deseos`.
-  anon = 0 filas; autenticado solo su pareja.
+- ✅ **Spicy COMPLETO**: hub `/spicy` + cartas (molde de notitas) + ruleta de retos
+  (lista compartida + giro al azar) + termómetro de ganas (ventana 12h absoluta +
+  novedad) + **deseos** (gating a ciegas seguro: los del otro no se consultan hasta
+  tener ≥1 propio). anon = 0 filas; autenticado solo su pareja.
+- 🎉 **CONTENIDO DE LA APP COMPLETO** — todas las pantallas del index.html portadas.
 - ✅ Stubs navegables para el resto de pantallas.
 - ✅ `npm run build` y `tsc --noEmit` pasan sin errores.
 
@@ -265,10 +266,14 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
    - ✅ ~~Grupo 3: **raros**~~ (hecho).
    - ✅ ~~Grupo 2: **futuro**~~ (hecho).
    - ✅ ~~Grupo 4: **cápsula de preguntas**~~ (hecho). **→ BLOQUE NOSOTROS COMPLETO.**
-7. ✅ ~~Portar **tareas/agenda**~~ (hecho). **Spicy**: hub + cartas + ruleta +
-   termómetro ✅; falta **deseos** (aparte, por su gating a ciegas).
+7. ✅ ~~Portar **tareas/agenda** y **spicy** (hub + cartas + ruleta + termómetro +
+   deseos)~~ (hecho). **→ CONTENIDO DE LA APP COMPLETO.**
+## Cierre técnico (lo único que queda)
 8. Generar tipos reales: `supabase gen types typescript` → `database.types.ts`.
 9. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
+10. Repaso de completitud del **home** (p. ej. `cargarEventosProximos` para el aviso
+    de agenda en el home, que quedó pendiente).
+11. Resolver los **bugs UTC parqueados** (raros / cápsula / tareas-menú).
 
 ### Tareas técnicas pendientes (aparte)
 - 🅿️ **Bugs de fecha en UTC (parqueados, NO tocados — son parte del 1:1):**
