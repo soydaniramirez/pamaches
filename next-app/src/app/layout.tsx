@@ -6,13 +6,22 @@ export const metadata: Metadata = {
   description: 'nuestro espacio',
   applicationName: 'pamaches',
   icons: {
-    icon: '/pamache.png',
-    apple: '/pamache-icon.png',
+    icon: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
   appleWebApp: {
     capable: true,
     title: 'pamaches',
     statusBarStyle: 'default',
+  },
+  // Next 15 emite el moderno `mobile-web-app-capable`; añadimos también el
+  // prefijo apple (deprecado pero necesario para standalone en iOS antiguos),
+  // igual que el index.html original.
+  other: {
+    'apple-mobile-web-app-capable': 'yes',
   },
 };
 

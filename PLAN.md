@@ -288,9 +288,17 @@ módulo (`lib/<feature>.ts` con queries + tipos) y su(s) pantalla(s).
    realtime de `agenda`. El resto del home (notitas, campanita, pregunta de la
    semana, hero, fecha-aviso de fechas, mini-cards) ya estaba portado; `card-gastos-meta`
    es estático también en el HTML (no se actualiza por JS).
-10. PWA: `manifest`, íconos e instalación (la original era apple-web-app capable).
-11. Resolver los **bugs UTC parqueados** (raros / cápsula / tareas-menú / eventos del
-    home) — **inventario entregado 2026-06-22, pendiente de aplicar tras revisión**.
+10. PWA:
+    - ✅ ~~**manifest + íconos + instalación**~~ (hecho 2026-06-22). `app/manifest.ts`
+      (name/short_name/theme #FFF1F1/display standalone/start_url/scope) servido en
+      `/manifest.webmanifest` y enlazado automático; íconos 192/512/maskable + apple
+      touch 180 generados con `sharp` desde `pamache-icon.png` (en `public/icons/`);
+      tags iOS (apple-mobile-web-app-capable + mobile-web-app-capable, title,
+      status-bar). Instalable sin service worker. tsc + build OK.
+    - 🅿️ **service worker → propuesta entregada, PENDIENTE de OK** (Fase B). Enfoque:
+      probablemente NINGÚN SW (la instalación no lo exige y la app es data en vivo de
+      Supabase + realtime; un SW cacheando rompería la frescura). Ver propuesta.
+11. ✅ ~~Resolver los **bugs UTC**~~ (hecho 2026-06-22, ver más abajo).
 
 ### Tareas técnicas pendientes (aparte)
 - ✅ ~~**Bugs de fecha en UTC**~~ (resuelto 2026-06-22). Util `lib/fechas.ts`
